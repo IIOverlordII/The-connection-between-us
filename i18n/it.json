@@ -1,0 +1,3008 @@
+{
+  "meta": {
+    "lang": "it",
+    "name": "Italiano"
+  },
+  "ui": {
+    "app": "Between Us",
+    "tagline": "Test di personalità e compatibilità",
+    "nav_home": "Home",
+    "nav_compare": "Confronto",
+    "nav_game": "Gioco",
+    "nav_theory": "Teoria",
+    "nav_settings": "Impostazioni",
+    "side_foot": "Le risposte restano solo su questo dispositivo.",
+    "language": "Lingua",
+    "copied": "Copiato",
+    "copy_fail": "Impossibile copiare: seleziona il testo a mano",
+    "q_count": {
+      "one": "{n} domanda",
+      "many": "{n} domande",
+      "other": "{n} domande"
+    },
+    "about_min": "circa {n} min",
+    "back": "Indietro",
+    "next": "Avanti",
+    "start": "Inizia",
+    "continue": "Continua",
+    "skip": "Salta",
+    "done": "Fatto",
+    "add": "Aggiungi",
+    "copy": "Copia",
+    "send": "Invia…",
+    "share": "Condividi",
+    "compare": "Confronta",
+    "delete": "Elimina",
+    "more": "Scopri di più",
+    "link": "Link",
+    "code": "Codice",
+    "no_name": "Senza nome",
+    "name": "Nome",
+    "name_ph": "Per esempio, Giulia",
+    "enter_name": "Inserisci un nome",
+    "of": "{a} di {b}",
+    "lvl_vhi": "molto alto",
+    "lvl_hi": "alto",
+    "lvl_mid": "medio",
+    "lvl_lo": "basso",
+    "lvl_vlo": "molto basso",
+    "ax_intro": "introversione",
+    "ax_extra": "estroversione",
+    "ax_stable": "stabilità emotiva",
+    "ax_sensitive": "sensibilità emotiva",
+    "ax_close": "vicinanza serena",
+    "ax_distance": "distanza",
+    "ax_calm": "serenità nelle relazioni",
+    "ax_anxious": "ansia nelle relazioni",
+    "aria_temp": "Mappa del temperamento",
+    "aria_att": "Mappa dell'attaccamento",
+    "aria_values": "Cerchio dei valori",
+    "home_sub": "Scopri il tuo carattere, il temperamento, lo stile di attaccamento, i valori e il modo di pensare, e confrontati con la persona che ami, con gli amici o con il team.",
+    "new_person": "Nuova persona",
+    "compare_all": "Confronta tutti",
+    "participants": "Partecipanti",
+    "add_by_code": "Aggiungi con codice o link",
+    "in_progress": "in corso {a}/{b}",
+    "by_code": "da codice",
+    "not_started": "da iniziare",
+    "how_title": "Come funziona",
+    "how1_b": "Ognuno fa il test",
+    "how1": "— a turno su questo dispositivo o sul proprio telefono. Il test completo dura circa 15 minuti, quello rapido 6.",
+    "how2_b": "Riceve un profilo:",
+    "how2": "Big Five, 16 tipi, temperamento, attaccamento, valori, morale, modo di pensare, stile nei conflitti e ruolo nel team.",
+    "how3_b": "Confronta:",
+    "how3": "compatibilità e somiglianza di una coppia, di amici o di un team, punti di forza, zone di attrito e consigli.",
+    "how_note": "Puoi condividere il risultato con un link o un codice. Le risposte non vengono inviate da nessuna parte: tutto resta sul dispositivo.",
+    "color": "Colore",
+    "color_n": "Colore {n}",
+    "what_take": "Cosa includere",
+    "preset_full": "Completo",
+    "preset_quick": "Rapido",
+    "preset_custom": "Su misura",
+    "start_test": "Inizia il test",
+    "honest_note": "Non ci sono risposte giuste o sbagliate. Rispondi con sincerità: così il risultato sarà più preciso.",
+    "block_of": "Blocco {a} di {b}",
+    "keys_hint": "Suggerimento: tasti {k1}–{k5} per rispondere, {left} per tornare indietro.",
+    "L_E": "estroversione",
+    "L_I": "introversione",
+    "L_N": "intuizione (idee)",
+    "L_S": "sensazione (fatti)",
+    "L_F": "sentimento (valori)",
+    "L_T": "pensiero (logica)",
+    "L_J": "giudizio (piano)",
+    "L_P": "percezione (flessibilità)",
+    "chip_att": "Attaccamento: {x}",
+    "chip_role": "Ruolo: {x}",
+    "big5_title": "Carattere: Big Five",
+    "hon_alt": "sesto fattore HEXACO",
+    "scale_note": "Scala 0–100: posizione indicativa rispetto alla persona media. 50 è il livello tipico, 80 significa più alto di circa l'80% delle persone. Le norme sono indicative.",
+    "type_title": "Tipo di personalità: 16 tipi",
+    "strengths": "Punti di forza",
+    "growth": "Aree di crescita",
+    "weak_letters": "Poco marcate: {letters}. Potrebbero descriverti anche i tipi vicini: {types}.",
+    "type_note": "Il codice è calcolato dai Big Five secondo le corrispondenze trovate da McCrae e Costa (1989). Non è l'MBTI® ufficiale.",
+    "why_types": "Perché i tipi sono una semplificazione",
+    "temp_title": "Temperamento",
+    "temp_mixed": "Il tuo profilo si colloca vicino al centro del cerchio: i tratti sono moderati e si notano anche quelli del tipo vicino: {x}.",
+    "temp_second": "Secondo tipo più vicino: {x}.",
+    "temp_note": "Secondo Eysenck: in orizzontale l'estroversione, in verticale il nevroticismo.",
+    "att_title": "Attaccamento nelle relazioni affettive",
+    "att_style": "Stile {x}",
+    "att_note": "Lo stile di attaccamento non è una condanna: cambia con l'esperienza di relazioni sicure.",
+    "val_title": "Valori",
+    "val_top": "Valori principali",
+    "val_oc_hi": "Ti attirano più il cambiamento, la libertà e le novità che la stabilità.",
+    "val_oc_lo": "Stabilità, ordine e tradizioni contano per te più del cambiamento.",
+    "val_oc_mid": "Mantieni un equilibrio tra il desiderio di novità e la stabilità.",
+    "val_st_hi": "In questo momento al primo posto ci sono gli obiettivi personali: successo e influenza.",
+    "val_st_lo": "La cura delle persone e la giustizia contano per te più dello status personale.",
+    "val_st_mid": "Mantieni un equilibrio tra obiettivi personali e cura degli altri.",
+    "val_note": "È indicato l'ordine delle priorità: ogni valore rispetto al tuo livello medio (teoria di Schwartz).",
+    "mor_title": "Morale",
+    "mor_bind": "La tua morale poggia sia sulla cura e sull'equità, sia sui fondamenti «vincolanti»: lealtà, autorità e purezza. Secondo Haidt, questo profilo è più comune tra le persone con visioni tradizionali.",
+    "mor_ind": "La tua morale poggia soprattutto sulla cura e sull'equità, mentre lealtà, autorità e purezza per te sono secondarie. Secondo Haidt, questo profilo è più comune tra le persone con visioni liberali.",
+    "mor_link": "La teoria dei fondamenti morali",
+    "mind_title": "Pensiero e percezione",
+    "chrono_label": "Cronotipo:",
+    "mind_link": "Tipi di pensiero e funzionamento della mente",
+    "conf_title": "Nei conflitti",
+    "conf_lead": "Stile principale: {x}",
+    "conf_second": "Al secondo posto: {x}.",
+    "risk_low": "Schemi distruttivi: livello basso.",
+    "risk_mid": "Schemi distruttivi: livello moderato.",
+    "risk_high": "Schemi distruttivi: livello alto.",
+    "risk_ok_text": "Nei litigi passi raramente agli attacchi personali: un'ottima base.",
+    "risk_bad_text": "Critiche alla persona, atteggiamento difensivo, sarcasmo e «muro»: secondo Gottman sono i segnali che più annunciano una rottura. Gli antidoti: iniziare il discorso con delicatezza, riconoscere la propria parte di responsabilità, esprimere gratitudine e fare una pausa di 20 minuti se le emozioni salgono troppo.",
+    "conf_link": "Stili di conflitto e i «quattro cavalieri»",
+    "care_title": "Come percepisci l'affetto",
+    "care_please": "Per farti felice:",
+    "care_line": "{a}; e anche {b}.",
+    "care_note": "Le basi scientifiche dei «linguaggi dell'amore» sono deboli: è uno spunto, non una diagnosi.",
+    "roles_title": "Ruolo nel team",
+    "roles_line": "{a} — {ad}. Secondo ruolo forte: {b} — {bd}.",
+    "roles_note": "I ruoli derivano dai tratti di carattere e dal modo di pensare.",
+    "done_title": "Fatto!",
+    "done_saved": "Profilo salvato.",
+    "done_can_compare": "Ora puoi confrontarti con le altre persone.",
+    "next_person": "Prossima persona",
+    "unfinished": "Ci sono blocchi non completati.",
+    "continue_test": "Continua il test",
+    "compare_with": "Confronta con…",
+    "manage": "Gestisci",
+    "missing_blocks": "Blocchi non completati: {list}. Completandoli, la compatibilità sarà più precisa.",
+    "take_missing": "Completa i blocchi mancanti ({q})",
+    "rename": "Rinomina",
+    "retake": "Rifai il test",
+    "report_note": "I risultati di un'autovalutazione non sono una diagnosi medica o psichiatrica. Le risposte cambiano con l'umore e le circostanze: col tempo conviene rifare il test.",
+    "compare_x_with": "Confronta {name} con…",
+    "compare_with_all": "Confronta con tutti",
+    "new_name": "Nuovo nome",
+    "retake_confirm": "Rifare il test? Le risposte attuali ({name}) verranno eliminate.",
+    "delete_confirm": "Eliminare «{name}» e tutte le sue risposte?",
+    "share_result": "Condividi il risultato",
+    "share_group": "Condividi il gruppo",
+    "share_hint_link": "Invia il link o il codice alla persona con cui vuoi confrontarti: nell'app, «Home → Aggiungi con codice o link». Il codice contiene solo le risposte e il nome, senza altri dati personali.",
+    "share_hint_code": "Invia il codice alla persona con cui vuoi confrontarti: nell'app, «Home → Aggiungi con codice o link». Il codice contiene solo le risposte e il nome, senza altri dati personali.",
+    "all_codes": "Codici dei partecipanti",
+    "share_text": "Il mio profilo: {name}",
+    "import_hint": "Incolla il link o il codice che un'altra persona ha condiviso con te, oppure il link di una partita. Puoi inserire più profili, uno per riga.",
+    "import_ph": "Giulia: AQKHf3…",
+    "game_code_bad": "Il codice della partita è danneggiato: controlla di averlo copiato per intero",
+    "code_bad": "Il codice è danneggiato: controlla di averlo copiato per intero",
+    "code_none": "Codice non trovato",
+    "imp_added": "Aggiunti: {n}",
+    "imp_dup": "già presenti: {n}",
+    "imp_bad": "errori: {n}",
+    "add_person": "Aggiungi una persona",
+    "link_broken": "Il link è danneggiato o scaduto. Chiedi di inviartelo di nuovo.",
+    "to_home": "Torna alla home",
+    "sent_profile": "Ti hanno inviato un profilo",
+    "blocks_n": "blocchi: {a} di {b}",
+    "exists": "Questo profilo è già sul dispositivo:",
+    "add_to_people": "Aggiungi ai partecipanti",
+    "then_take": "Poi fai il test anche tu e confrontate i risultati.",
+    "ctx_love": "Coppia",
+    "ctx_friends": "Amicizia",
+    "ctx_work": "Lavoro",
+    "for_love": "in coppia",
+    "for_friends": "come amici",
+    "for_work": "al lavoro",
+    "need_two": "Per il confronto servono almeno due persone che abbiano fatto il test.",
+    "add_by_code_short": "Aggiungi con codice",
+    "context": "Contesto",
+    "context_colon": "Contesto:",
+    "ctx_hint": "Il contesto cambia ciò che conta di più: in coppia l'attaccamento e i conflitti, nell'amicizia la somiglianza, al lavoro l'affidabilità e i ruoli.",
+    "who": "Chi confrontiamo",
+    "cmp_pair": "Confronta la coppia",
+    "cmp_group": "Confronta il gruppo ({n})",
+    "pick_two": "Scegli almeno due persone",
+    "share_all": "Condividi tutto il gruppo",
+    "ring_compat": "Compatibilità {ctx}",
+    "similarity": "Somiglianza",
+    "compatibility": "Compatibilità",
+    "compat_verdict": "Compatibilità {label} {ctx}.",
+    "sim_expl": "La somiglianza indica quanto vi somigliate. La compatibilità considera anche ciò che aiuta una relazione a prescindere dalla somiglianza.",
+    "parts_title": "Da cosa dipende",
+    "weight": "peso {n}%",
+    "missing_both": "Esclusi i blocchi non completati da entrambe le persone: {list}.",
+    "frictions": "Zone di attrito",
+    "tips": "Consigli",
+    "brief": "Ognuno in breve",
+    "row_type": "Tipo (16)",
+    "row_temp": "Temperamento",
+    "row_att": "Attaccamento",
+    "row_vals": "Valori principali",
+    "row_mind": "Pensiero",
+    "row_chrono": "Cronotipo",
+    "row_conf": "Stile nei conflitti",
+    "row_care": "Affetto",
+    "row_role": "Ruolo",
+    "side_by_side": "Caratteri a confronto",
+    "aspects10": "10 aspetti",
+    "temp_att": "Temperamento e attaccamento",
+    "pair_note": "Qui la compatibilità è uno spunto per parlarne, non una sentenza. Le ricerche mostrano che la felicità di una coppia dipende più da come vi trattate che dalla somiglianza dei tratti.",
+    "science": "Cosa dice la scienza",
+    "group_n": "Gruppo ({n})",
+    "matrix": "Matrice",
+    "matrix_note": "Tocca un numero per aprire il report dettagliato della coppia.",
+    "hl_best": "La coppia più armoniosa",
+    "hl_sim": "La coppia più simile",
+    "hl_diff": "La coppia più diversa",
+    "compat_n": "compatibilità {n}%",
+    "sim_n": "somiglianza {n}%",
+    "portrait": "Ritratto del gruppo",
+    "balanced": "Un gruppo equilibrato, senza squilibri evidenti.",
+    "team_roles": "Ruoli nel team",
+    "roles_best_note": "Per ogni ruolo è indicata la persona più adatta.",
+    "members": "Partecipanti",
+    "group_note": "È uno spunto per parlarne, non una sentenza.",
+    "science_compat": "Cosa dice la scienza sulla compatibilità",
+    "game_title": "Chi conosce meglio l'altra persona?",
+    "g_hero_sub": "{n} domande sulla vita: vacanze, soldi, casa, amore, sogni. Ognuno risponde per sé e prova a indovinare la scelta dell'altra persona; poi scoprite chi ha indovinato di più e su cosa siete in sintonia.",
+    "g_new": "Nuova partita",
+    "g_yours": "Le tue partite",
+    "g_open": "Apri il link o il codice di una partita",
+    "g_pair": "{a} e {b}",
+    "g_waiting": "in attesa di {name}",
+    "g_how": "Come si gioca",
+    "g_how1_b": "Su un solo dispositivo:",
+    "g_how1": "prima risponde una persona, per sé e per l'altra, poi passa il telefono alla seconda.",
+    "g_how2_b": "Su dispositivi diversi:",
+    "g_how2": "rispondi tu e invia il link. L'altra persona risponderà alle stesse domande e ti rimanderà un link con il risultato.",
+    "g_how3_b": "Il risultato:",
+    "g_how3": "quante risposte ha indovinato ciascuno, dove i gusti coincidono e di cosa vale la pena parlare: le domande in cui nessuno ha indovinato.",
+    "g_first": "Chi inizia",
+    "g_partner": "Partner",
+    "g_partner_ph": "Per esempio, Marco",
+    "g_mode": "Come giochiamo",
+    "g_local": "Su un solo dispositivo",
+    "g_invite": "Con un link",
+    "g_count": "Domande",
+    "g_topics": "Temi",
+    "g_all_topics": "Tutti i temi",
+    "g_need_first": "Inserisci il nome di chi inizia",
+    "g_need_partner": "Inserisci il nome dell'altra persona",
+    "g_names_differ": "I nomi devono essere diversi",
+    "g_need_topic": "Scegli almeno un tema",
+    "g_handoff_t": "Passa il dispositivo a {name}",
+    "g_handoff": "{name}, niente sbirciate! Le risposte restano nascoste fino alla fine della partita.",
+    "g_join_t": "{name}, tocca a te",
+    "g_join": "{name} ha già risposto a queste domande. Rispondi per te e prova a indovinare cosa sceglierà {name}.",
+    "g_start_t": "{name}, si comincia",
+    "g_start": "Per ogni domanda dai due risposte: la tua scelta e la tua ipotesi su cosa sceglierà {name}.",
+    "g_start_local": "{name}, niente sbirciate!",
+    "g_start_invite": "Poi invierai il link e l'altra persona risponderà alle stesse domande.",
+    "g_iam": "Sono {name}: iniziamo",
+    "g_answer_all": "Rispondi a tutte le domande",
+    "g_your_choice": "{name}, la tua scelta",
+    "g_guess": "E cosa sceglierà {name}?",
+    "g_share_hint_link": "Invia il link all'altra persona. Le risposte sono cifrate nel link: non serve nessun server.",
+    "g_share_hint_code": "Invia il codice all'altra persona: nell'app, «Gioco → Apri il link o il codice di una partita». Le risposte sono cifrate nel codice: non serve nessun server.",
+    "g_code_prefix": "Gioco",
+    "g_share_res": "Il risultato della nostra partita",
+    "g_share_inv": "Indovina le mie scelte! Vediamo chi conosce meglio l'altra persona.",
+    "g_wait_t": "In attesa delle risposte di {name}",
+    "g_wait": "Invia l'invito. Quando l'altra persona avrà risposto, ti rimanderà un link con il risultato: aprilo e qui comparirà l'esito.",
+    "g_send_inv": "Invia l'invito",
+    "g_paste": "Incolla la risposta dell'altra persona",
+    "g_invite_title": "Invita a giocare",
+    "g_draw": "Pareggio: vi conoscete ugualmente bene",
+    "g_winner": "Conosce meglio l'altra persona: {name}",
+    "g_choice": "scelta: {x}",
+    "g_guess_l": "ipotesi: {x}",
+    "g_guesses": "{name}: ipotesi giuste",
+    "g_same": "gusti uguali in {a} domande su {b} ({p}%)",
+    "g_score": "{name}: {a} su {b} indovinate",
+    "g_rematch": "Rivincita con nuove domande",
+    "g_send_res": "Invia il risultato all'altra persona",
+    "g_send_back": "Rimanda il risultato: così anche {name} vedrà l'esito.",
+    "g_by_topic": "Per tema",
+    "g_topic": "Tema",
+    "g_guessed": "indovinate",
+    "g_matched": "In comune",
+    "g_talk": "Di cosa parlare",
+    "g_talk_hint": "Qui nessuno ha indovinato: è la parte più interessante per conoscervi meglio.",
+    "g_all_answers": "Tutte le risposte",
+    "g_f_all": "Tutte",
+    "g_f_miss": "Errori",
+    "g_f_eq": "In comune",
+    "g_eq_badge": "in comune",
+    "g_none": "Nessuna risposta di questo tipo.",
+    "g_delete": "Elimina la partita",
+    "g_delete_confirm": "Eliminare questa partita?",
+    "g_send_result": "Invia il risultato",
+    "g_share_result": "Condividi il risultato",
+    "g_open_bad": "Il link della partita è danneggiato o è stato creato con una versione più recente dell'app. Chiedi di inviartelo di nuovo.",
+    "g_to_games": "Torna alle partite",
+    "g_invites": "{name} ti invita a giocare",
+    "g_invite_text": "«{title}» — {q} sulla vita. Rispondi per te e prova a indovinare cosa sceglierà {name}. Le risposte dell'altra persona si vedranno alla fine.",
+    "g_your_name": "Il tuo nome",
+    "g_play": "Gioca",
+    "g_card_t": "Chi conosce meglio l'altra persona",
+    "g_last": "Ultima partita:",
+    "g_card_draw": "pareggio",
+    "g_card_win": "conosce meglio l'altra persona: {name}",
+    "g_card_same": "gusti in comune al {p}%.",
+    "g_total": "Partite in totale: {n}.",
+    "g_result": "Risultato",
+    "g_again": "Gioca ancora",
+    "g_try": "Mettetevi alla prova: {n} domande sulla vita. Ognuno risponde per sé e prova a indovinare la scelta dell'altra persona.",
+    "g_play_btn": "Gioca",
+    "theory_intro": "Su cosa si basa il test: i modelli della psicologia della personalità, cosa ne dice la ricerca e quali libri leggere.",
+    "ev3": "solide basi scientifiche",
+    "ev2": "basi scientifiche moderate",
+    "ev1": "basi scientifiche deboli",
+    "in_app": "Nell'app:",
+    "books": "Libri e studi",
+    "theme": "Tema",
+    "theme_auto": "Auto",
+    "theme_light": "Chiaro",
+    "theme_dark": "Scuro",
+    "font": "Dimensione del testo",
+    "data": "Dati",
+    "data_text": "Tutte le risposte restano solo su questo dispositivo. Per trasferire i partecipanti su un altro dispositivo, copia i loro codici e incollali lì con «Aggiungi con codice».",
+    "all_codes_btn": "Codici dei partecipanti",
+    "delete_all": "Elimina tutti",
+    "delete_all_confirm": "Eliminare tutti i partecipanti e tutte le risposte?",
+    "install": "Installazione",
+    "site": "Sito:",
+    "inst_ios": "iPhone/iPad: apri il sito in Safari → «Condividi» → «Aggiungi alla schermata Home». Dopo il primo avvio funziona anche senza internet.",
+    "inst_android": "Android: Chrome → menu → «Installa app».",
+    "inst_windows": "Windows: {link} oppure Edge/Chrome → menu → «App» → «Installa».",
+    "install_btn": "Installa l'app",
+    "about": "Informazioni",
+    "about_text": "{n} domande in {m} blocchi del test e {g} domande nel gioco «{game}». Le domande sui tratti di personalità sono adattate dall'archivio aperto International Personality Item Pool (di pubblico dominio); le altre sono state scritte per questa app a partire dalle descrizioni dei modelli scientifici (vedi «Teoria»).",
+    "about_disclaimer": "I risultati sono un'autodescrizione, non una diagnosi. Se il tuo stato emotivo ti preoccupa, rivolgiti a uno psicologo o a uno psicoterapeuta."
+  },
+  "eng": {
+    "quote": "«{x}»",
+    "sep": ", ",
+    "and": " e ",
+    "parts": {
+      "char": "Somiglianza di carattere",
+      "val": "Valori comuni",
+      "mor": "Visione morale",
+      "mind": "Stile di pensiero e bioritmo",
+      "assets": "Risorse personali",
+      "attach": "Attaccamento",
+      "conf": "Comportamento nei conflitti",
+      "care": "Linguaggi dell'affetto",
+      "dom": "Equilibrio nella leadership",
+      "roles": "Complementarità dei ruoli"
+    },
+    "hints": {
+      "char": "quanto si somigliano i 10 aspetti della personalità e l'onestà",
+      "val": "se le priorità di vita coincidono: secondo le ricerche conta più della somiglianza di carattere",
+      "mor": "quanto si somiglia il vostro senso di ciò che è «giusto»",
+      "mind": "analisi o intuito, bisogno di certezze, allodola o gufo",
+      "assets": "stabilità emotiva, gradevolezza, coscienziosità e onestà di ogni persona: i predittori più forti della soddisfazione",
+      "attach": "sicurezza dell'attaccamento di entrambe le persone e trappole di certe combinazioni",
+      "conf": "collaborazione, combinazioni di stili rischiose e i «quattro cavalieri» di Gottman",
+      "care": "se percepite l'affetto in modo simile",
+      "dom": "se ci sarà una lotta per la leadership o, al contrario, un vuoto decisionale",
+      "roles": "se insieme coprite i ruoli chiave nel lavoro"
+    },
+    "labels": {
+      "great": "eccellente",
+      "good": "buona",
+      "fair": "moderata",
+      "hard": "difficile"
+    },
+    "ins": {
+      "e_gap": "{h} si ricarica tra la gente e nell'azione, {l} nel silenzio e nella solitudine. Trovate un equilibrio: alternate le uscite insieme a momenti per ricaricarvi.",
+      "e_hi": "Vi piacciono la compagnia e l'azione: insieme vi trovate bene tra amici, in viaggio e conoscendo gente nuova.",
+      "e_lo": "Apprezzate la calma e una cerchia ristretta: vi sentite a vostro agio in due, senza troppa confusione.",
+      "n_hi": "Vivete lo stress in modo intenso e nei periodi difficili potete «destabilizzarvi» a vicenda. Accordatevi in anticipo sulle pause durante i litigi e sul tipo di sostegno che vi serve.",
+      "n_gap": "{l} è un punto di riferimento calmo nelle situazioni di stress, {h} porta profondità emotiva e sensibilità ai rischi.",
+      "n_gap_tip": "{l}, non sminuire le emozioni dell'altra persona con un «non farne un dramma»: chiedi piuttosto come puoi aiutare.",
+      "n_lo": "Avete una buona stabilità emotiva: affrontate le crisi senza drammi inutili.",
+      "a_hi": "Sapete essere gentili e cedere quando serve: i conflitti seri saranno pochi.",
+      "a_lo": "Andate dritto al punto e non amate cedere: le discussioni possono essere dure. Una regola: criticate il comportamento, non la persona.",
+      "com_gap": "{h} si aspetta partecipazione emotiva, mentre {l} offrirà più facilmente una soluzione che comprensione.",
+      "com_tip": "{l}, quando l'altra persona sta male, a volte basta ascoltare e dire «ti capisco».",
+      "ord_gap_work": "{h} tiene a ordine e scadenze, {l} lavora in modo flessibile e «a ispirazione». Mettete per iscritto accordi e scadenze.",
+      "ord_gap": "Un rapporto diverso con l'ordine: {h} ama struttura e programmi, {l} libertà e improvvisazione. È un motivo frequente di litigi domestici: dividetevi in anticipo le responsabilità.",
+      "c_hi": "Affidabilità e organizzazione non vi mancano: piani e promesse vengono rispettati.",
+      "c_lo": "L'organizzazione non è il vostro forte: routine e scadenze possono restare «in sospeso». Aiutano un calendario condiviso e i promemoria.",
+      "o_gap": "{h} cerca il nuovo (idee, luoghi, esperimenti), {l} apprezza ciò che è familiare e collaudato. Alternate le novità a ciò che amate.",
+      "o_hi": "Idee e novità vi appassionano: gli argomenti di conversazione non mancheranno.",
+      "ass_hi_work": "Due leader, con l'abitudine di decidere in autonomia. Definite con chiarezza le aree di responsabilità e chi ha l'ultima parola.",
+      "ass_hi": "Due leader, con l'abitudine di decidere. Dividetevi gli ambiti decisionali, altrimenti la lotta per il comando è inevitabile.",
+      "ass_lo": "Prendere l'iniziativa non vi viene spontaneo: le decisioni rischiano di slittare. Stabilite chi si occupa di cosa.",
+      "ass_gap": "{h} prende volentieri l'iniziativa, {l} non lotta per la leadership: i ruoli si distribuiscono in modo naturale.",
+      "ass_tip": "{h}, chiedi più spesso il parere dell'altra persona, anche quando non insiste.",
+      "hon_gap": "{h} apprezza molto la franchezza e la modestia, {l} ha un approccio più pragmatico e pensa di più allo status. Parlate di cosa intendete per «gioco pulito».",
+      "hon_hi": "Date grande valore all'onestà: è la base della fiducia.",
+      "val_shared": "Valori principali in comune: {list}. Una base solida per obiettivi condivisi.",
+      "val_oc": "{h} cerca cambiamento e libertà, {l} stabilità e ordine. Su questo si discute spesso di soldi, traslochi, lavoro ed educazione dei figli.",
+      "val_st": "Motivazioni diverse. {h}: al primo posto successo e influenza. {l}: contano di più la cura delle persone e la giustizia. Rispettate le reciproche motivazioni.",
+      "mor_gap": "«Impostazioni» morali diverse. {h}: contano tradizioni, lealtà e rispetto per l'autorità. {l}: al primo posto libertà personale, cura ed equità. Politica e religione possono essere temi caldi: accordatevi per discuterne con rispetto.",
+      "mor_sim": "Un senso simile di ciò che è «giusto»: nelle questioni controverse vi trovate più spesso dalla stessa parte.",
+      "think": "Decidete in modo diverso: {h} con l'analisi, {l} con l'intuito. Insieme formate una squadra forte: l'intuito propone, l'analisi verifica.",
+      "clo_gap": "{h} ha bisogno di chiarezza e di un piano, {l} preferisce lasciare aperte le possibilità. Stabilite cosa pianificare in anticipo e cosa decidere strada facendo.",
+      "morn_gap": "Bioritmi diversi: {h} è un'allodola, {l} un gufo. Programmate le conversazioni importanti e le attività comuni durante il giorno, quando siete in forma.",
+      "morn_same": "Bioritmi simili: è facile trovarsi d'accordo sugli orari della giornata.",
+      "sens_both": "Avete un'alta sensibilità: proteggete il vostro spazio comune dal sovraccarico, perché avete bisogno di silenzio e di pause.",
+      "grow_both": "Credete nella crescita personale: vi sosterrete a vicenda nello sviluppo.",
+      "att_sec": "Avete uno stile di attaccamento sicuro: è uno dei predittori più forti di una relazione stabile.",
+      "att_trap": "La trappola «ansioso–evitante»: {h}, quando sente distanza, cerca vicinanza; {l}, sotto pressione, si allontana ancora di più. Aiuta la chiarezza: accordatevi in anticipo su come restare in contatto («ti scrivo stasera») e sul diritto a una pausa.",
+      "att_anx": "Nell'intimità provate ansia e vi trasmettete facilmente i dubbi a vicenda. Parlate apertamente dei vostri bisogni invece di mettervi alla prova.",
+      "att_avo": "Tendete a mantenere le distanze: la relazione è tranquilla, ma può mancare intimità. Ritagliatevi del tempo per conversazioni sincere.",
+      "att_anchor": "Con il suo attaccamento sicuro, {s} può fare da «ancora» e aiutare l'altra persona a sentirsi più serena.",
+      "col_both": "Risolvete i disaccordi collaborando: è un vostro punto di forza.",
+      "cmp_both": "Tendete a voler «vincere» le discussioni: c'è il rischio di un'escalation. Accordatevi su una parola di stop e riprendete il discorso dopo 20 minuti.",
+      "pursue": "Lo schema «chi insegue e chi fugge»: {h} preme per risolvere subito, {l} si sottrae alla conversazione. Fissate un momento apposito per parlarne: così sarà più facile per voi due.",
+      "yield": "{h} di solito insiste, {l} cede. I litigi sono meno, ma in chi cede si accumula risentimento: ogni tanto scambiatevi i ruoli.",
+      "avd_both": "Evitate i temi spinosi: i problemi possono accumularsi senza che ve ne accorgiate. Una volta a settimana concedetevi un tranquillo «parliamo di noi».",
+      "horsemen": "{names}: nei litigi compaiono schemi distruttivi (critiche alla persona, atteggiamento difensivo, sarcasmo o «muro»). Secondo Gottman sono proprio questi i più forti predittori di una rottura. Provate un avvio delicato: «mi sento… quando… mi piacerebbe…».",
+      "care_same": "Il vostro modo principale di percepire l'affetto coincide: {x}.",
+      "care_tip": "{name} percepisce l'affetto soprattutto attraverso {x} e {y}: {how}.",
+      "roles_diff": "I ruoli si completano: {a} — {ra}, {b} — {rb}.",
+      "roles_same": "Il ruolo più forte è lo stesso per voi due: {role}. Può nascere competizione: stabilite chi si occupa di cosa.",
+      "roles_missing": "Nella coppia sono poco rappresentati questi ruoli: {list}. Tenetene conto quando vi dividete i compiti.",
+      "none": "Le affinità evidenti sono poche, ma anche le differenze possono essere una risorsa, se le capite."
+    },
+    "group": {
+      "e_hi": "Un gruppo energico e socievole: è facile ritrovarsi e organizzare qualcosa.",
+      "e_lo": "Un gruppo tranquillo e «intimo»: state bene negli incontri ristretti e nelle conversazioni profonde.",
+      "c_lo": "Nel gruppo l'organizzazione scarseggia: scegliete una persona responsabile di piani e scadenze.",
+      "a_lo": "Un gruppo diretto e incline alla polemica: stabilite delle regole per le discussioni.",
+      "n_hi": "Molte persone del gruppo reagiscono intensamente allo stress: è importante un clima di sostegno.",
+      "o_spread": "Atteggiamenti molto diversi verso il nuovo: alcune persone cercano esperimenti, altre stabilità. Alternate i formati.",
+      "roles_missing": "Ruoli poco rappresentati: {list}."
+    }
+  },
+  "psy": {
+    "answers": [
+      "Per niente",
+      "Poco",
+      "In parte",
+      "Abbastanza",
+      "Del tutto"
+    ],
+    "modules": {
+      "char": {
+        "name": "Carattere",
+        "sub": "Big Five: 10 aspetti + onestà (HEXACO)",
+        "prompt": "Quanto ti descrive?",
+        "intro": "Rispondi pensando a come ti comporti davvero di solito, non a come vorresti. La prima risposta che ti viene in mente è di solito la più precisa."
+      },
+      "att": {
+        "name": "Intimità",
+        "sub": "Stile di attaccamento (Bowlby, Bartholomew)",
+        "prompt": "Pensa alle relazioni strette in generale: con chi ami, con gli amici più cari, con la famiglia.",
+        "intro": "Questo blocco riguarda come ti senti nelle relazioni più strette: quanta ansia provi e quanto mantieni le distanze."
+      },
+      "val": {
+        "name": "Valori",
+        "sub": "10 valori di base (Schwartz)",
+        "prompt": "Quanto è importante per te?",
+        "intro": "I valori sono ciò che guida le tue scelte. Non conta «cosa è giusto», ma cosa ti motiva davvero."
+      },
+      "mor": {
+        "name": "Morale",
+        "sub": "Fondamenti morali (Haidt)",
+        "prompt": "Quanto sei d'accordo?",
+        "intro": "Su cosa si basa il tuo senso di «giusto» e «sbagliato». Non ci sono risposte buone o cattive."
+      },
+      "mind": {
+        "name": "Pensiero",
+        "sub": "Analisi e intuito, flessibilità, sensibilità, bioritmo",
+        "prompt": "Quanto ti descrive?",
+        "intro": "Come funziona il tuo modo di pensare e di prendere decisioni, come percepisci il mondo e quando dai il meglio di te."
+      },
+      "conf": {
+        "name": "Conflitti",
+        "sub": "Stile nelle discussioni (Thomas–Kilmann, Gottman)",
+        "prompt": "Quando nasce un disaccordo con una persona cara o sul lavoro…",
+        "intro": "Come ti comporti nelle discussioni e nei litigi. Rispondi con sincerità: la compatibilità dipende molto da questo."
+      },
+      "care": {
+        "name": "Affetto",
+        "sub": "Come percepisci amore e apprezzamento (Chapman)",
+        "prompt": "Sento più amore e apprezzamento quando…",
+        "intro": "Quali gesti di attenzione contano di più per te. Aiuta le persone care a capire come renderti felice."
+      }
+    },
+    "scales": {
+      "vol": {
+        "name": "Irascibilità",
+        "hi": "Le tue emozioni sono intense e rapide: irritazione e risentimento divampano facilmente, ma passano anche in fretta. Ti aiuta notare il «punto di ebollizione» e prenderti una pausa prima di rispondere.",
+        "lo": "È difficile farti perdere la calma: mantieni un tono pacato anche nelle situazioni tese, e accanto a te le persone si sentono tranquille."
+      },
+      "wit": {
+        "name": "Ansia",
+        "hi": "Tendi a preoccuparti in anticipo, a dubitare e a vivere male gli insuccessi. In compenso vedi bene i rischi e raramente agisci in modo avventato.",
+        "lo": "Ti preoccupi raramente e ti riprendi in fretta dagli insuccessi: lo stress non dura a lungo."
+      },
+      "com": {
+        "name": "Compassione",
+        "hi": "Cogli con finezza le emozioni altrui e desideri sinceramente aiutare: le persone vengono da te in cerca di sostegno. Fai attenzione a non esaurirti dimenticando i tuoi bisogni.",
+        "lo": "Guardi le situazioni con lucidità e senza troppe emozioni, e preferisci risolvere un problema piuttosto che immedesimarti. A volte le persone sentono la mancanza del tuo calore."
+      },
+      "pol": {
+        "name": "Cortesia",
+        "hi": "Hai tatto, rispetti i confini altrui ed eviti di fare pressione. A volte ti è difficile difendere i tuoi interessi.",
+        "lo": "Vai dritto al punto, non ti tiri indietro davanti a una discussione e dici le cose come stanno. Ti aiuta a ottenere ciò che vuoi, ma può ferire chi ti sta intorno."
+      },
+      "ind": {
+        "name": "Laboriosità",
+        "hi": "Persegui i tuoi obiettivi e porti a termine ciò che inizi: si può contare su di te. Non dimenticare di riposare.",
+        "lo": "Ti è difficile dedicarti a ciò che non ti appassiona e tendi a rimandare. Aiutano i piccoli passi e le scadenze esterne."
+      },
+      "ord": {
+        "name": "Ordine",
+        "hi": "Ami l'ordine, i piani e i sistemi, mentre il caos ti stanca. Il rischio è irritarti con le persone meno precise.",
+        "lo": "Il disordine non ti turba e preferisci improvvisare piuttosto che pianificare. La flessibilità è un vantaggio; oggetti persi e scadenze mancate, uno svantaggio."
+      },
+      "ent": {
+        "name": "Socievolezza",
+        "hi": "Sei una persona aperta e gioiosa e stringi legami facilmente: stare con gli altri ti ricarica.",
+        "lo": "Esprimi le emozioni con riserbo e non hai fretta di avvicinarti alle persone. Preferisci una cerchia ristretta e i piaceri tranquilli."
+      },
+      "ass": {
+        "name": "Assertività",
+        "hi": "Prendi facilmente l'iniziativa, dici la tua e trascini gli altri. Fai in modo che resti spazio anche per le opinioni altrui.",
+        "lo": "Non cerchi di stare in primo piano e lasci volentieri la guida ad altri. La tua voce rischia di perdersi: esprimi ad alta voce ciò che desideri."
+      },
+      "int": {
+        "name": "Intelletto",
+        "hi": "Ti interessano le idee, i problemi complessi e i concetti astratti. Impari in fretta e ami riflettere.",
+        "lo": "Preferisci il concreto e la pratica ai ragionamenti astratti: meno teoria, più fatti."
+      },
+      "ope": {
+        "name": "Apertura all'esperienza",
+        "hi": "Hai una fervida immaginazione e una spiccata sensibilità per la bellezza, l'arte e le nuove esperienze.",
+        "lo": "Hai un approccio pratico e concreto e apprezzi ciò che è familiare e collaudato più delle fantasie e degli esperimenti."
+      },
+      "hon": {
+        "name": "Onestà-Umiltà",
+        "hi": "Sei una persona sincera, non manipoli e non insegui lo status: è facile fidarsi di te.",
+        "lo": "Hai un approccio pragmatico: apprezzi status e successo e all'occorrenza interpreti le regole con flessibilità pur di raggiungere l'obiettivo. Le persone accanto a te hanno bisogno di vedere che con loro agisci con onestà."
+      },
+      "anx": {
+        "name": "Ansia nell'intimità",
+        "hi": "Ti preoccupi molto per la relazione e reagisci con sensibilità ai segnali di distacco.",
+        "lo": "Nelle relazioni ti senti a tuo agio e raramente temi l'abbandono."
+      },
+      "avo": {
+        "name": "Evitamento dell'intimità",
+        "hi": "Proteggi la tua indipendenza, e un'intimità troppo stretta ti fa venire voglia di allontanarti.",
+        "lo": "Ti viene naturale aprirti, appoggiarti alle persone care ed essere un sostegno per loro."
+      },
+      "sd": {
+        "name": "Autonomia",
+        "desc": "libertà di pensiero e di scelta, creatività"
+      },
+      "st": {
+        "name": "Novità",
+        "desc": "avventura, rischio, varietà"
+      },
+      "he": {
+        "name": "Piacere",
+        "desc": "gioia di vivere, comodità, godersi la vita"
+      },
+      "ac": {
+        "name": "Successo",
+        "desc": "risultati, competenza, riconoscimento"
+      },
+      "po": {
+        "name": "Potere",
+        "desc": "influenza, status, risorse"
+      },
+      "se": {
+        "name": "Sicurezza",
+        "desc": "stabilità, protezione, prevedibilità"
+      },
+      "co": {
+        "name": "Regole",
+        "desc": "rispetto delle norme, autocontrollo"
+      },
+      "tr": {
+        "name": "Tradizione",
+        "desc": "usanze, fede, modestia"
+      },
+      "be": {
+        "name": "Benevolenza",
+        "desc": "lealtà e aiuto verso i propri cari"
+      },
+      "un": {
+        "name": "Universalismo",
+        "desc": "giustizia per tutti, tolleranza, natura"
+      },
+      "care": {
+        "name": "Cura",
+        "desc": "proteggere i deboli, non fare del male"
+      },
+      "fair": {
+        "name": "Equità",
+        "desc": "regole uguali, scambio onesto"
+      },
+      "loy": {
+        "name": "Lealtà",
+        "desc": "fedeltà al proprio gruppo"
+      },
+      "auth": {
+        "name": "Autorità",
+        "desc": "rispetto per gli anziani, l'ordine, la gerarchia"
+      },
+      "pur": {
+        "name": "Purezza",
+        "desc": "sacralità, ciò che non va profanato"
+      },
+      "lib": {
+        "name": "Libertà",
+        "desc": "nessuna pressione né imposizione"
+      },
+      "ana": {
+        "name": "Pensiero analitico",
+        "hi": "Ami riflettere, approfondire e soppesare: le tue decisioni passano dalla logica.",
+        "lo": "Le lunghe riflessioni ti stancano: preferisci decidere in fretta e in base alla situazione."
+      },
+      "intu": {
+        "name": "Intuito",
+        "hi": "Ti fidi del fiuto e della prima impressione, e spesso non ti tradiscono.",
+        "lo": "Non ti affidi ai presentimenti finché mancano i fatti."
+      },
+      "clo": {
+        "name": "Bisogno di certezza",
+        "hi": "Hai bisogno di chiarezza e prevedibilità: l'incertezza e i cambiamenti improvvisi ti destabilizzano.",
+        "lo": "Convivi serenamente con le questioni aperte e ti piace avere tante possibilità."
+      },
+      "grow": {
+        "name": "Mentalità di crescita",
+        "hi": "Credi che le capacità si sviluppino con l'impegno e che gli errori facciano parte dell'apprendimento (Dweck).",
+        "lo": "Tendi a considerare le capacità come qualcosa di dato: questo può frenarti davanti alle novità."
+      },
+      "sens": {
+        "name": "Sensibilità",
+        "hi": "Cogli con finezza dettagli, emozioni e bellezza, ma ti stanchi prima per il rumore e il sovraccarico (Aron).",
+        "lo": "Reggi bene il rumore e la confusione e non ti senti sopraffare dalla quantità di stimoli."
+      },
+      "morn": {
+        "name": "Cronotipo mattutino",
+        "hi": "Sei un'«allodola»: il tuo picco di energia e lucidità è al mattino.",
+        "lo": "Sei un «gufo»: ragioni meglio di sera e di notte."
+      },
+      "cmp": {
+        "name": "Competizione",
+        "hi": "Difendi con fermezza la tua posizione. È utile quando bisogna decidere in fretta o proteggere qualcosa di importante, ma nelle relazioni strette può sembrare una pressione.",
+        "desc": "ottieni ciò che vuoi, difendi la tua posizione"
+      },
+      "col": {
+        "name": "Collaborazione",
+        "hi": "Cerchi una soluzione che vada bene a tutti e non ti spaventa approfondire a lungo. È lo stile più produttivo, anche se richiede tempo.",
+        "desc": "cerchi una soluzione vantaggiosa per tutte e due le parti"
+      },
+      "cpr": {
+        "name": "Compromesso",
+        "hi": "Preferisci trovare in fretta un accordo «a metà strada». Fa risparmiare energie, ma a volte tutte e due le parti ottengono solo metà, dove si sarebbe potuta trovare una soluzione migliore.",
+        "desc": "ciascuna parte cede un po'"
+      },
+      "avd": {
+        "name": "Evitamento",
+        "hi": "Cerchi di non esasperare i toni e rimandi le conversazioni spiacevoli. Sul momento la tensione cala, ma i problemi possono accumularsi.",
+        "desc": "eviti i temi spinosi"
+      },
+      "acc": {
+        "name": "Accomodamento",
+        "hi": "Spesso cedi per mantenere la pace. È una qualità preziosa, ma se cedi sempre si accumula risentimento.",
+        "desc": "cedi per il bene della relazione"
+      },
+      "hrs": {
+        "name": "Schemi distruttivi",
+        "desc": "critica, difensività, sarcasmo, «muro»"
+      },
+      "wor": {
+        "name": "Parole di apprezzamento",
+        "how": "dire a voce alta cosa si apprezza, ringraziare e fare complimenti"
+      },
+      "tim": {
+        "name": "Tempo insieme",
+        "how": "ritagliare del tempo senza telefono e fare qualcosa insieme"
+      },
+      "ser": {
+        "name": "Aiuto concreto",
+        "how": "aiutare nelle faccende senza aspettare una richiesta e farsi carico di una parte degli impegni"
+      },
+      "gif": {
+        "name": "Regali e sorprese",
+        "how": "regalare piccole cose significative e ricordare le date importanti"
+      },
+      "tou": {
+        "name": "Contatto fisico",
+        "how": "abbracciare, tenere per mano, stare fisicamente accanto"
+      }
+    },
+    "items": [
+      "Mi arrabbio facilmente.",
+      "Raramente mi irrito per delle sciocchezze.",
+      "Il mio umore cambia spesso e bruscamente.",
+      "Tengo bene sotto controllo le mie emozioni.",
+      "Mi preoccupo spesso di ciò che potrebbe andare storto.",
+      "Raramente sono giù di morale.",
+      "Mi scoraggio facilmente davanti alle difficoltà.",
+      "Mi sento a mio agio nei miei panni.",
+      "Sento le emozioni degli altri quasi come se fossero mie.",
+      "I problemi degli altri mi interessano poco.",
+      "Quando qualcuno sta male, mi viene voglia di dare una mano.",
+      "Raramente trovo tempo per i bisogni degli altri.",
+      "Rispetto le opinioni altrui, anche quando sono diverse dalla mia.",
+      "Mi capita di rispondere male alle persone.",
+      "Cerco di non imporre la mia volontà agli altri.",
+      "Posso fare pressione su una persona per ottenere ciò che voglio.",
+      "Porto a termine ciò che comincio.",
+      "Spesso spreco tempo.",
+      "Affronto subito le cose da fare, senza rimandare.",
+      "Faccio fatica a mettermi al lavoro.",
+      "Mi piace che ogni cosa sia al suo posto.",
+      "Lascio spesso le mie cose in giro.",
+      "Vivo seguendo piani e orari.",
+      "Il disordine intorno a me non mi disturba.",
+      "Faccio facilmente nuove amicizie.",
+      "Per gli altri non è facile conoscermi a fondo.",
+      "Provo spesso gioia ed entusiasmo.",
+      "Raramente qualcosa mi appassiona davvero.",
+      "Prendo il comando quando il gruppo ha bisogno di una guida.",
+      "Aspetto che sia qualcun altro a prendere l'iniziativa.",
+      "Difendo facilmente la mia opinione davanti agli altri.",
+      "Preferisco restare nell'ombra.",
+      "Mi piace venire a capo di problemi complessi.",
+      "Evito le conversazioni filosofiche.",
+      "Afferro rapidamente le idee nuove.",
+      "Faccio fatica con le idee astratte.",
+      "Noto la bellezza dove gli altri non la vedono.",
+      "L'arte e la musica mi toccano poco.",
+      "Ho una fervida immaginazione.",
+      "Raramente mi perdo in sogni e fantasie.",
+      "Non adulerei una persona, nemmeno se mi convenisse.",
+      "Per me è importante che gli altri vedano il mio status e il mio successo.",
+      "Non mi considero migliore degli altri.",
+      "Per un grosso guadagno potrei imbrogliare un po'.",
+      "Ho paura che la persona che amo possa smettere di amarmi o lasciarmi.",
+      "Raramente mi preoccupa l'idea che possano lasciarmi.",
+      "Ho spesso bisogno di sentirmi dire che mi amano e mi apprezzano.",
+      "Mantengo la calma anche se la persona che amo tarda molto a rispondere.",
+      "Se la persona che amo si allontana, provo una forte ansia.",
+      "Temo che la relazione conti meno per l'altra persona che per me.",
+      "Mi sento a disagio quando qualcuno si avvicina troppo a me.",
+      "Mi è facile chiedere sostegno alle persone care.",
+      "Preferisco non mostrare ciò che provo nel profondo.",
+      "Mi sento a mio agio ad aprirmi con le persone care.",
+      "Cerco di non dipendere da nessuno.",
+      "Quando una relazione diventa seria, sento il bisogno di prendere le distanze.",
+      "Decidere in autonomia come vivere e di cosa occuparmi.",
+      "Pensare con la mia testa e inventare cose nuove.",
+      "Avventura, rischio e nuove esperienze.",
+      "Una vita piena di varietà e cambiamenti.",
+      "Godermi la vita e concedermi dei piaceri.",
+      "Non perdere occasioni per riposare e divertirmi.",
+      "Avere successo e veder riconosciuti i miei risultati.",
+      "Pormi obiettivi ambiziosi ed eccellere.",
+      "Avere influenza, denaro e risorse.",
+      "Guidare le persone e prendere decisioni per gli altri.",
+      "Sicurezza per me, la mia famiglia, il mio paese.",
+      "Stabilità: un lavoro sicuro e un futuro prevedibile.",
+      "Rispettare le regole anche quando nessuno guarda.",
+      "Comportarmi in modo che gli altri non abbiano nulla da rimproverarmi.",
+      "Conservare le tradizioni della famiglia, del popolo o della fede.",
+      "Modestia e moderazione, senza mettermi in mostra.",
+      "Prendermi cura delle persone care ed essere il loro punto di riferimento.",
+      "Lealtà verso gli amici e la famiglia.",
+      "Giustizia e pari opportunità per tutte le persone.",
+      "Proteggere la natura e l'ambiente.",
+      "La compassione verso chi soffre è una delle virtù più importanti.",
+      "La cosa peggiore è fare del male a chi non può difendersi.",
+      "L'ingiustizia mi indigna più di ogni altra cosa.",
+      "Regole e leggi devono essere uguali per tutti.",
+      "Bisogna restare fedeli al proprio gruppo, anche quando non si è d'accordo su tutto.",
+      "Tradire «i propri» è una delle azioni peggiori.",
+      "Il rispetto per gli anziani e per l'autorità legittima va insegnato fin dall'infanzia.",
+      "La società si regge sul fatto che ognuno compie il proprio dovere.",
+      "Esistono cose sacre che non vanno profanate, nemmeno per trarne vantaggio.",
+      "Alcune azioni sono disgustose anche se non danneggiano nessuno.",
+      "Nessuno ha il diritto di dire alle persone come vivere, se non fanno del male agli altri.",
+      "Mi indigna quando il potere limita la libertà delle persone.",
+      "Mi piacciono i problemi su cui bisogna riflettere a lungo.",
+      "Non mi piace pensare troppo, se posso farne a meno.",
+      "Prima di decidere, valuto con cura tutti i pro e i contro.",
+      "Mi fido della prima impressione che ho delle persone.",
+      "Non mi fido dei presentimenti finché non ci sono fatti.",
+      "Spesso decido «a sensazione», e di solito ci prendo.",
+      "Non amo l'incertezza: voglio chiarezza il prima possibile.",
+      "Mi incuriosisce quando una questione resta aperta e ci sono molte possibilità.",
+      "Mi irrita quando i piani cambiano all'ultimo momento.",
+      "Le capacità si possono sviluppare molto con un lavoro costante.",
+      "Il talento o c'è o non c'è: si può cambiare ben poco.",
+      "Gli errori sono una parte normale dell'apprendimento, non una condanna.",
+      "Il rumore, le luci forti e la folla mi stancano presto.",
+      "Noto con finezza dettagli e cambiamenti nell'ambiente e nelle persone.",
+      "Vivo intensamente la musica, i film e l'umore degli altri.",
+      "Mi è facile alzarmi presto la mattina.",
+      "Il mio momento più produttivo è la tarda sera o la notte.",
+      "Ragiono meglio nella prima metà della giornata.",
+      "Resto sulla mia posizione fino in fondo.",
+      "Per me è importante vincere la discussione.",
+      "Cerco una soluzione che soddisfi pienamente tutte e due le parti.",
+      "Discuto apertamente dei disaccordi per arrivare al nocciolo della questione.",
+      "Propongo di venirci incontro a metà strada, cedendo un po' a testa.",
+      "Accetto di fare «metà e metà» per non tirarla per le lunghe.",
+      "Cerco di non sollevare argomenti spiacevoli.",
+      "Quando si profila un litigio, evito la conversazione.",
+      "Cedo per mantenere un buon rapporto.",
+      "Metto i desideri dell'altra persona prima dei miei.",
+      "In un litigio parlo dei difetti di carattere, non di un comportamento concreto.",
+      "Alle critiche rispondo subito giustificandomi o con accuse a mia volta.",
+      "Durante un litigio mi capita di fare battute pungenti, deridere o alzare gli occhi al cielo.",
+      "Nel pieno di un litigio mi chiudo nel silenzio e «stacco la spina».",
+      "…mi dicono parole affettuose e mi ringraziano.",
+      "…passano del tempo con me senza telefono né distrazioni.",
+      "…mi aiutano nelle faccende senza aspettare che lo chieda.",
+      "…mi regalano qualcosa, anche solo un pensierino.",
+      "…mi abbracciano e mi tengono per mano.",
+      "…mi lodano e notano i miei sforzi.",
+      "…facciamo insieme qualcosa di interessante.",
+      "…si fanno carico di una parte dei miei impegni.",
+      "…si ricordano delle date importanti e mi fanno sorprese.",
+      "…posso contare su vicinanza fisica e contatto."
+    ],
+    "domains": {
+      "N": {
+        "name": "Nevroticismo",
+        "alt": "sensibilità emotiva",
+        "hi": "Alta sensibilità emotiva: reagisci con forza allo stress e agli insuccessi.",
+        "mid": "Reattività emotiva nella media.",
+        "lo": "Buona stabilità emotiva: affronti lo stress con calma."
+      },
+      "E": {
+        "name": "Estroversione",
+        "alt": "energia dalle persone",
+        "hi": "Profilo estroverso: ti ricarichi tra la gente e nell'azione.",
+        "mid": "Profilo ambiverso: ti trovi bene sia in compagnia sia per conto tuo.",
+        "lo": "Profilo introverso: ti ricarichi nel silenzio e nella solitudine."
+      },
+      "O": {
+        "name": "Apertura mentale",
+        "alt": "curiosità e immaginazione",
+        "hi": "Curiosità e apertura verso il nuovo e le idee.",
+        "mid": "Unisci l'interesse per il nuovo a un approccio pratico.",
+        "lo": "Approccio pratico: preferisci ciò che è collaudato."
+      },
+      "A": {
+        "name": "Gradevolezza",
+        "alt": "gentilezza ed empatia",
+        "hi": "Gentilezza e cordialità: cerchi l'armonia.",
+        "mid": "Cordialità, ma sai anche farti valere.",
+        "lo": "Franchezza e indipendenza di giudizio."
+      },
+      "C": {
+        "name": "Coscienziosità",
+        "alt": "organizzazione e forza di volontà",
+        "hi": "Organizzazione, affidabilità, determinazione.",
+        "mid": "Sai concentrarti quando serve, ma senza perfezionismo.",
+        "lo": "Spontaneità e flessibilità: non ami gli schemi rigidi."
+      }
+    },
+    "types": {
+      "INTJ": {
+        "name": "Stratega",
+        "tag": "Una mente indipendente con un piano a lungo termine",
+        "d": "Vedi il sistema dietro i dettagli e ami fare piani per gli anni a venire. Apprezzi la competenza e la logica e non sopporti le chiacchiere vuote. Rendi al meglio lavorando in autonomia su un obiettivo complesso.",
+        "plus": [
+          "Pensiero strategico",
+          "Autonomia",
+          "Standard elevati"
+        ],
+        "minus": [
+          "Puoi dare un'impressione di freddezza e di eccessiva criticità",
+          "Insofferenza verso i sentimenti «illogici» degli altri"
+        ]
+      },
+      "INTP": {
+        "name": "Mente teorica",
+        "tag": "Esplorazione di idee e principi",
+        "d": "Ti interessa capire come funziona tutto. Fai domande, costruisci modelli e noti le contraddizioni. Per te la libertà di pensiero conta più delle regole e degli orari.",
+        "plus": [
+          "Profondità analitica",
+          "Idee originali",
+          "Obiettività"
+        ],
+        "minus": [
+          "Difficoltà con la routine e le scadenze",
+          "Distacco nelle questioni emotive"
+        ]
+      },
+      "ENTJ": {
+        "name": "Guida",
+        "tag": "Organizzazione al servizio di grandi obiettivi",
+        "d": "Vedi in fretta l'obiettivo e la strada per raggiungerlo, riunisci persone e risorse e prendi decisioni. Efficienza e risultati sono il tuo metro principale.",
+        "plus": [
+          "Decisione",
+          "Leadership",
+          "Strategia e organizzazione"
+        ],
+        "minus": [
+          "Impazienza verso chi è più lento",
+          "Rischio di imporre una decisione senza ascoltare gli altri"
+        ]
+      },
+      "ENTP": {
+        "name": "Spirito inventivo",
+        "tag": "Idee a getto continuo e gusto per il dibattito",
+        "d": "Trovi soluzioni fuori dagli schemi e ami le discussioni e i brainstorming. Il nuovo ti attira più che portare a termine il vecchio.",
+        "plus": [
+          "Inventiva",
+          "Mente rapida",
+          "Flessibilità"
+        ],
+        "minus": [
+          "Noia per la routine",
+          "Discutere per il gusto di discutere"
+        ]
+      },
+      "INFJ": {
+        "name": "Anima visionaria",
+        "tag": "Idealismo silenzioso e profonda comprensione delle persone",
+        "d": "Intuisci le motivazioni delle persone e rifletti sul senso delle cose. Hai valori forti, e per te è importante che il lavoro e le relazioni abbiano un significato.",
+        "plus": [
+          "Empatia profonda",
+          "Visione e senso",
+          "Dedizione ai valori"
+        ],
+        "minus": [
+          "Tendenza al perfezionismo",
+          "Riservatezza e difficoltà nei conflitti"
+        ]
+      },
+      "INFP": {
+        "name": "Idealista",
+        "tag": "Sogni e una forte bussola interiore",
+        "d": "Vivi secondo i tuoi valori interiori e apprezzi la sincerità e la creatività. Per te è importante restare fedele a ciò che sei e rendere il mondo più gentile.",
+        "plus": [
+          "Sincerità",
+          "Immaginazione creativa",
+          "Compassione"
+        ],
+        "minus": [
+          "Difficoltà con la pratica e le scadenze",
+          "Reazione dolorosa alle critiche"
+        ]
+      },
+      "ENFJ": {
+        "name": "Mentore",
+        "tag": "Una leadership che ispira e fa crescere gli altri",
+        "d": "Vedi il potenziale nelle persone e sai unirle attorno a un'idea comune. Per te è importante che tutti intorno a te stiano bene.",
+        "plus": [
+          "Carisma e premura",
+          "Capacità di motivare",
+          "Doti organizzative"
+        ],
+        "minus": [
+          "Dimentichi i tuoi bisogni",
+          "Coinvolgimento eccessivo nei problemi altrui"
+        ]
+      },
+      "ENFP": {
+        "name": "Fonte d'ispirazione",
+        "tag": "Entusiasmo per le persone e le possibilità",
+        "d": "Trasmetti energia a chi ti circonda e ti accendi facilmente per idee e persone. Libertà e possibilità di creare contano per te più dell'ordine.",
+        "plus": [
+          "Entusiasmo",
+          "Creatività",
+          "Facilità nei rapporti"
+        ],
+        "minus": [
+          "Dispersione",
+          "Difficoltà a portare a termine le cose"
+        ]
+      },
+      "ISTJ": {
+        "name": "Pilastro",
+        "tag": "Affidabilità, precisione, parola data",
+        "d": "Apprezzi i fatti, l'ordine e la responsabilità. Se prometti qualcosa, sarà fatto. Ti trovi a tuo agio con regole chiare.",
+        "plus": [
+          "Affidabilità",
+          "Attenzione ai dettagli",
+          "Coerenza"
+        ],
+        "minus": [
+          "Resistenza al cambiamento",
+          "Riserbo nell'esprimere i sentimenti"
+        ]
+      },
+      "ISFJ": {
+        "name": "Porto sicuro",
+        "tag": "Premura silenziosa e dedizione",
+        "d": "Presti attenzione ai bisogni delle persone care e te ne prendi cura senza troppe parole. Apprezzi le tradizioni, la stabilità e i rapporti affettuosi.",
+        "plus": [
+          "Premura",
+          "Senso di responsabilità",
+          "Memoria per i piccoli dettagli importanti delle persone"
+        ],
+        "minus": [
+          "Fatica a dire «no»",
+          "Accumuli risentimento invece di parlarne apertamente"
+        ]
+      },
+      "ESTJ": {
+        "name": "Caposquadra",
+        "tag": "Ordine, regole e organizzazione",
+        "d": "Sai mettere ordine, distribuire i compiti e controllare il risultato. Apprezzi la chiarezza, le regole e il lavoro fatto con onestà.",
+        "plus": [
+          "Organizzazione",
+          "Decisione",
+          "Senso pratico"
+        ],
+        "minus": [
+          "Rigidità",
+          "Insofferenza verso approcci diversi"
+        ]
+      },
+      "ESFJ": {
+        "name": "Collante",
+        "tag": "Tiene unito il gruppo e ne protegge l'armonia",
+        "d": "Percepisci l'atmosfera nel gruppo e sai fare in modo che tutti si sentano a proprio agio. Le relazioni e il riconoscimento per te contano molto.",
+        "plus": [
+          "Socievolezza",
+          "Cura delle persone",
+          "Senso di responsabilità"
+        ],
+        "minus": [
+          "Dipendenza dall'approvazione",
+          "Tendenza a evitare i temi spiacevoli"
+        ]
+      },
+      "ISTP": {
+        "name": "Mani d'oro",
+        "tag": "Pragmatismo calmo che risolve i problemi",
+        "d": "Capisci come funzionano le cose e agisci a sangue freddo nelle crisi. Apprezzi la libertà e non ami le parole superflue.",
+        "plus": [
+          "Sangue freddo",
+          "Ingegno pratico",
+          "Indipendenza"
+        ],
+        "minus": [
+          "Chiusura",
+          "Noia per gli impegni a lungo termine"
+        ]
+      },
+      "ISFP": {
+        "name": "Artista",
+        "tag": "Sensibilità estetica e vita nel presente",
+        "d": "Percepisci con finezza la bellezza, le persone e il momento e preferisci esprimerti con i fatti e la creatività più che con le parole.",
+        "plus": [
+          "Sensibilità",
+          "Senso estetico",
+          "Flessibilità"
+        ],
+        "minus": [
+          "Tendenza a evitare i conflitti",
+          "Difficoltà a pianificare"
+        ]
+      },
+      "ESTP": {
+        "name": "Dinamo",
+        "tag": "Energia pratica e voglia di agire",
+        "d": "Reagisci in fretta, ami il rischio e l'azione concreta e dai il meglio di te dove bisogna decidere qui e ora.",
+        "plus": [
+          "Coraggio",
+          "Intraprendenza",
+          "Energia"
+        ],
+        "minus": [
+          "Impulsività",
+          "Impazienza verso teoria e piani"
+        ]
+      },
+      "ESFP": {
+        "name": "Performer",
+        "tag": "Vivacità, brillantezza, gioia di vivere",
+        "d": "Porti gioia, allegria e spontaneità. Ami le persone e le esperienze e sai goderti il momento.",
+        "plus": [
+          "Fascino",
+          "Allegria",
+          "Gentilezza concreta"
+        ],
+        "minus": [
+          "Difficoltà nella pianificazione a lungo termine",
+          "Fuga dai problemi seri"
+        ]
+      }
+    },
+    "temperaments": {
+      "sang": {
+        "name": "Sanguigno",
+        "axis": "estroversione stabile",
+        "d": "Un tipo vivace, socievole e ottimista. Ti adatti in fretta, fai conoscenza con facilità e non ti fermi sugli insuccessi.",
+        "stress": "Sotto stress puoi passare a qualcosa di nuovo senza aver finito ciò che hai iniziato."
+      },
+      "chol": {
+        "name": "Collerico",
+        "axis": "estroversione emotiva",
+        "d": "Un tipo energico, passionale e rapido. Hai grinta e decisione, ti entusiasmi facilmente e con la stessa facilità ti infiammi.",
+        "stress": "Sotto stress: irascibilità e impazienza. Aiutano l'attività fisica e una pausa prima di rispondere."
+      },
+      "mel": {
+        "name": "Melanconico",
+        "axis": "introversione emotiva",
+        "d": "Un tipo profondo, sensibile e riflessivo. Percepisci il mondo con finezza, presti attenzione ai dettagli e prendi sul serio le relazioni.",
+        "stress": "Sotto stress: ansia e tendenza a chiuderti in te. Aiutano la prevedibilità e il sostegno delle persone care."
+      },
+      "phl": {
+        "name": "Flemmatico",
+        "axis": "introversione stabile",
+        "d": "Un tipo calmo, affidabile ed equilibrato. Non hai fretta, ma agisci con solidità, ed è difficile farti perdere l'equilibrio.",
+        "stress": "Sotto stress puoi «bloccarti» e rimandare le decisioni."
+      }
+    },
+    "attach": {
+      "sec": {
+        "name": "sicuro",
+        "d": "Ti senti a tuo agio sia nell'intimità sia nell'indipendenza. Ti fidi delle persone, chiedi sostegno con serenità e parli apertamente dei problemi.",
+        "tip": "Il tuo stile è una risorsa per la relazione: aiuta l'altra persona a sentirsi al sicuro."
+      },
+      "anx": {
+        "name": "ansioso",
+        "d": "L'intimità per te è molto importante e reagisci con sensibilità ai segnali di distacco. Dubbi come «mi ama davvero?» possono presentarsi spesso.",
+        "tip": "Parla dei tuoi bisogni in modo diretto («per me è importante che tu mi scriva quando fai tardi») invece di mettere alla prova o fare supposizioni. Accanto a una persona con attaccamento sicuro l'ansia si attenua parecchio."
+      },
+      "avo": {
+        "name": "evitante",
+        "d": "Apprezzi l'indipendenza e l'autonomia, e un'intimità troppo stretta ti fa venire voglia di allontanarti.",
+        "tip": "Nota il momento in cui vorresti «chiuderti in te» e dillo a parole: «ho bisogno di un po' di tempo, poi riprendiamo il discorso»."
+      },
+      "fea": {
+        "name": "timoroso-evitante",
+        "d": "Desideri l'intimità e allo stesso tempo la temi: le persone ti attirano, ma subito senti il bisogno di proteggerti.",
+        "tip": "Aiutano un avvicinamento lento e prevedibile e un lavoro sulla fiducia; anche un percorso psicologico funziona bene."
+      }
+    },
+    "thinking": {
+      "uni": {
+        "name": "Stile versatile",
+        "d": "Sai sia analizzare sia fidarti dell'intuito e passi dall'uno all'altro a seconda del compito."
+      },
+      "ana": {
+        "name": "Stile analitico",
+        "d": "Le tue decisioni passano dalla logica e dalla verifica dei fatti: secondo Kahneman, attivi più spesso il lento «Sistema 2»."
+      },
+      "intu": {
+        "name": "Stile intuitivo",
+        "d": "Cogli in fretta l'essenza e ti fidi del fiuto: il rapido «Sistema 1». Per le decisioni importanti conviene ricontrollare."
+      },
+      "prag": {
+        "name": "Stile pragmatico",
+        "d": "Non ami né le lunghe riflessioni né i «presentimenti» e agisci in base alla situazione e all'esperienza."
+      }
+    },
+    "chrono": {
+      "lark": {
+        "name": "Allodola",
+        "full": "Allodola"
+      },
+      "dove": {
+        "name": "Colomba",
+        "full": "Colomba (tipo intermedio)"
+      },
+      "owl": {
+        "name": "Gufo",
+        "full": "Gufo"
+      }
+    },
+    "roles": {
+      "lead": {
+        "name": "Leader",
+        "d": "indica la direzione e si assume la responsabilità delle decisioni"
+      },
+      "idea": {
+        "name": "Fucina di idee",
+        "d": "propone soluzioni fuori dagli schemi e vede le opportunità"
+      },
+      "anal": {
+        "name": "Analista",
+        "d": "mette alla prova le idee e ne cerca i punti deboli"
+      },
+      "org": {
+        "name": "Regista",
+        "d": "trasforma le idee in piani e vigila su scadenze e ordine"
+      },
+      "comm": {
+        "name": "Anima del gruppo",
+        "d": "crea legami, coinvolge e ispira le persone"
+      },
+      "peace": {
+        "name": "Custode dell'armonia",
+        "d": "smorza i conflitti e protegge il clima del gruppo"
+      },
+      "exec": {
+        "name": "Braccio operativo",
+        "d": "porta a termine il lavoro con affidabilità e onestà"
+      }
+    },
+    "theory": {
+      "big5": {
+        "title": "Big Five (OCEAN)",
+        "used": "Modulo «Carattere»: 40 domande, 5 fattori e 10 aspetti",
+        "text": [
+          "È il modello di personalità più verificato. Nasce dall'«ipotesi lessicale»: le differenze importanti tra le persone si fissano nel linguaggio. L'analisi di migliaia di aggettivi descrittivi in diverse lingue ha prodotto cinque fattori stabili: apertura mentale, coscienziosità, estroversione, gradevolezza e nevroticismo.",
+          "I tratti sono ereditabili al 40–60%, piuttosto stabili in età adulta e predicono il rendimento nello studio e nel lavoro, la salute e la qualità delle relazioni. DeYoung e colleghi hanno mostrato che ogni fattore si divide in due aspetti: per esempio, l'estroversione in socievolezza e assertività.",
+          "Le domande dell'app sono adattate dall'International Personality Item Pool (IPIP), un archivio scientifico aperto di pubblico dominio."
+        ],
+        "books": [
+          "Daniel Nettle — «Personality: What Makes You the Way You Are» (2007)",
+          "Robert McCrae, Paul Costa — «Personality in Adulthood: A Five-Factor Theory Perspective» (2003)",
+          "Lewis Goldberg — «An alternative “description of personality”: the Big-Five factor structure» (1990)",
+          "Colin DeYoung et al. — «Between facets and domains: 10 aspects of the Big Five» (2007)",
+          "ipip.ori.org — archivio aperto di domande"
+        ]
+      },
+      "hexaco": {
+        "title": "HEXACO e Onestà-Umiltà",
+        "used": "Scala «Onestà-Umiltà» nel modulo «Carattere»",
+        "text": [
+          "Ashton e Lee hanno ripetuto gli studi lessicali in molte lingue e hanno trovato un sesto fattore, l'Onestà-Umiltà: sincerità, correttezza, assenza di avidità e di vanità.",
+          "Punteggi bassi su questa scala sono legati alla «triade oscura» (manipolazione, narcisismo, psicopatia), mentre la somiglianza dei partner su questa dimensione è legata alla fiducia nella coppia."
+        ],
+        "books": [
+          "Michael Ashton, Kibeom Lee — «The H Factor of Personality» (2012)",
+          "Michael Ashton, Kibeom Lee — «Empirical, theoretical, and practical advantages of the HEXACO model» (2007)",
+          "Delroy Paulhus, Kevin Williams — «The Dark Triad of personality» (2002)"
+        ]
+      },
+      "temp": {
+        "title": "Temperamento",
+        "used": "Il tipo di temperamento si calcola da estroversione e nevroticismo",
+        "text": [
+          "La dottrina dei quattro temperamenti risale a Ippocrate e Galeno. Pavlov collegò i temperamenti alle proprietà del sistema nervoso: forza, equilibrio e mobilità. Eysenck mostrò che i quattro tipi classici sono combinazioni di due dimensioni: estroversione e stabilità emotiva.",
+          "Le dimensioni in sé sono confermate in modo solido, mentre i quattro tipi «puri» sono una semplificazione: nella maggior parte delle persone i tratti sono misti. Per questo l'app mostra sia il tipo principale sia quello vicino."
+        ],
+        "books": [
+          "Hans Eysenck — «Dimensions of Personality» (1947)",
+          "I. P. Pavlov — studi sui tipi di attività nervosa superiore (anni 1920–1930)",
+          "V. M. Rusalov — «Questionario sulla struttura del temperamento» (1990)",
+          "Jerome Kagan — «Galen’s Prophecy: Temperament in Human Nature» (1994)",
+          "Alexander Thomas, Stella Chess — «Temperament and Development» (1977)"
+        ]
+      },
+      "jung": {
+        "title": "I tipi psicologici di Jung e i 16 tipi",
+        "used": "Il codice di 4 lettere è calcolato dai Big Five",
+        "text": [
+          "Jung descrisse gli atteggiamenti (estroversione e introversione) e le funzioni psichiche (pensiero, sentimento, sensazione, intuizione). Isabel Myers e Katharine Briggs ne ricavarono 16 tipi formati da quattro coppie di lettere. Sulle idee di Jung si basa anche la socionica di Aušra Augustinavičiūtė.",
+          "Il punto debole è la divisione in «tipi»: la distribuzione dei punteggi è continua, e ripetendo il test molte persone ottengono un codice diverso. McCrae e Costa hanno mostrato che le quattro scale coincidono quasi con i fattori dei Big Five: E/I con l'estroversione, N/S con l'apertura mentale, F/T con la gradevolezza, J/P con la coscienziosità. È così che il codice viene calcolato qui, e accanto è indicato quanto è marcata ogni lettera."
+        ],
+        "books": [
+          "C. G. Jung — «Tipi psicologici» (1921)",
+          "Isabel Briggs Myers — «Gifts Differing» (1980)",
+          "David Keirsey, Marilyn Bates — «Please Understand Me» (1978)",
+          "Robert McCrae, Paul Costa — «Reinterpreting the Myers-Briggs Type Indicator from the perspective of the five-factor model» (1989)"
+        ]
+      },
+      "attach": {
+        "title": "Teoria dell'attaccamento",
+        "used": "Modulo «Intimità»: ansia ed evitamento → 4 stili",
+        "text": [
+          "Bowlby e Ainsworth hanno mostrato che i bambini costruiscono un «modello operativo» delle relazioni con chi si prende cura di loro. Hazan e Shaver hanno esteso l'idea all'amore adulto, Bartholomew ha descritto quattro stili, e Brennan, Clark e Shaver li hanno ricondotti a due dimensioni: l'ansia (paura dell'abbandono) e l'evitamento (disagio nell'intimità).",
+          "Lo stile di attaccamento è uno dei predittori più forti della soddisfazione nella relazione. E può cambiare: un partner affidabile e la terapia aiutano a spostarsi verso uno stile sicuro."
+        ],
+        "books": [
+          "John Bowlby — «Attachment and Loss, Vol. 1: Attachment» (1969)",
+          "Mary Ainsworth et al. — «Patterns of Attachment» (1978)",
+          "Cindy Hazan, Phillip Shaver — «Romantic love conceptualized as an attachment process» (1987)",
+          "Kim Bartholomew, Leonard Horowitz — modello a quattro categorie (1991)",
+          "Amir Levine, Rachel Heller — «Attached» (2010)",
+          "Sue Johnson — «Hold Me Tight» (2008)"
+        ]
+      },
+      "values": {
+        "title": "I valori di base di Schwartz",
+        "used": "Modulo «Valori»: 10 valori disposti in cerchio",
+        "text": [
+          "Schwartz ha studiato i valori in oltre 80 paesi e ha individuato 10 motivazioni universali. Sono disposte in cerchio: i valori vicini sono compatibili, quelli opposti entrano in conflitto. Gli assi principali sono «apertura al cambiamento ↔ conservazione» e «affermazione di sé ↔ cura degli altri».",
+          "Non conta il punteggio assoluto, ma l'ordine delle priorità: per questo l'app confronta ogni valore con il tuo livello medio. Nelle coppie la somiglianza dei valori è maggiore di quella del carattere: le persone scelgono più spesso partner con visioni simili."
+        ],
+        "books": [
+          "Shalom Schwartz — «Universals in the content and structure of values» (1992)",
+          "Shalom Schwartz — «An Overview of the Schwartz Theory of Basic Values» (2012)",
+          "Milton Rokeach — «The Nature of Human Values» (1973)"
+        ]
+      },
+      "moral": {
+        "title": "Teoria dei fondamenti morali",
+        "used": "Modulo «Morale»: 6 fondamenti",
+        "text": [
+          "Haidt e Graham hanno ipotizzato che la morale poggi su alcune intuizioni: cura, equità, lealtà, autorità, purezza e libertà. Le persone si differenziano per quelle su cui fanno più affidamento.",
+          "Il profilo dei fondamenti morali è legato alle opinioni politiche e religiose, uno dei motivi di disaccordo più frequenti tra partner e tra amici."
+        ],
+        "books": [
+          "Jonathan Haidt — «The Righteous Mind» (2012)",
+          "Jesse Graham et al. — «Mapping the moral domain» (2011)"
+        ]
+      },
+      "mind": {
+        "title": "Tipi di pensiero e funzionamento della mente",
+        "used": "Modulo «Pensiero»",
+        "text": [
+          "Le teorie dei «due sistemi» (Epstein, Kahneman, Stanovich) distinguono un pensiero rapido e intuitivo da uno lento e analitico. Le persone differiscono per quanto amano riflettere (bisogno di cognizione) e per quanto si fidano dell'intuito, e queste due tendenze sono indipendenti.",
+          "Kruglanski ha descritto il bisogno di chiusura cognitiva: il desiderio di ottenere al più presto una risposta chiara. Dweck ha mostrato come la convinzione che «le capacità si possono sviluppare» influenzi l'apprendimento. Aron ha descritto l'alta sensibilità: una percezione fine con un rapido sovraccarico. Il cronotipo (allodola o gufo) è in gran parte innato e influisce sulla convivenza.",
+          "Non sono incluse le «intelligenze multiple» di Gardner né gli «stili di apprendimento» (visivo, uditivo…): la prima teoria è difficile da misurare, la seconda è stata smentita dagli esperimenti."
+        ],
+        "books": [
+          "Daniel Kahneman — «Thinking, Fast and Slow» (2011)",
+          "Keith Stanovich — «Rationality and the Reflective Mind» (2011)",
+          "Rosemary Pacini, Seymour Epstein — questionario REI (1999)",
+          "Arie Kruglanski — «The Psychology of Closed Mindedness» (2004)",
+          "Carol Dweck — «Mindset» (2006)",
+          "Elaine Aron — «The Highly Sensitive Person» (1996)",
+          "Susan Cain — «Quiet» (2012)",
+          "Till Roenneberg — «Internal Time» (2012)",
+          "Howard Gardner — «Frames of Mind» (1983)",
+          "Harold Pashler et al. — «Learning Styles: Concepts and Evidence» (2008)"
+        ]
+      },
+      "conflict": {
+        "title": "Conflitti: stili e «quattro cavalieri»",
+        "used": "Modulo «Conflitti»",
+        "text": [
+          "Il modello del doppio interesse (Blake e Mouton, Thomas e Kilmann, Rahim) descrive cinque stili: competizione, collaborazione, compromesso, evitamento e accomodamento. Si distinguono per quanto una persona tiene ai propri interessi e a quelli dell'altra parte.",
+          "Gottman ha osservato per decenni le coppie in laboratorio e ha individuato quattro comportamenti che predicono più di tutti una rottura: la critica alla persona, l'atteggiamento difensivo, il disprezzo e il «muro» (ostruzionismo). Gli antidoti sono un avvio delicato della conversazione, l'assunzione di responsabilità, l'espressione di gratitudine e una pausa per calmarsi."
+        ],
+        "books": [
+          "John Gottman — «The Seven Principles for Making Marriage Work» (1999)",
+          "John Gottman — «What Predicts Divorce?» (1994)",
+          "Kenneth Thomas, Ralph Kilmann — modello degli stili di conflitto (1974)",
+          "Afzalur Rahim — «A measure of styles of handling interpersonal conflict» (1983)"
+        ]
+      },
+      "care": {
+        "title": "I «linguaggi dell'amore»",
+        "used": "Modulo «Affetto»: ciò che conta di più per te",
+        "text": [
+          "Chapman ha descritto cinque modi di esprimere e percepire l'amore: parole, tempo, aiuto, regali, contatto fisico. L'idea è molto popolare, ma le ricerche quasi non la confermano: per la maggior parte delle persone contano tutti e cinque, e la «corrispondenza dei linguaggi» predice poco la felicità di una coppia.",
+          "Nell'app questo blocco non serve a valutare la compatibilità (il suo peso è minimo), ma a dare un suggerimento: che cosa rende più felice l'altra persona."
+        ],
+        "books": [
+          "Gary Chapman — «The 5 Love Languages» (1992)",
+          "Emily Impett et al. — «Popular psychology through a scientific lens: evaluating love languages from a relationship science perspective» (2024)"
+        ]
+      },
+      "compat": {
+        "title": "Cosa dice la scienza sulla compatibilità",
+        "used": "Formula della compatibilità",
+        "text": [
+          "La somiglianza attrae, soprattutto quella di opinioni e valori (meta-analisi di Montoya e colleghi, 2008). Ma per la felicità nelle relazioni lunghe la somiglianza di carattere conta poco (Luo e Klohnen, 2005).",
+          "Sulla soddisfazione influiscono di più le qualità personali di ciascun partner: stabilità emotiva, gradevolezza, coscienziosità (meta-analisi di Malouff e colleghi, 2010), oltre all'attaccamento sicuro e al modo in cui la coppia si comporta nei conflitti (Gottman). Un vasto studio di Joel e colleghi (2020, 43 campioni di coppie) ha mostrato che la qualità della relazione è predetta meglio non dai tratti, ma da come i partner si percepiscono a vicenda e percepiscono la relazione stessa.",
+          "Per questo l'app calcola separatamente la somiglianza (quanto vi somigliate) e la compatibilità (somiglianza dei valori + «risorse» personali di entrambe le persone + attaccamento + stile nei conflitti + equilibrio nella leadership). È uno spunto per parlarne, non una sentenza."
+        ],
+        "books": [
+          "Matthew Montoya et al. — «Is actual similarity necessary for attraction?» (2008)",
+          "Shanhong Luo, Eva Klohnen — «Assortative mating and marital quality in newlyweds» (2005)",
+          "John Malouff et al. — «The five-factor model of personality and relationship satisfaction of intimate partners: a meta-analysis» (2010)",
+          "Samantha Joel et al. — «Machine learning uncovers the most robust self-report predictors of relationship quality across 43 longitudinal couples studies» (2020)"
+        ]
+      },
+      "other": {
+        "title": "Cosa è rimasto fuori e perché",
+        "used": "Non utilizzato",
+        "text": [
+          "Le accentuazioni del carattere (Leonhard, Ličko) sono una tipologia clinica delle varianti estreme della norma. Si misurano con questionari specifici (Schmieschek), e un'autodiagnosi qui non è appropriata.",
+          "L'enneagramma e la socionica sono popolari, ma non esistono prove solide della loro validità. La «triade oscura» è in parte rappresentata dalla scala Onestà-Umiltà. I test del QI richiedono prove a tempo, non un'autovalutazione."
+        ],
+        "books": [
+          "Karl Leonhard — «Personalità accentuate» (1968)",
+          "A. E. Ličko — «Psicopatie e accentuazioni del carattere negli adolescenti» (1977)",
+          "Don Richard Riso, Russ Hudson — «The Wisdom of the Enneagram» (1999)"
+        ]
+      }
+    }
+  },
+  "game": {
+    "levels": [
+      "Vi leggete nel pensiero",
+      "Vi conoscete benissimo",
+      "Vi conoscete bene",
+      "C'è ancora da scoprire",
+      "Vi aspettano tante scoperte"
+    ],
+    "cats": {
+      "trip": "Vacanze e viaggi",
+      "food": "Cibo e gusti",
+      "home": "Casa e vita quotidiana",
+      "money": "Soldi",
+      "love": "Amore e relazioni",
+      "social": "Persone e socialità",
+      "work": "Lavoro e ambizioni",
+      "self": "Carattere ed emozioni",
+      "values": "Valori e opinioni",
+      "fun": "Tempo libero e hobby",
+      "future": "Futuro e sogni",
+      "whatif": "E se…"
+    },
+    "q": [
+      [
+        "Vacanza ideale",
+        "Mare e spiaggia",
+        "Montagna ed escursioni",
+        "Grande città",
+        "Campagna e silenzio"
+      ],
+      [
+        "Come organizzare un viaggio",
+        "Pianificare tutto in anticipo",
+        "Decidere sul posto"
+      ],
+      [
+        "Dove dormire in viaggio",
+        "Un appartamento accogliente",
+        "Hotel con servizi",
+        "Tenda o campeggio"
+      ],
+      [
+        "In viaggio conta di più",
+        "Emozioni forti",
+        "Comfort e relax"
+      ],
+      [
+        "Come spostarsi",
+        "Aereo: più veloce",
+        "Treno: più atmosfera",
+        "Auto: libertà"
+      ],
+      [
+        "Le vacanze sono meglio",
+        "Una grande vacanza all'anno",
+        "Tanti viaggi brevi"
+      ],
+      [
+        "In vacanza, sul posto",
+        "Escursioni e attività",
+        "Non fare niente"
+      ],
+      [
+        "In un paese straniero preferisco",
+        "I luoghi famosi",
+        "Dove vive la gente del posto"
+      ],
+      [
+        "Foto in viaggio",
+        "Centinaia di scatti",
+        "Quasi nessuna: vivo il momento"
+      ],
+      [
+        "Dal viaggio porto a casa",
+        "Regali per tutti",
+        "Solo ricordi"
+      ],
+      [
+        "Il viaggio dei sogni",
+        "Il giro del mondo in un anno",
+        "Sei mesi in un solo paese"
+      ],
+      [
+        "Il fine settimana",
+        "Una gita fuori città",
+        "Restare a casa"
+      ],
+      [
+        "Con chi viaggiare",
+        "In un gruppo numeroso",
+        "Solo in due",
+        "Ogni tanto in solitaria, per ricaricarmi"
+      ],
+      [
+        "Bagagli",
+        "Porto tutto, non si sa mai",
+        "Un solo zaino"
+      ],
+      [
+        "Il tragitto",
+        "Fa parte del divertimento",
+        "Non vedo l'ora di arrivare"
+      ],
+      [
+        "Telefono in vacanza",
+        "Sempre raggiungibile",
+        "Lo spengo e sparisco"
+      ],
+      [
+        "Dove andare",
+        "Norvegia e fiordi",
+        "Italia e sole"
+      ],
+      [
+        "Una giornata in viaggio",
+        "Rafting su un fiume di montagna",
+        "Spa e massaggi"
+      ],
+      [
+        "Il posto del cuore",
+        "Tornarci ancora",
+        "Ogni volta un posto nuovo"
+      ],
+      [
+        "La sera in viaggio",
+        "Stelle intorno al fuoco",
+        "Luci della città di notte"
+      ],
+      [
+        "Mangiare in viaggio",
+        "Cibo di strada locale",
+        "Ristoranti collaudati"
+      ],
+      [
+        "Volo perso",
+        "Rabbia e nervi",
+        "Una battuta e un nuovo piano"
+      ],
+      [
+        "Una crociera",
+        "Un sogno",
+        "Che noia su una nave"
+      ],
+      [
+        "Capodanno",
+        "A casa con le persone care",
+        "In un posto nuovo"
+      ],
+      [
+        "Un souvenir",
+        "Calamita da frigo",
+        "Un sasso della spiaggia",
+        "Niente, grazie"
+      ],
+      [
+        "Colazione",
+        "Abbondante: uova o porridge",
+        "Un caffè e via",
+        "Un lungo brunch al bar"
+      ],
+      [
+        "Più spesso ho voglia di",
+        "Qualcosa di dolce",
+        "Qualcosa di salato"
+      ],
+      [
+        "Cena",
+        "Cucinare a casa",
+        "Ordinare a domicilio",
+        "Uscire a mangiare"
+      ],
+      [
+        "Cucina preferita",
+        "Italiana",
+        "Giapponese",
+        "Georgiana",
+        "Casalinga"
+      ],
+      [
+        "Un piatto nuovo nel menù",
+        "Rischiare e assaggiarlo",
+        "Prendere il solito"
+      ],
+      [
+        "Al mattino",
+        "Caffè",
+        "Tè",
+        "Acqua o succo"
+      ],
+      [
+        "Piccante",
+        "Più è piccante, meglio è",
+        "Niente peperoncino, grazie"
+      ],
+      [
+        "Cena romantica",
+        "A lume di candela al ristorante",
+        "Pizza sul divano"
+      ],
+      [
+        "L'ultimo pezzo di pizza",
+        "Lo lascio a qualcun altro",
+        "Lo mangio, se nessuno lo prende"
+      ],
+      [
+        "Cucinare insieme",
+        "Divertente",
+        "Ci intralciamo e basta"
+      ],
+      [
+        "Fast food",
+        "Ogni tanto è una gioia",
+        "Non lo mangio"
+      ],
+      [
+        "Il cibo è",
+        "Piacere",
+        "Carburante"
+      ],
+      [
+        "Spuntino notturno",
+        "Capita",
+        "Mai"
+      ],
+      [
+        "Carne",
+        "Non posso farne a meno",
+        "Ne faccio a meno facilmente"
+      ],
+      [
+        "Dessert",
+        "Torta",
+        "Gelato",
+        "Frutta",
+        "Niente dessert"
+      ],
+      [
+        "Buffet",
+        "Assaggiare tutto",
+        "Un paio di piatti sicuri"
+      ],
+      [
+        "Pranzo nel weekend",
+        "Picnic all'aperto",
+        "Ristorante"
+      ],
+      [
+        "Tavola delle feste",
+        "Tanti piatti, come fa la mamma",
+        "Pochi piatti, senza stress"
+      ],
+      [
+        "Il cibo dell'infanzia",
+        "Il mio preferito",
+        "Non lo mangio da tempo"
+      ],
+      [
+        "A cena",
+        "Un bicchiere di vino",
+        "Meglio senza alcol"
+      ],
+      [
+        "Minestra",
+        "La adoro",
+        "Non mi piace"
+      ],
+      [
+        "Un kebab al volo",
+        "Perché no",
+        "Solo in un locale"
+      ],
+      [
+        "Assaggiare insetti",
+        "Interessante",
+        "Mai e poi mai"
+      ],
+      [
+        "Se non mangio da tanto",
+        "Resisto senza problemi",
+        "Mi viene il malumore"
+      ],
+      [
+        "Cucinare seguendo la ricetta",
+        "Al grammo",
+        "A occhio e a ispirazione"
+      ],
+      [
+        "Dove vivere",
+        "Città",
+        "Periferia",
+        "Campagna"
+      ],
+      [
+        "La casa dei sogni",
+        "Appartamento in centro",
+        "Casa con giardino"
+      ],
+      [
+        "Arredamento",
+        "Minimalismo",
+        "Calore e tanti oggetti"
+      ],
+      [
+        "Pulizie",
+        "Un po' ogni giorno",
+        "A fondo una volta a settimana"
+      ],
+      [
+        "Piatti sporchi",
+        "Li lavo subito",
+        "Li accumulo e li lavo dopo"
+      ],
+      [
+        "Animale domestico",
+        "Cane",
+        "Gatto",
+        "Qualcosa di esotico",
+        "Niente animali"
+      ],
+      [
+        "Dormire",
+        "Al fresco con la finestra aperta",
+        "Al caldo sotto la coperta"
+      ],
+      [
+        "Sveglia",
+        "Mi alzo subito",
+        "Altri cinque minuti… più volte"
+      ],
+      [
+        "Mattina del giorno libero",
+        "Alzarsi presto e fare tutto",
+        "Dormire fino a mezzogiorno"
+      ],
+      [
+        "Le cose vecchie",
+        "Le conservo per ricordo",
+        "Le butto senza problemi"
+      ],
+      [
+        "Lavori in casa",
+        "Fai da te",
+        "Affidarli a una ditta"
+      ],
+      [
+        "Ospiti",
+        "Spesso e con tanto chiasso",
+        "Di rado e solo persone care"
+      ],
+      [
+        "La spesa",
+        "Rigorosamente con la lista",
+        "A seconda dell'umore"
+      ],
+      [
+        "Piante d'appartamento",
+        "Più verde c'è, meglio è",
+        "No, grazie"
+      ],
+      [
+        "A casa di solito",
+        "C'è qualcosa in sottofondo",
+        "Silenzio"
+      ],
+      [
+        "Luce di sera",
+        "Lampadario luminoso",
+        "Lampade calde"
+      ],
+      [
+        "Faccende domestiche in coppia",
+        "Dividerle con precisione",
+        "Le fa chi ha tempo"
+      ],
+      [
+        "Coperta",
+        "Una per due",
+        "Una a testa"
+      ],
+      [
+        "Mobili",
+        "Un giorno intero in negozio",
+        "Ordinarli online in cinque minuti"
+      ],
+      [
+        "La casa è prima di tutto",
+        "Un rifugio per riposare",
+        "Un posto per incontrare gente"
+      ],
+      [
+        "Traslocare",
+        "Facile, amo i cambiamenti",
+        "Difficile, mi affeziono ai luoghi"
+      ],
+      [
+        "Il disordine dell'altra persona",
+        "Mi irrita",
+        "Non lo noto"
+      ],
+      [
+        "Musica in casa",
+        "A tutto volume dalla cassa",
+        "Bassa o in cuffia"
+      ],
+      [
+        "Il letto al mattino",
+        "Lo rifaccio sempre",
+        "Perché? La sera ci torno"
+      ],
+      [
+        "Il frigorifero",
+        "Sempre pieno",
+        "Si compra quando serve"
+      ],
+      [
+        "Un bonus inaspettato",
+        "Metterlo da parte",
+        "Spenderlo per un piacere",
+        "Investirlo"
+      ],
+      [
+        "Spese",
+        "Tengo i conti",
+        "Spendo a sensazione"
+      ],
+      [
+        "Comprare",
+        "Caro e duraturo",
+        "Economico, ma da cambiare spesso"
+      ],
+      [
+        "Soldi in coppia",
+        "Bilancio comune",
+        "Portafogli separati",
+        "Fondo comune e soldi personali"
+      ],
+      [
+        "Un sogno costa caro",
+        "Chiedere un prestito",
+        "Risparmiare"
+      ],
+      [
+        "Un regalo",
+        "Costoso e utile",
+        "Economico ma significativo"
+      ],
+      [
+        "Spendere per",
+        "Un viaggio",
+        "Una cosa che resta"
+      ],
+      [
+        "Lavoro",
+        "Stipendio alto, ma noioso",
+        "Meno soldi, ma un lavoro che amo"
+      ],
+      [
+        "Vinci un milione",
+        "Lascio il lavoro",
+        "Continuo a lavorare"
+      ],
+      [
+        "Sconti e offerte",
+        "Ne vado a caccia",
+        "Non ci perdo tempo"
+      ],
+      [
+        "Prestare soldi agli amici",
+        "Senza fare domande",
+        "Meglio di no"
+      ],
+      [
+        "Mance",
+        "Sempre generose",
+        "Dipende",
+        "Le lascio di rado"
+      ],
+      [
+        "Fondo per le emergenze",
+        "Indispensabile",
+        "Vivo alla giornata"
+      ],
+      [
+        "Investimenti",
+        "Azioni e rischio",
+        "Conto deposito e tranquillità"
+      ],
+      [
+        "Capi firmati",
+        "Contano",
+        "Per me è uguale"
+      ],
+      [
+        "Un acquisto importante",
+        "Confronto a lungo",
+        "Decido in fretta"
+      ],
+      [
+        "Parlare di soldi",
+        "Con calma e apertamente",
+        "Argomento imbarazzante"
+      ],
+      [
+        "Acquisti d'impulso",
+        "Spesso",
+        "Quasi mai"
+      ],
+      [
+        "I soldi sono",
+        "Libertà",
+        "Sicurezza",
+        "Un mezzo, non un fine"
+      ],
+      [
+        "Reddito",
+        "Un'attività in proprio",
+        "Un lavoro dipendente stabile"
+      ],
+      [
+        "Regalarsi qualcosa",
+        "Regolarmente",
+        "Solo se c'è un motivo"
+      ],
+      [
+        "Il conto a un appuntamento",
+        "Paga chi ha invitato",
+        "Alla romana",
+        "Non importa"
+      ],
+      [
+        "Beneficenza",
+        "Regolarmente",
+        "Ogni tanto",
+        "Non fa per me"
+      ],
+      [
+        "Casa",
+        "Mutuo, ma è mia",
+        "Affitto e libertà"
+      ],
+      [
+        "Si è rotto qualcosa",
+        "Ripararlo",
+        "Comprarne uno nuovo"
+      ],
+      [
+        "L'amore si dimostra meglio",
+        "Con le parole",
+        "Con i fatti"
+      ],
+      [
+        "Dopo un litigio",
+        "Chiarire subito tutto",
+        "Calmarsi e parlarne dopo"
+      ],
+      [
+        "Gelosia",
+        "Un po' è normale",
+        "Distrugge e basta"
+      ],
+      [
+        "Appuntamenti",
+        "Ogni volta qualcosa di nuovo",
+        "Il solito, intimo e comodo"
+      ],
+      [
+        "Romanticismo",
+        "Sorprese inaspettate",
+        "Attenzioni costanti ogni giorno"
+      ],
+      [
+        "Spazio personale",
+        "Me ne serve molto",
+        "Voglio stare accanto quasi sempre"
+      ],
+      [
+        "Password del telefono",
+        "Conoscerle a vicenda",
+        "Il privato è privato"
+      ],
+      [
+        "Anniversario",
+        "Festeggiarlo in grande",
+        "In intimità, solo noi due",
+        "Non serve festeggiarlo"
+      ],
+      [
+        "Foto di coppia sui social",
+        "Sì, che le vedano tutti",
+        "La relazione non è una vetrina"
+      ],
+      [
+        "Conoscere i genitori",
+        "Subito",
+        "Quando la cosa è seria"
+      ],
+      [
+        "Fare il primo passo dopo un litigio",
+        "Non c'è niente di male",
+        "Chieda scusa chi ha sbagliato"
+      ],
+      [
+        "Vacanze separate",
+        "Normale",
+        "Strano"
+      ],
+      [
+        "Amicizie con l'altro sesso",
+        "Nessun problema",
+        "Mi mettono in allerta"
+      ],
+      [
+        "Matrimonio",
+        "Una grande festa",
+        "Piccolo, con le persone care",
+        "Solo il rito civile"
+      ],
+      [
+        "Abbracci",
+        "Tanti e sempre",
+        "Ogni tanto"
+      ],
+      [
+        "Messaggi durante il giorno",
+        "Ci scriviamo di continuo",
+        "Solo per cose pratiche"
+      ],
+      [
+        "Complimenti",
+        "Voglio sentirli spesso",
+        "Mi mettono a disagio"
+      ],
+      [
+        "L'amore è prima di tutto",
+        "Passione",
+        "Amicizia",
+        "Scelta e impegno"
+      ],
+      [
+        "Con gli ex",
+        "L'amicizia è possibile",
+        "Meglio non sentirsi"
+      ],
+      [
+        "Segreti nella coppia",
+        "Nessun segreto",
+        "Ognuno può avere i suoi"
+      ],
+      [
+        "Andare a convivere",
+        "Presto",
+        "Senza fretta"
+      ],
+      [
+        "L'altra persona è triste",
+        "Abbracciarla in silenzio",
+        "Farle domande",
+        "Distrarla e farla ridere"
+      ],
+      [
+        "Una festa a sorpresa in tuo onore",
+        "La adoro",
+        "Non la sopporto"
+      ],
+      [
+        "Litigare davanti agli amici",
+        "Si può",
+        "Solo in privato"
+      ],
+      [
+        "In coppia conta di più",
+        "Ridere insieme",
+        "Capirsi senza parole"
+      ],
+      [
+        "A una festa",
+        "Faccio conoscenza con tutti",
+        "Sto con chi conosco"
+      ],
+      [
+        "Amicizie",
+        "Tanti conoscenti",
+        "Poche persone molto care"
+      ],
+      [
+        "Contattare qualcuno",
+        "Chiamare",
+        "Scrivere"
+      ],
+      [
+        "Una conversazione spiacevole",
+        "Di persona",
+        "Per messaggio"
+      ],
+      [
+        "Agli appuntamenti",
+        "Arrivo in orario",
+        "Arrivo un po' in ritardo"
+      ],
+      [
+        "Compleanno",
+        "Una grande festa",
+        "In intimità con le persone più care",
+        "Meglio se passa inosservato"
+      ],
+      [
+        "Dare un consiglio",
+        "La verità, anche se scomoda",
+        "Prima sostegno, poi la verità con tatto"
+      ],
+      [
+        "In un gruppo nuovo",
+        "Mi ambiento in fretta",
+        "Prima osservo"
+      ],
+      [
+        "Social",
+        "Pubblico spesso",
+        "Guardo e basta",
+        "Li uso pochissimo"
+      ],
+      [
+        "Messaggi vocali",
+        "Comodi",
+        "Mi irritano"
+      ],
+      [
+        "Dire di no agli amici",
+        "Facile",
+        "Molto difficile"
+      ],
+      [
+        "Le conversazioni preferite",
+        "Sulle persone e sulla vita",
+        "Sulle idee e sul futuro"
+      ],
+      [
+        "Una serata libera",
+        "In compagnia",
+        "Per conto mio"
+      ],
+      [
+        "Qualcuno attacca bottone in fila",
+        "Chiacchiero volentieri",
+        "Rispondo a monosillabi"
+      ],
+      [
+        "La vera amicizia",
+        "Vedersi spesso",
+        "Anni senza vedersi, e tutto come prima"
+      ],
+      [
+        "Una lite nel gruppo",
+        "Intervengo",
+        "Resto in disparte"
+      ],
+      [
+        "Un segreto che ti hanno confidato",
+        "Non lo dico a nessuno",
+        "Solo alla persona che amo"
+      ],
+      [
+        "Parlare in pubblico",
+        "Mi piace",
+        "Mi spaventa"
+      ],
+      [
+        "Nuove amicizie",
+        "Ne faccio ancora",
+        "Mi bastano quelle che ho"
+      ],
+      [
+        "Ti chiedono aiuto per un trasloco",
+        "Ci vado",
+        "Trovo una scusa per non andare"
+      ],
+      [
+        "Gli ospiti non se ne vanno più",
+        "Lo dico chiaramente",
+        "Sopporto in silenzio"
+      ],
+      [
+        "Pettegolezzi",
+        "Interessanti da ascoltare",
+        "Mi mettono a disagio"
+      ],
+      [
+        "Umorismo",
+        "Più è pungente, più fa ridere",
+        "Niente battute offensive"
+      ],
+      [
+        "Un regalo che non piace",
+        "Lo dico onestamente",
+        "Ringrazio e taccio"
+      ],
+      [
+        "Vicini di casa",
+        "Ci frequentiamo",
+        "Un saluto e basta"
+      ],
+      [
+        "Il lavoro dei sogni",
+        "Un'attività in proprio",
+        "Carriera in una grande azienda",
+        "Libertà e freelance"
+      ],
+      [
+        "Dove lavorare",
+        "In ufficio",
+        "A casa",
+        "Un po' e un po'"
+      ],
+      [
+        "Dirigere gli altri",
+        "Mi piacerebbe",
+        "Meglio restare specialista"
+      ],
+      [
+        "Compiti",
+        "Tanti e diversi",
+        "Uno, ma in profondità"
+      ],
+      [
+        "Scadenza",
+        "Mi porto avanti",
+        "L'ultima notte"
+      ],
+      [
+        "Lavoro e vita privata",
+        "Ben separati",
+        "Il lavoro fa parte della vita"
+      ],
+      [
+        "Cambiare professione a 35 anni",
+        "Con coraggio",
+        "Meglio tenersi il sicuro"
+      ],
+      [
+        "La ricompensa migliore",
+        "Un elogio pubblico",
+        "Un premio in denaro"
+      ],
+      [
+        "Un errore al lavoro",
+        "Lo ammetto subito",
+        "Prima lo correggo di nascosto"
+      ],
+      [
+        "Colleghi",
+        "Ci faccio amicizia",
+        "Solo rapporti di lavoro"
+      ],
+      [
+        "Studiare",
+        "Per tutta la vita",
+        "Mi basta quello che so"
+      ],
+      [
+        "Ferie",
+        "Le rimando: troppo lavoro",
+        "Le prendo tutte, sempre"
+      ],
+      [
+        "Lunedì mattina",
+        "Energia",
+        "Malinconia"
+      ],
+      [
+        "Ritmo di lavoro",
+        "Dalle sette del mattino",
+        "Fino a notte fonda"
+      ],
+      [
+        "Promozione con trasferimento in un'altra città",
+        "Accetto",
+        "Rifiuto"
+      ],
+      [
+        "Il successo è",
+        "Denaro",
+        "Riconoscimento",
+        "Libertà",
+        "Essere utile agli altri"
+      ],
+      [
+        "Riunioni",
+        "Utili per confrontarsi",
+        "Tempo perso"
+      ],
+      [
+        "Lavorare",
+        "In squadra",
+        "In autonomia"
+      ],
+      [
+        "Trasformare un hobby in lavoro",
+        "Un sogno",
+        "Ucciderebbe il piacere"
+      ],
+      [
+        "In malattia",
+        "Lavoro comunque",
+        "Mi curo e non penso al lavoro"
+      ],
+      [
+        "Chiamata di lavoro nel giorno libero",
+        "Rispondo",
+        "Non rispondo"
+      ],
+      [
+        "Nei prossimi anni conta di più",
+        "La carriera",
+        "La famiglia"
+      ],
+      [
+        "Pensione",
+        "Lavorare finché posso",
+        "Presto, per viaggiare"
+      ],
+      [
+        "Competizione",
+        "Mi motiva",
+        "Mi mette ansia"
+      ],
+      [
+        "Un nuovo progetto",
+        "Lo accetto anche se non so farlo",
+        "Accetto solo ciò che conosco"
+      ],
+      [
+        "Di cattivo umore",
+        "Ho bisogno di silenzio e solitudine",
+        "Mi serve qualcuno accanto"
+      ],
+      [
+        "Lacrime",
+        "Piango facilmente",
+        "Molto di rado"
+      ],
+      [
+        "Decisioni importanti",
+        "Con il cuore",
+        "Con la testa"
+      ],
+      [
+        "Critiche",
+        "Le accetto con calma",
+        "Mi feriscono a lungo"
+      ],
+      [
+        "Aspettare",
+        "Con pazienza",
+        "Una tortura"
+      ],
+      [
+        "Rabbia",
+        "Esplodo e mi passa subito",
+        "Accumulo e taccio"
+      ],
+      [
+        "Zona di comfort",
+        "Uscirne",
+        "Proteggerla"
+      ],
+      [
+        "Sorprese",
+        "Le adoro",
+        "Preferisco sapere prima"
+      ],
+      [
+        "L'opinione degli altri",
+        "Conta",
+        "Non mi interessa"
+      ],
+      [
+        "Per scaricare lo stress",
+        "Sport",
+        "Buon cibo",
+        "Dormire",
+        "Parlare con una persona cara"
+      ],
+      [
+        "I miei errori",
+        "Ci rimugino a lungo",
+        "Li lascio andare in fretta"
+      ],
+      [
+        "Nella vita",
+        "Ottimista",
+        "Realista",
+        "Pessimista"
+      ],
+      [
+        "Riconoscere i propri meriti",
+        "Mi viene facile",
+        "Mi costa fatica"
+      ],
+      [
+        "Prima impressione sulle persone",
+        "Mi fido",
+        "Verifico"
+      ],
+      [
+        "Quando mi annoio",
+        "Cerco avventure",
+        "Mi godo la tranquillità"
+      ],
+      [
+        "Il passato",
+        "Ci ripenso spesso",
+        "Vivo nel presente"
+      ],
+      [
+        "Chiedere scusa",
+        "Facile",
+        "Mi costa fatica"
+      ],
+      [
+        "Le cose da fare",
+        "Liste e appunti",
+        "Tutto a mente"
+      ],
+      [
+        "Discussioni",
+        "Mi piacciono",
+        "Le evito"
+      ],
+      [
+        "Parlare di me",
+        "Facilmente e tanto",
+        "Poco e malvolentieri"
+      ],
+      [
+        "Quando sto male",
+        "Ho bisogno di attenzioni",
+        "Lasciatemi in pace"
+      ],
+      [
+        "Fa più paura",
+        "La solitudine",
+        "Il fallimento",
+        "Perdere le persone care",
+        "L'ignoto"
+      ],
+      [
+        "Il mattino",
+        "Il momento migliore del giorno",
+        "Una prova"
+      ],
+      [
+        "Regole",
+        "Le rispetto",
+        "A volte le infrango"
+      ],
+      [
+        "Cambiamenti",
+        "Mi ispirano",
+        "Mi agitano"
+      ],
+      [
+        "Più importante",
+        "La verità",
+        "La gentilezza"
+      ],
+      [
+        "Scegliere",
+        "La libertà",
+        "La stabilità"
+      ],
+      [
+        "Destino",
+        "È tutto già scritto",
+        "Tutto dipende da noi"
+      ],
+      [
+        "Figli",
+        "Li voglio",
+        "Non li voglio",
+        "Non lo so ancora"
+      ],
+      [
+        "Fede",
+        "Importante",
+        "Non fa per me",
+        "Sto cercando la mia strada"
+      ],
+      [
+        "Tradizioni",
+        "Rispettare quelle di famiglia",
+        "Crearne di nostre"
+      ],
+      [
+        "Bugia a fin di bene",
+        "È ammissibile",
+        "Mai"
+      ],
+      [
+        "Il successo dipende da",
+        "Talento",
+        "Impegno",
+        "Fortuna"
+      ],
+      [
+        "Quando qualcuno sbaglia",
+        "Giustizia",
+        "Clemenza"
+      ],
+      [
+        "Politica a tavola",
+        "Parlarne",
+        "Meglio evitarla"
+      ],
+      [
+        "Raccolta differenziata",
+        "Assolutamente",
+        "Non ci sto dietro"
+      ],
+      [
+        "Consigli dei genitori",
+        "Importanti",
+        "Decido da me"
+      ],
+      [
+        "Vorrei avere di più",
+        "Tempo",
+        "Soldi"
+      ],
+      [
+        "Perdonare",
+        "Si può perdonare tutto",
+        "Certe cose sono imperdonabili"
+      ],
+      [
+        "La felicità è",
+        "Dentro di sé",
+        "Nelle persone care",
+        "Nei traguardi"
+      ],
+      [
+        "Aiutare chi non conosci",
+        "Sempre",
+        "Se ho tempo"
+      ],
+      [
+        "La vita",
+        "Lunga e tranquilla",
+        "Intensa, anche se più breve"
+      ],
+      [
+        "Educazione dei figli",
+        "Severa",
+        "Libera"
+      ],
+      [
+        "In una persona conta di più",
+        "Intelligenza",
+        "Bontà",
+        "Senso dell'umorismo",
+        "Affidabilità"
+      ],
+      [
+        "Un portafoglio trovato",
+        "Lo restituisco",
+        "Dipende dalla situazione"
+      ],
+      [
+        "Principi",
+        "Saldi",
+        "Flessibili secondo la situazione"
+      ],
+      [
+        "Longevità",
+        "Arrivare a cento anni",
+        "Conta più la qualità degli anni"
+      ],
+      [
+        "Tecnologia",
+        "Il futuro è suo",
+        "Mi spaventa"
+      ],
+      [
+        "Vivere",
+        "Sempre nella città natale",
+        "Dove si sta meglio"
+      ],
+      [
+        "Il senso della vita",
+        "Amore",
+        "Crescita",
+        "Lasciare un segno",
+        "Semplicemente vivere"
+      ],
+      [
+        "Venerdì sera",
+        "Film a casa",
+        "Bar o discoteca",
+        "Sport",
+        "Un libro"
+      ],
+      [
+        "Una storia è meglio",
+        "Nel libro",
+        "Nel film"
+      ],
+      [
+        "Serie TV",
+        "Tutta d'un fiato nel weekend",
+        "Un episodio al giorno"
+      ],
+      [
+        "Sport",
+        "Palestra",
+        "Corsa all'aperto",
+        "Sport di squadra",
+        "Non fa per me"
+      ],
+      [
+        "Musica",
+        "Rock",
+        "Pop",
+        "Rap",
+        "Classica"
+      ],
+      [
+        "A un concerto",
+        "Ballare sotto il palco",
+        "Ascoltare dal mio posto"
+      ],
+      [
+        "Giochi da tavolo",
+        "Li adoro",
+        "Che noia"
+      ],
+      [
+        "Videogiochi",
+        "Ci gioco",
+        "Non ci gioco"
+      ],
+      [
+        "Film",
+        "Commedia",
+        "Horror",
+        "Drammatico",
+        "Fantascienza"
+      ],
+      [
+        "Hobby",
+        "Fare cose con le mani",
+        "Imparare cose nuove"
+      ],
+      [
+        "Il film preferito",
+        "Lo riguardo",
+        "Guardo solo cose nuove"
+      ],
+      [
+        "Karaoke",
+        "Canto volentieri",
+        "Ascolto e basta"
+      ],
+      [
+        "Ballare",
+        "Ballo ovunque",
+        "Solo se insistono tanto"
+      ],
+      [
+        "Spoiler",
+        "Non mi fanno paura",
+        "Mi fanno impazzire"
+      ],
+      [
+        "Musei",
+        "Li adoro",
+        "Che noia"
+      ],
+      [
+        "In mezzo alla natura",
+        "Bosco",
+        "Mare",
+        "Montagna"
+      ],
+      [
+        "Escape room",
+        "Sì!",
+        "Troppa ansia"
+      ],
+      [
+        "Leggere",
+        "Libri di carta",
+        "E-book",
+        "Audiolibri",
+        "Non amo leggere"
+      ],
+      [
+        "Giorno libero senza programmi",
+        "Felicità",
+        "Noia"
+      ],
+      [
+        "Cosa fotografo di più",
+        "Selfie",
+        "La natura",
+        "Il cibo",
+        "Non fotografo"
+      ],
+      [
+        "Festa in maschera",
+        "Mi travesto con impegno",
+        "Vengo così come sono"
+      ],
+      [
+        "Nei giochi",
+        "Gioco per vincere",
+        "Gioco per divertirmi"
+      ],
+      [
+        "Nuovi hobby",
+        "Ne provo spesso",
+        "Fedeltà a quelli di sempre"
+      ],
+      [
+        "Mattina del giorno libero",
+        "Una corsetta",
+        "Colazione con calma"
+      ],
+      [
+        "La notte",
+        "Chiacchiere fino all'alba",
+        "A letto all'ora giusta"
+      ],
+      [
+        "Tra 10 anni",
+        "Dove sono ora",
+        "In un'altra città",
+        "In un altro paese"
+      ],
+      [
+        "Sogni",
+        "Uno grande e lontano",
+        "Tanti piccoli obiettivi"
+      ],
+      [
+        "La casa dei sogni",
+        "Sul mare",
+        "In montagna",
+        "In una metropoli",
+        "Nel bosco vicino alla città"
+      ],
+      [
+        "Vecchiaia",
+        "In una grande famiglia",
+        "In due, nella quiete",
+        "In viaggio"
+      ],
+      [
+        "Piani per l'anno",
+        "Tutti programmati",
+        "Come viene viene"
+      ],
+      [
+        "Macchina del tempo",
+        "Nel passato",
+        "Nel futuro"
+      ],
+      [
+        "Conoscere la data della propria morte",
+        "Sì",
+        "No"
+      ],
+      [
+        "Il futuro del mondo",
+        "Sarà migliore",
+        "Sarà peggiore"
+      ],
+      [
+        "Quanti figli",
+        "Nessuno",
+        "Uno",
+        "Due",
+        "Tre o più"
+      ],
+      [
+        "Istruzione dei figli",
+        "La scuola migliore a ogni costo",
+        "Che scelgano la loro strada"
+      ],
+      [
+        "Trasferirsi all'estero",
+        "Mi piacerebbe",
+        "Solo in vacanza"
+      ],
+      [
+        "I prossimi 5 anni",
+        "Stabilità",
+        "Cambiamenti"
+      ],
+      [
+        "Imparare cose nuove tra 10 anni",
+        "Certamente",
+        "Difficilmente"
+      ],
+      [
+        "Costruire una casa con le proprie mani",
+        "Un sogno",
+        "Fatica inutile"
+      ],
+      [
+        "Fama",
+        "La vorrei",
+        "Mai e poi mai"
+      ],
+      [
+        "Soldi per la vecchiaia",
+        "Risparmiare fin da giovani",
+        "Ci penserò più avanti"
+      ],
+      [
+        "Buoni propositi per l'anno nuovo",
+        "Mi pongo obiettivi",
+        "Non ci credo"
+      ],
+      [
+        "Il mio sogno",
+        "Lo racconto a tutti",
+        "Lo tengo segreto"
+      ],
+      [
+        "Vivere per sempre",
+        "Sì",
+        "No"
+      ],
+      [
+        "Robot in casa",
+        "Che facciano tutto loro",
+        "Non mi fido"
+      ],
+      [
+        "Carriera tra 10 anni",
+        "Ruolo direttivo",
+        "Competenza da specialista",
+        "Un'attività mia",
+        "Orari liberi"
+      ],
+      [
+        "Vivere",
+        "In una metropoli",
+        "In una piccola città"
+      ],
+      [
+        "La cosa più importante tra 20 anni",
+        "Salute",
+        "Famiglia",
+        "L'opera della vita",
+        "Libertà"
+      ],
+      [
+        "Per un sogno",
+        "Rischiare tutto",
+        "Procedere a piccoli passi"
+      ],
+      [
+        "A 80 anni, il rimpianto più grande",
+        "Ciò che non ho fatto",
+        "Ciò che ho fatto"
+      ],
+      [
+        "Superpotere",
+        "Leggere nel pensiero",
+        "Volare",
+        "Invisibilità",
+        "Teletrasporto"
+      ],
+      [
+        "Isola deserta, un solo oggetto",
+        "Coltello",
+        "Libro",
+        "Fiammiferi"
+      ],
+      [
+        "Per un anno è più facile stare",
+        "Senza internet",
+        "Senza dolci",
+        "Senza caffè"
+      ],
+      [
+        "Biglietto gratis per lo spazio",
+        "Parto",
+        "Rinuncio"
+      ],
+      [
+        "Conoscere il proprio futuro",
+        "Lo vorrei",
+        "Meglio non saperlo"
+      ],
+      [
+        "Incontrare il proprio io del passato",
+        "Dare un consiglio",
+        "Non interferire"
+      ],
+      [
+        "Un dono",
+        "Parlare con gli animali",
+        "Conoscere tutte le lingue"
+      ],
+      [
+        "Per un giorno vorrei",
+        "Essere presidente",
+        "Diventare invisibile",
+        "Rivivere l'infanzia"
+      ],
+      [
+        "Cancellare un ricordo",
+        "Lo cancello",
+        "Tengo tutto"
+      ],
+      [
+        "Vivere in un'epoca",
+        "Del passato",
+        "Del futuro",
+        "Di oggi"
+      ],
+      [
+        "Un milione, ma non puoi dirlo a nessuno",
+        "Accetto",
+        "Rifiuto"
+      ],
+      [
+        "Restare per sempre a 25 anni",
+        "Sì",
+        "No: invecchiare è interessante"
+      ],
+      [
+        "Apocalisse zombie",
+        "Scappare nel bosco",
+        "Barricarsi in casa",
+        "Guidare i sopravvissuti"
+      ],
+      [
+        "Sapere la verità",
+        "Verità amara",
+        "Bugia dolce"
+      ],
+      [
+        "Scelta",
+        "Giovinezza eterna",
+        "La saggezza della vecchiaia"
+      ],
+      [
+        "Entrare nel mondo di",
+        "Harry Potter",
+        "Il Signore degli Anelli",
+        "Star Wars",
+        "La serie «Friends»"
+      ],
+      [
+        "Se non dovessi lavorare",
+        "Viaggiare",
+        "Creare",
+        "Riposare",
+        "Aiutare gli altri"
+      ],
+      [
+        "Dare 10 anni di vita per un talento geniale",
+        "Li do",
+        "Mai e poi mai"
+      ],
+      [
+        "Per un giorno essere",
+        "Un gatto",
+        "Un cane",
+        "Un uccello",
+        "Un delfino"
+      ],
+      [
+        "Una settimana senza telefono per 1000 $",
+        "Facile",
+        "Impossibile"
+      ],
+      [
+        "Una piccola magia",
+        "Sempre il verde al semaforo",
+        "Parcheggio sempre libero",
+        "Mai più code"
+      ],
+      [
+        "Hai un clone",
+        "Che lavori",
+        "Che si riposi"
+      ],
+      [
+        "Il primo desiderio al genio",
+        "Per me",
+        "Per le persone care",
+        "Per il mondo intero"
+      ],
+      [
+        "Scambiarsi i corpi per un giorno",
+        "Interessante",
+        "Mai e poi mai"
+      ],
+      [
+        "L'ultima cena",
+        "La cucina della mamma",
+        "Il ristorante dei sogni",
+        "Il fast food preferito"
+      ]
+    ]
+  }
+}
