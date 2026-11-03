@@ -125,6 +125,36 @@
 
   // ─── share code: [format, item count, module mask, 3-bit answers…, checksum] → base64url ───
   const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+  // bytes + checksum → base64url; shared with the game codes (game.js)
+  function pack(bytes) {
+    let ck = 0;
+    bytes.forEach(b => { ck = (ck * 31 + b) & 255; });
+    const all = bytes.concat(ck);
+    let out = '';
+    for (let i = 0; i < all.length; i += 3) {
+      const n = (all[i] << 16) | ((all[i + 1] || 0) << 8) | (all[i + 2] || 0);
+      const len = Math.min(3, all.length - i) + 1;
+      for (let k = 0; k < len; k++) out += B64[(n >> (18 - 6 * k)) & 63];
+    }
+    return out;
+  }
+  // base64url → bytes without the checksum, or null if the code is damaged
+  function unpack(code) {
+    code = String(code || '').trim();
+    if (!/^[A-Za-z0-9_-]{8,}$/.test(code)) return null;
+    const bytes = [];
+    for (let i = 0; i < code.length; i += 4) {
+      const chunk = code.slice(i, i + 4);
+      let n = 0;
+      for (let k = 0; k < 4; k++) n = (n << 6) | (k < chunk.length ? B64.indexOf(chunk[k]) : 0);
+      for (let k = 0; k < chunk.length - 1; k++) bytes.push((n >> (16 - 8 * k)) & 255);
+    }
+    if (bytes.length < 2) return null;
+    const ck = bytes.pop();
+    let c = 0;
+    bytes.forEach(b => { c = (c * 31 + b) & 255; });
+    return c === ck ? bytes : null;
+  }
   function encode(mods, ans) {
     let mask = 0;
     mods.forEach(m => { const i = MODS.indexOf(m); if (i >= 0) mask |= 1 << i; });
@@ -137,32 +167,11 @@
       acc &= (1 << bits) - 1;
     }
     if (bits) bytes.push((acc << (8 - bits)) & 255);
-    let ck = 0;
-    bytes.forEach(b => { ck = (ck * 31 + b) & 255; });
-    bytes.push(ck);
-    let out = '';
-    for (let i = 0; i < bytes.length; i += 3) {
-      const n = (bytes[i] << 16) | ((bytes[i + 1] || 0) << 8) | (bytes[i + 2] || 0);
-      const len = Math.min(3, bytes.length - i) + 1;
-      for (let k = 0; k < len; k++) out += B64[(n >> (18 - 6 * k)) & 63];
-    }
-    return out;
+    return pack(bytes);
   }
   function decode(code) {
-    code = String(code || '').trim();
-    if (!/^[A-Za-z0-9_-]{8,}$/.test(code)) return null;
-    const bytes = [];
-    for (let i = 0; i < code.length; i += 4) {
-      const chunk = code.slice(i, i + 4);
-      let n = 0;
-      for (let k = 0; k < 4; k++) n = (n << 6) | (k < chunk.length ? B64.indexOf(chunk[k]) : 0);
-      for (let k = 0; k < chunk.length - 1; k++) bytes.push((n >> (16 - 8 * k)) & 255);
-    }
-    if (bytes.length < 5) return null;
-    const ck = bytes.pop();
-    let c = 0;
-    bytes.forEach(b => { c = (c * 31 + b) & 255; });
-    if (c !== ck || bytes[0] !== FORMAT) return null;
+    const bytes = unpack(code);
+    if (!bytes || bytes.length < 4 || bytes[0] !== FORMAT) return null;
     const n = bytes[1], mask = bytes[2];
     const mods = MODS.filter((m, i) => mask & (1 << i));
     const a = [];
@@ -483,5 +492,5 @@
     return { M, pairs, dom, roles, notes };
   }
 
-  root.Engine = { N, MODS, modCount, modScales, byScale, sequence, profile, encode, decode, pair, group, Phi, CTX, blank };
+  root.Engine = { N, MODS, modCount, modScales, byScale, sequence, profile, encode, decode, pack, unpack, pair, group, Phi, CTX, blank };
 })(typeof window !== 'undefined' ? window : globalThis);
