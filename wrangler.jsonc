@@ -1,9 +1,15 @@
+<<<<<<< HEAD
 // Cloudflare Workers Builds deploys this on every push to main (npx wrangler deploy).
 // The site is the static app/ folder; the Worker script (worker/index.mjs) runs only for /api/*.
+=======
+// Cloudflare Workers Builds deploys this on every push to main (npx wrangler deploy)
+// and builds a preview for other branches (npx wrangler preview). The site is the static app/ folder.
+>>>>>>> legal-pages
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "the-connection-between-us",
   "compatibility_date": "2026-11-03",
+<<<<<<< HEAD
   "main": "worker/index.mjs",
   "assets": {
     "directory": "./app",
@@ -14,4 +20,11 @@
     // price of the full version in Paddle (pri_…); empty keeps /api/unlock switched off
     "PADDLE_PRICE_ID": ""
   }
+=======
+  "assets": {
+    "directory": "./app"
+  },
+  // branch previews; the block may stay empty
+  "previews": {}
+>>>>>>> legal-pages
 }
