@@ -1,4 +1,4 @@
-// node --test test/engine.test.js
+// node --test test/engine.test.js test/game.test.js
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert');

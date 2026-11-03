@@ -353,3 +353,30 @@ table.heat td.self .ava { opacity: .35; }
   max-width: calc(100% - 32px);
 }
 @media (min-width: 900px) { .toast { bottom: 28px; } }
+
+/* ---------- game ---------- */
+.game-hero { background: linear-gradient(135deg, #be185d, #db2777 50%, #7c3aed); }
+.gopts { margin-bottom: 4px; }
+.gopts.guess button.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--surface)); }
+.gopts.guess button.on .ak { background: var(--accent); }
+.g-sub { display: flex; align-items: center; gap: 10px; margin: 14px 0 8px; font-weight: 600; }
+.g-sub .ava { width: 28px; height: 28px; font-size: .8em; }
+.duo { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px; }
+.duo-s { display: inline-flex; flex: none; }
+.duo-s .ava { width: 30px; height: 30px; font-size: .8em; border: 2px solid var(--surface); }
+.duo-s .ava + .ava { margin-left: -10px; }
+.tchip { border: 1px solid var(--border); background: var(--surface); border-radius: 99px; padding: 6px 12px; font-size: .88em; font-weight: 600; cursor: pointer; color: var(--text); }
+.tchip.on { background: var(--primary-soft); border-color: var(--primary); color: var(--primary); }
+.pick-names { margin-top: 10px; }
+.inline-ico { display: inline-block; width: 20px; height: 20px; vertical-align: -4px; margin-right: 6px; fill: none; stroke: var(--accent); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.glist { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.gi { padding: 10px 12px; border-radius: 12px; background: var(--surface-2); }
+.gq { display: flex; flex-direction: column; gap: 2px; margin-bottom: 6px; }
+.gq .badge { align-self: flex-start; margin-top: 2px; }
+.gr { display: flex; gap: 8px; align-items: center; font-size: .9em; margin-top: 4px; }
+.gr .ava { width: 24px; height: 24px; font-size: .75em; }
+.gr .pass, .gr .fail { font-weight: 800; margin-left: 4px; }
+.pass { color: var(--ok); }
+.fail { color: var(--bad); }
+.q-card.g-card { min-height: 0; padding: 16px 18px; }
+.gopts button { padding: 10px 14px; }

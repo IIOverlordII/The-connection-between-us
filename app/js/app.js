@@ -23,7 +23,9 @@
     check: '<path d="M5 12l5 5 9-10"/>',
     warn: '<path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17v.5"/>',
     bulb: '<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V17h5v-1.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/>',
-    back: '<path d="M15 18l-6-6 6-6"/>'
+    back: '<path d="M15 18l-6-6 6-6"/>',
+    game: '<rect x="3.5" y="3.5" width="17" height="17" rx="4"/><circle cx="8.5" cy="8.5" r="1.3"/><circle cx="15.5" cy="15.5" r="1.3"/><circle cx="15.5" cy="8.5" r="1.3"/><circle cx="8.5" cy="15.5" r="1.3"/><circle cx="12" cy="12" r="1.3"/>',
+    trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8M9.5 17h5"/>'
   };
   const icon = (n, cls = '') => `<svg class="${cls}" viewBox="0 0 24 24">${ICON[n] || ''}</svg>`;
   const plural = (n, forms) => {
@@ -41,7 +43,7 @@
     load() {
       let saved = {};
       try { saved = JSON.parse(localStorage.getItem(this.key) || '{}') || {}; } catch (e) { saved = {}; }
-      this.d = Object.assign({ theme: 'auto', fs: 16, ctx: 'love', people: [], sel: [], mode: 'compat' }, saved);
+      this.d = Object.assign({ theme: 'auto', fs: 16, ctx: 'love', people: [], sel: [], mode: 'compat', games: [], gset: { mode: 'local', n: 20, cats: [] }, gfilter: 'all' }, saved);
       this.d.people.forEach(p => { if (!p.ans || p.ans.length !== E.N) p.ans = ((p.ans || '') + E.blank()).slice(0, E.N); });
     },
     save() { try { localStorage.setItem(this.key, JSON.stringify(this.d)); } catch (e) { /* private mode or quota */ } }
@@ -75,9 +77,9 @@
   }
 
   // ───────── shell ─────────
-  const NAV = [['#/', 'Главная', 'home'], ['#/compare', 'Сравнение', 'users'], ['#/theory', 'Теория', 'book'], ['#/settings', 'Настройки', 'gear']];
+  const NAV = [['#/', 'Главная', 'home'], ['#/compare', 'Сравнение', 'users'], ['#/game', 'Игра', 'game'], ['#/theory', 'Теория', 'book'], ['#/settings', 'Настройки', 'gear']];
   function renderNav(root) {
-    const map = { '': '#/', p: '#/', take: '#/', new: '#/', import: '#/', compare: '#/compare', pair: '#/compare', group: '#/compare', theory: '#/theory', settings: '#/settings' };
+    const map = { '': '#/', p: '#/', take: '#/', new: '#/', import: '#/', compare: '#/compare', pair: '#/compare', group: '#/compare', game: '#/game', g: '#/game', theory: '#/theory', settings: '#/settings' };
     const cur = map[root] || '#/';
     $('#sidebar').innerHTML = `<div class="side-brand"><img src="icons/icon.svg" alt="">Психопрофиль</div>` +
       NAV.map(([h, l, ic]) => `<a class="side-link${cur === h ? ' active' : ''}" href="${h}">${icon(ic)}${esc(l)}</a>`).join('') +
@@ -217,7 +219,8 @@
       <div class="hero"><h2>Тест характера и совместимости</h2>
         <p>Узнайте свой характер, темперамент, стиль привязанности, ценности и тип мышления — и сравните себя с партнёром, друзьями или командой.</p>
         <div class="hero-actions"><a class="btn light" href="#/new">${icon('plus')}Новый участник</a>
-        ${dn.length >= 2 ? `<a class="btn ghost-light" href="${compareHref(dn.map(p => p.id))}">${icon('heart')}Сравнить всех</a>` : ''}</div></div>
+        ${dn.length >= 2 ? `<a class="btn ghost-light" href="${compareHref(dn.map(p => p.id))}">${icon('heart')}Сравнить всех</a>` : ''}
+        <a class="btn ghost-light" href="#/game">${icon('game')}Кто лучше знает партнёра</a></div></div>
       ${ps.length ? `<h3>Участники</h3><div class="list">${ps.map(personRow).join('')}</div>` : ''}
       <div class="row" style="margin:14px 0"><button class="btn secondary" id="importBtn">${icon('link')}Добавить по коду или ссылке</button></div>
       ${ps.length < 2 ? `<div class="card"><h3 style="margin-top:0">Как это работает</h3>
@@ -532,12 +535,19 @@
   }
   function importModal() {
     openModal(`<h2>Добавить по коду или ссылке</h2>
-      <p class="small muted">Вставьте ссылку или код, которыми поделился другой участник. Можно несколько — каждый с новой строки.</p>
+      <p class="small muted">Вставьте ссылку или код, которыми поделился другой участник, или ссылку на игру. Профилей можно несколько — каждый с новой строки.</p>
       <textarea class="input" id="impTa" rows="5" placeholder="Аня: AQKHf3…"></textarea>
       <button class="btn block" id="impBtn" style="margin-top:12px">Добавить</button>`);
     $('#impTa').focus();
     $('#impBtn').onclick = () => {
-      const r = importEntries(parseShared($('#impTa').value));
+      const txt = $('#impTa').value;
+      const gm = txt.match(/#\/g\/([A-Za-z0-9_-]+)/) || txt.match(/Игра\s*[:：]\s*([A-Za-z0-9_-]{8,})/);
+      const gcode = gm ? gm[1] : (txt.match(/[A-Za-z0-9_-]{16,}/g) || []).find(t => window.Game.decode(t));
+      if (gcode) {
+        if (!window.Game.decode(gcode)) { toast('Код игры повреждён — проверьте, что он скопирован целиком'); return; }
+        closeModal(); go('#/g/' + gcode); return;
+      }
+      const r = importEntries(parseShared(txt));
       if (!r.added.length && !r.dup.length) { toast(r.bad ? 'Код повреждён — проверьте, что он скопирован целиком' : 'Код не найден'); return; }
       closeModal();
       const msg = [r.added.length && `Добавлено: ${r.added.length}`, r.dup.length && `уже были: ${r.dup.length}`, r.bad && `ошибок: ${r.bad}`].filter(Boolean).join(', ');
@@ -630,6 +640,7 @@
       <section class="card"><h3 class="card-h">Сильные стороны</h3>${li(r.plus, 'plus', 'check')}</section>
       ${r.minus.length ? `<section class="card"><h3 class="card-h">Зоны трения</h3>${li(r.minus, 'minus', 'warn')}</section>` : ''}
       ${r.tips.length ? `<section class="card"><h3 class="card-h">Советы</h3>${li(r.tips, 'tip', 'bulb')}</section>` : ''}
+      ${gameCardForPair(a, b)}
       <section class="card"><h3 class="card-h">Коротко о каждом</h3><div class="tbl"><table class="cmp-t"><tr><th></th><th>${ava(a)} ${esc(a.name)}</th><th>${ava(b)} ${esc(b.name)}</th></tr>
         ${rowsCmp.map(([l, f]) => `<tr><td class="muted">${esc(l)}</td><td>${f(pa)}</td><td>${f(pb)}</td></tr>`).join('')}</table></div></section>
       <section class="card"><h3 class="card-h">Характеры рядом</h3>${legend([a, b])}
@@ -687,6 +698,300 @@
     $('[data-seg="mode"]').onclick = e => { const b = e.target.closest('button'); if (!b) return; Store.d.mode = b.dataset.v; Store.save(); route(); };
   }
 
+  // ───────── game: «Кто лучше знает партнёра» ─────────
+  const GM = window.Game, GD = window.GAME;
+  const CAT_NAME = {};
+  GD.cats.forEach(c => { CAT_NAME[c.id] = c.name; });
+  const games = () => Store.d.games;
+  const gById = id => games().find(g => g.id === id);
+  const blankAns = n => Array.from({ length: n }, () => [-1, -1]);
+  const gDone = g => GM.complete(g.players[0].ans) && GM.complete(g.players[1].ans);
+  const gTurn = g => g.me.find(i => !GM.complete(g.players[i].ans)); // player who answers next on this device
+  const gColor = (g, k) => { const p = people().find(x => x.name === g.players[k].name); return p ? color(p) : COLORS[k ? 1 : 0]; };
+  const gAva = (g, k, cls = '') => `<span class="ava ${cls}" style="background:${gColor(g, k)}">${esc((g.players[k].name.trim()[0] || '?').toUpperCase())}</span>`;
+  const samePair = (g, a, b) => { const n = g.players.map(p => p.name); return (n[0] === a && n[1] === b) || (n[0] === b && n[1] === a); };
+  const sameAns = (x, y) => JSON.stringify(x) === JSON.stringify(y);
+  const gameLink = g => { const base = webBase(); return base ? `${base}#/g/${GM.encode(g)}` : ''; };
+  function saveGame(g) {
+    if (!games().includes(g)) games().unshift(g);
+    // keep the list bounded: drop the oldest finished games first
+    while (games().length > 60) {
+      const i = games().map(gDone).lastIndexOf(true);
+      games().splice(i >= 0 ? i : games().length - 1, 1);
+    }
+    Store.save();
+  }
+  function newGame(names, n, cats, mode) {
+    const used = [];
+    games().forEach(g => { if (samePair(g, names[0], names[1])) used.push(...g.ids); });
+    const ids = GM.pick(n, cats, used);
+    const me = mode === 'local' ? [0, 1] : [0];
+    const g = { id: uid(), created: Date.now(), mode, me, cats: cats.slice(), ids,
+      players: names.map((nm, k) => ({ name: nm, ans: me.includes(k) ? blankAns(ids.length) : null })), cur: { q: 0, ready: false } };
+    saveGame(g);
+    return g;
+  }
+  function gStatusText(g) {
+    if (gDone(g)) { const s = GM.score(g); return `${esc(g.players[0].name)} ${s.know[0]} : ${s.know[1]} ${esc(g.players[1].name)}`; }
+    const t = gTurn(g);
+    if (t == null) return `<span class="badge warn">ждём ответа: ${esc(g.players[g.me.includes(0) ? 1 : 0].name)}</span>`;
+    const dn = g.players[t].ans.filter(x => x[0] >= 0 && x[1] >= 0).length;
+    return `<span class="badge warn">в процессе ${dn}/${g.ids.length}</span>`;
+  }
+
+  function vGameHub() {
+    setTitle('Кто лучше знает партнёра');
+    const list = games();
+    view().innerHTML = `<div class="hero game-hero"><h2>Кто лучше знает партнёра?</h2>
+        <p>${GD.q.length} вопросов о жизни: отдых, деньги, быт, любовь, мечты. Каждый отвечает за себя и угадывает выбор партнёра — а потом смотрите, кто угадал больше и в чём вы совпадаете.</p>
+        <div class="hero-actions"><a class="btn light" href="#/game/new">${icon('game')}Новая игра</a></div></div>
+      ${list.length ? `<h3>Ваши игры</h3><div class="list">${list.map(g => `<a class="list-item" href="${gTurn(g) != null ? '#/game/play/' + g.id : '#/game/res/' + g.id}">
+        <span class="duo-s">${gAva(g, 0)}${gAva(g, 1)}</span><span class="li-main"><span class="li-title">${esc(g.players[0].name)} и ${esc(g.players[1].name)}</span>
+        <span class="li-sub">${gStatusText(g)} · ${g.ids.length} ${plural(g.ids.length, 'вопрос|вопроса|вопросов')}</span></span>${icon('chev', 'chev')}</a>`).join('')}</div>` : ''}
+      <div class="row" style="margin:14px 0"><button class="btn secondary" id="importBtn">${icon('link')}Открыть ссылку или код игры</button></div>
+      <div class="card"><h3 class="card-h">Как играть</h3><ol class="steps">
+        <li><b>На одном устройстве:</b> сначала отвечает один — за себя и за партнёра, потом передаёт телефон второму.</li>
+        <li><b>На разных устройствах:</b> ответьте сами и отправьте ссылку. Партнёр ответит на те же вопросы и пришлёт ссылку с результатом.</li>
+        <li><b>Результат:</b> кто сколько угадал, где совпали вкусы и о чём стоит поговорить — там, где не угадал никто.</li></ol></div>`;
+    $('#importBtn').onclick = importModal;
+  }
+
+  function vGameNew(pa, pb) {
+    setTitle('Новая игра', '#/game');
+    const set = Store.d.gset;
+    const A = byId(pa), B = byId(pb);
+    let mode = set.mode, n = set.n, cats = set.cats.length ? set.cats.slice() : GM.CAT_IDS.slice();
+    const names = people().map(p => p.name).filter((v, i, a) => a.indexOf(v) === i);
+    view().innerHTML = `<div class="card">
+        <label class="lbl" for="gA">Первый игрок</label><input class="input" id="gA" maxlength="30" placeholder="Например, Аня" value="${esc(A ? A.name : '')}" autocomplete="off">
+        <label class="lbl" for="gB">Партнёр</label><input class="input" id="gB" maxlength="30" placeholder="Например, Борис" value="${esc(B ? B.name : '')}" autocomplete="off">
+        ${names.length ? `<div class="chips pick-names">${names.map(nm => `<button class="tchip" data-nm="${esc(nm)}">${esc(nm)}</button>`).join('')}</div>` : ''}
+      </div>
+      <div class="card">
+        <div class="setting"><span class="label">Как играем</span>${seg('gmode', [['local', 'На одном устройстве'], ['invite', 'По ссылке']], mode)}</div>
+        <div class="setting"><span class="label">Вопросов</span>${seg('gn', [[10, '10'], [20, '20'], [30, '30']], n)}</div>
+        <div class="lbl">Темы</div><div class="chips" id="gCats"></div>
+      </div>
+      <button class="btn block" id="gStart">Начать</button>`;
+    const drawCats = () => {
+      $('#gCats').innerHTML = `<button class="tchip${cats.length === GM.CAT_IDS.length ? ' on' : ''}" data-all="1">Все темы</button>` +
+        GD.cats.map(c => `<button class="tchip${cats.includes(c.id) ? ' on' : ''}" data-cat="${c.id}">${esc(c.name)}</button>`).join('');
+    };
+    drawCats();
+    $('#gCats').onclick = e => {
+      const b = e.target.closest('button'); if (!b) return;
+      if (b.dataset.all) cats = cats.length === GM.CAT_IDS.length ? [] : GM.CAT_IDS.slice();
+      else cats = cats.includes(b.dataset.cat) ? cats.filter(c => c !== b.dataset.cat) : cats.concat(b.dataset.cat);
+      drawCats();
+    };
+    const pickNames = $('.pick-names');
+    if (pickNames) pickNames.onclick = e => {
+      const b = e.target.closest('[data-nm]'); if (!b) return;
+      const a = $('#gA'), bb = $('#gB');
+      if (!a.value.trim()) a.value = b.dataset.nm; else if (!bb.value.trim() && a.value.trim() !== b.dataset.nm) bb.value = b.dataset.nm; else bb.value = b.dataset.nm;
+    };
+    $$('[data-seg="gmode"], [data-seg="gn"]').forEach(sg => sg.onclick = e => {
+      const b = e.target.closest('button'); if (!b) return;
+      if (sg.dataset.seg === 'gmode') mode = b.dataset.v; else n = +b.dataset.v;
+      $$('button', sg).forEach(x => x.classList.toggle('on', x === b));
+    });
+    $('#gStart').onclick = () => {
+      const a = $('#gA').value.trim(), b = $('#gB').value.trim();
+      if (!a) { $('#gA').focus(); toast('Введите имя первого игрока'); return; }
+      if (!b) { $('#gB').focus(); toast('Введите имя партнёра'); return; }
+      if (a === b) { toast('Имена должны различаться'); return; }
+      if (!cats.length) { toast('Выберите хотя бы одну тему'); return; }
+      Store.d.gset = { mode, n, cats: cats.length === GM.CAT_IDS.length ? [] : cats };
+      const g = newGame([a, b], n, cats, mode);
+      go('#/game/play/' + g.id);
+    };
+  }
+
+  function vGamePlay(gid) {
+    const g = gById(gid);
+    if (!g) return go('#/game');
+    const p = gTurn(g);
+    if (p == null) return go('#/game/res/' + g.id);
+    const o = 1 - p, me = g.players[p], other = g.players[o], n = g.ids.length;
+    setTitle(me.name, '#/game');
+    let lock = false;
+    if (g.cur.p !== p) { g.cur = { p, q: 0, ready: false }; Store.save(); }
+
+    function intro() {
+      let text;
+      if (g.mode === 'local' && p === 1) text = `<h2>Передайте устройство: ${esc(me.name)}</h2><p>${esc(other.name)}, не подсматривайте! Ответы скрыты до конца игры.</p>`;
+      else if (g.mode === 'join') text = `<h2>${esc(me.name)}, ваша очередь</h2><p>${esc(other.name)} уже ответил(а) на эти вопросы. Отвечайте за себя и угадывайте, что выберет ${esc(other.name)}.</p>`;
+      else text = `<h2>${esc(me.name)}, начинаем</h2><p>На каждый вопрос два ответа: ваш собственный выбор и догадка — что выберет ${esc(other.name)}.${g.mode === 'local' ? ` ${esc(other.name)}, не подсматривайте!` : ' Потом отправите ссылку — партнёр ответит на те же вопросы.'}</p>`;
+      view().innerHTML = `<div class="card intro-card"><div class="duo">${gAva(g, p, 'big')}</div>${text}
+        <p class="small muted">${n} ${plural(n, 'вопрос|вопроса|вопросов')} · около ${Math.max(1, Math.round(n * 12 / 60))} мин</p>
+        <button class="btn block" id="goBtn">${g.mode === 'local' && p === 1 ? `Я — ${esc(me.name)}, начать` : 'Начать'}</button></div>`;
+      $('#goBtn').onclick = () => { g.cur.ready = true; Store.save(); render(); };
+    }
+    function finish() {
+      keyHandler = null;
+      Store.save();
+      go('#/game/' + (gTurn(g) != null ? 'play/' : 'res/') + g.id);
+      if (gTurn(g) != null) route(); // same hash: re-render for the next player
+    }
+    function move(d) {
+      g.cur.q = clamp(g.cur.q + d, 0, n);
+      Store.save();
+      if (g.cur.q >= n) {
+        const firstGap = me.ans.findIndex(x => x[0] < 0 || x[1] < 0);
+        if (firstGap >= 0) { g.cur.q = firstGap; toast('Ответьте на все вопросы'); render(); return; }
+        return finish();
+      }
+      render();
+    }
+    function render() {
+      if (!g.cur.ready) return intro();
+      const qi = clamp(g.cur.q, 0, n - 1), id = g.ids[qi], q = GD.q[id], a = me.ans[qi];
+      const dn = me.ans.filter(x => x[0] >= 0 && x[1] >= 0).length;
+      setExtra(`<span class="counter">${dn}/${n}</span>`);
+      const btns = (k, sel) => q.slice(2).map((t, i) => `<button data-k="${k}" data-v="${i}" class="${sel === i ? 'on' : ''}"><span class="ak">${i + 1}</span>${esc(t)}</button>`).join('');
+      view().innerHTML = `<div class="progress"><i style="width:${dn / n * 100}%"></i></div>
+        <div class="q-wrap"><div class="q-meta"><span>${esc(CAT_NAME[q[0]])}</span><span>${qi + 1} из ${n}</span></div>
+        <div class="card q-card g-card"><div class="q-prompt">${esc(me.name)}, ваш выбор</div><div class="q-text">${esc(q[1])}</div></div>
+        <div class="ans gopts">${btns(0, a[0])}</div>
+        <div class="g-sub">${gAva(g, o)}<span>А что выберет <b>${esc(other.name)}</b>?</span></div>
+        <div class="ans gopts guess">${btns(1, a[1])}</div>
+        <div class="q-nav"><button class="btn ghost" id="prevBtn"${qi ? '' : ' disabled'}>${icon('back')}Назад</button><span class="spacer"></span>
+          <button class="btn ghost" id="nextBtn"${a[0] >= 0 && a[1] >= 0 ? '' : ' disabled'}>${qi === n - 1 ? 'Готово' : 'Далее'}</button></div></div>`;
+      $$('.gopts').forEach(box => box.onclick = e => { const b = e.target.closest('button'); if (b) choose(+b.dataset.k, +b.dataset.v); });
+      $('#prevBtn').onclick = () => move(-1);
+      $('#nextBtn').onclick = () => move(1);
+    }
+    function choose(k, v) {
+      const qi = g.cur.q, a = me.ans[qi];
+      if (lock || !a) return;
+      const wasDone = a[0] >= 0 && a[1] >= 0;
+      a[k] = v;
+      Store.save();
+      $$(`.gopts button[data-k="${k}"]`).forEach(b => b.classList.toggle('on', +b.dataset.v === v));
+      const ready = a[0] >= 0 && a[1] >= 0;
+      $('#nextBtn').disabled = !ready;
+      if (ready && !wasDone) {
+        lock = true;
+        setTimeout(() => { lock = false; if (location.hash === '#/game/play/' + g.id && g.cur.q === qi) move(1); }, 260);
+      }
+    }
+    keyHandler = e => {
+      if (!g.cur.ready) { if (e.key === 'Enter') { g.cur.ready = true; Store.save(); render(); } return; }
+      const a = me.ans[g.cur.q], k = +e.key;
+      if (a && k >= 1 && k <= GD.q[g.ids[g.cur.q]].length - 2) { e.preventDefault(); choose(a[0] < 0 ? 0 : 1, k - 1); }
+      else if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); if (g.cur.q > 0) move(-1); }
+      else if ((e.key === 'ArrowRight' || e.key === 'Enter') && a && a[0] >= 0 && a[1] >= 0) { e.preventDefault(); move(1); }
+    };
+    render();
+  }
+
+  function gShare(g, title) {
+    const link = gameLink(g), code = GM.encode(g), text = `Игра: ${code}`;
+    openModal(`<h2>${esc(title)}</h2>
+      <p class="small muted">${link ? 'Отправьте ссылку' : 'Отправьте код'} партнёру${link ? '' : ': в приложении — «Игра → Открыть ссылку или код игры»'}. Ответы зашифрованы в ссылке, сервер не нужен.</p>
+      ${link ? `<label class="lbl">Ссылка</label><div class="copy"><input class="input" readonly value="${esc(link)}"><button class="btn secondary" data-copy="${esc(link)}">Копировать</button></div>` : ''}
+      <label class="lbl">Код</label><div class="copy"><textarea class="input code-ta" readonly rows="3">${esc(text)}</textarea><button class="btn secondary" data-copy="${esc(text)}">Копировать</button></div>
+      ${navigator.share ? `<button class="btn block" id="nativeShare" style="margin-top:12px">${icon('share')}Отправить…</button>` : ''}`);
+    const ns = $('#nativeShare');
+    if (ns) ns.onclick = () => navigator.share(link ? { title: 'Кто лучше знает партнёра?', text: gDone(g) ? 'Результат нашей игры' : 'Угадай мой выбор! Кто лучше знает друг друга?', url: link } : { text }).catch(() => { /* cancelled */ });
+  }
+
+  function vGameRes(gid) {
+    const g = gById(gid);
+    if (!g) return go('#/game');
+    if (gTurn(g) != null) return go('#/game/play/' + g.id);
+    const [A, B] = g.players;
+    setTitle(`${A.name} и ${B.name}`, '#/game');
+    if (!gDone(g)) {
+      const wait = g.me.includes(0) ? B : A;
+      view().innerHTML = `<div class="card intro-card"><div class="duo">${gAva(g, 0, 'big')}<span class="amp">+</span>${gAva(g, 1, 'big')}</div>
+        <h2>Ждём ответов: ${esc(wait.name)}</h2>
+        <p>Отправьте приглашение. Когда партнёр ответит, он пришлёт ссылку с результатом — откройте её, и здесь появится итог.</p>
+        <button class="btn block" id="shareBtn">${icon('share')}Отправить приглашение</button>
+        <button class="btn ghost block" id="pasteBtn">${icon('link')}Вставить ответ партнёра</button></div>`;
+      $('#shareBtn').onclick = () => gShare(g, 'Пригласить в игру');
+      $('#pasteBtn').onclick = importModal;
+      return;
+    }
+    const s = GM.score(g), filter = Store.d.gfilter || 'all';
+    const verdict = s.winner < 0 ? 'Ничья — вы знаете друг друга одинаково хорошо' : `Лучше знает партнёра: ${g.players[s.winner].name}`;
+    const opt = (id, i) => esc(GD.q[id][2 + i]);
+    const row = (x, k) => `<div class="gr">${gAva(g, k)}<span>выбор: <b>${opt(x.id, x.own[k])}</b> · догадка: ${opt(x.id, x.guess[k])}
+      <span class="${x.ok[k] ? 'pass' : 'fail'}">${x.ok[k] ? '✓' : '✗'}</span></span></div>`;
+    const shown = s.items.filter(x => filter === 'miss' ? !(x.ok[0] && x.ok[1]) : filter === 'eq' ? x.eq : true);
+    view().innerHTML = `<div class="card pair-head"><div class="rings">${ring(s.kp[0], `${A.name} угадывает партнёра`, gColor(g, 0))}${ring(s.kp[1], `${B.name} угадывает партнёра`, gColor(g, 1))}</div>
+        <p class="center"><b>${icon('trophy', 'inline-ico')}${esc(verdict)}</b><br><span class="muted">${esc(GM.level(Math.max(s.kp[0], s.kp[1])))} · вкусы совпали в ${s.same} из ${s.n} (${s.sp}%)</span></p>
+        <p class="center small muted">${esc(A.name)}: ${s.know[0]} из ${s.n} угадано · ${esc(B.name)}: ${s.know[1]} из ${s.n}</p></div>
+      <div class="row toolbar"><button class="btn" id="againBtn">${icon('game')}Реванш — новые вопросы</button><button class="btn secondary" id="shareBtn">${icon('share')}${g.mode === 'join' ? 'Отправить результат партнёру' : 'Поделиться'}</button></div>
+      ${g.mode === 'join' ? `<div class="card done-card warn">${icon('share')}<div>Отправьте результат обратно — тогда ${esc(A.name)} тоже увидит итог.</div></div>` : ''}
+      <section class="card"><h3 class="card-h">По темам</h3><div class="tbl"><table class="cmp-t"><tr><th>Тема</th><th>${gAva(g, 0)} угадано</th><th>${gAva(g, 1)} угадано</th><th>Совпали</th></tr>
+        ${s.cats.map(c => `<tr><td>${esc(CAT_NAME[c.id])}</td><td>${c.k0}/${c.n}</td><td>${c.k1}/${c.n}</td><td>${c.eq}/${c.n}</td></tr>`).join('')}</table></div></section>
+      ${s.talk.length ? `<section class="card"><h3 class="card-h">О чём поговорить</h3><p class="small muted">Здесь не угадал никто — самое интересное, чтобы узнать друг друга лучше.</p>
+        <ul class="ins tip">${s.talk.slice(0, 6).map(x => `<li>${icon('bulb')}<span><b>${esc(GD.q[x.id][1])}</b><br>${esc(A.name)}: ${opt(x.id, x.own[0])} · ${esc(B.name)}: ${opt(x.id, x.own[1])}</span></li>`).join('')}</ul></section>` : ''}
+      <section class="card"><div class="row"><h3 class="card-h" style="flex:1;margin:0">Все ответы</h3>${seg('gfilter', [['all', 'Все'], ['miss', 'Промахи'], ['eq', 'Совпали']], filter)}</div>
+        <div class="glist">${shown.map(x => `<div class="gi"><div class="gq"><span class="muted small">${esc(CAT_NAME[x.cat])}</span><b>${esc(GD.q[x.id][1])}</b>${x.eq ? '<span class="badge ok">совпали</span>' : ''}</div>${row(x, 0)}${row(x, 1)}</div>`).join('') || '<p class="muted">Таких ответов нет.</p>'}</div></section>
+      <div class="row"><button class="btn danger" id="delBtn">Удалить игру</button></div>`;
+    $('[data-seg="gfilter"]').onclick = e => { const b = e.target.closest('button'); if (!b) return; Store.d.gfilter = b.dataset.v; Store.save(); route(); };
+    $('#shareBtn').onclick = () => gShare(g, g.mode === 'join' ? 'Отправить результат' : 'Поделиться результатом');
+    $('#againBtn').onclick = () => {
+      const mode = g.mode === 'local' ? 'local' : 'invite';
+      const names = g.me.includes(0) || mode === 'local' ? [A.name, B.name] : [B.name, A.name];
+      const ng = newGame(names, g.ids.length, g.cats && g.cats.length ? g.cats : GM.CAT_IDS, mode);
+      go('#/game/play/' + ng.id);
+    };
+    $('#delBtn').onclick = () => {
+      if (!confirm('Удалить эту игру?')) return;
+      Store.d.games = games().filter(x => x !== g); Store.save(); go('#/game');
+    };
+  }
+
+  // opened from a link or a pasted code: an invitation (partner hasn't answered) or a finished game
+  function vGameOpen(code) {
+    setTitle('Игра', '#/game');
+    const d = GM.decode(code);
+    if (!d || !GM.complete(d.players[0].ans)) {
+      view().innerHTML = `<div class="card empty">Ссылка на игру повреждена или создана более новой версией приложения. Попросите отправить её ещё раз.<p><a class="btn" href="#/game">К играм</a></p></div>`;
+      return;
+    }
+    const local = games().find(g => g.ids.join() === d.ids.join() && sameAns(g.players[0].ans, d.players[0].ans));
+    if (GM.complete(d.players[1].ans)) {
+      let g = local;
+      if (g) { if (!GM.complete(g.players[1].ans)) g.players[1] = d.players[1]; }
+      else g = { id: uid(), created: Date.now(), mode: 'shared', me: [], cats: [], ids: d.ids, players: d.players, cur: { q: 0, ready: true } };
+      saveGame(g);
+      history.replaceState(null, '', '#/game/res/' + g.id);
+      return route();
+    }
+    if (local) { history.replaceState(null, '', (gTurn(local) != null ? '#/game/play/' : '#/game/res/') + local.id); return route(); }
+    const [A, B] = d.players;
+    view().innerHTML = `<div class="card intro-card"><div class="duo"><span class="ava big" style="background:${COLORS[0]}">${esc((A.name[0] || '?').toUpperCase())}</span></div>
+      <h2>${esc(A.name)} приглашает в игру</h2><p>«Кто лучше знает партнёра?» — ${d.ids.length} ${plural(d.ids.length, 'вопрос|вопроса|вопросов')} о жизни. Отвечайте за себя и угадывайте, что выберет ${esc(A.name)}. Ответы партнёра откроются в конце.</p>
+      <label class="lbl" for="gMe" style="text-align:left">Ваше имя</label><input class="input" id="gMe" maxlength="30" value="${esc(B.name)}">
+      <button class="btn block" id="joinBtn" style="margin-top:12px">Играть</button></div>`;
+    $('#joinBtn').onclick = () => {
+      const nm = $('#gMe').value.trim();
+      if (!nm) { $('#gMe').focus(); toast('Введите имя'); return; }
+      if (nm === A.name) { toast('Имена должны различаться'); return; }
+      const g = { id: uid(), created: Date.now(), mode: 'join', me: [1], cats: [], ids: d.ids,
+        players: [A, { name: nm, ans: blankAns(d.ids.length) }], cur: { p: 1, q: 0, ready: true } };
+      saveGame(g);
+      history.replaceState(null, '', '#/game/play/' + g.id);
+      route();
+    };
+  }
+
+  function gameCardForPair(a, b) {
+    const done = games().filter(g => gDone(g) && samePair(g, a.name, b.name));
+    const last = done[0];
+    let body;
+    if (last) {
+      const s = GM.score(last), w = s.winner < 0 ? 'ничья' : `лучше знает партнёра: ${last.players[s.winner].name}`;
+      body = `<p>Последняя игра: <b>${esc(last.players[0].name)} ${s.know[0]} : ${s.know[1]} ${esc(last.players[1].name)}</b> — ${esc(w)}; вкусы совпали на ${s.sp}%.${done.length > 1 ? ` Всего игр: ${done.length}.` : ''}</p>
+        <div class="row"><a class="btn secondary" href="#/game/res/${last.id}">Результат</a><a class="btn" href="#/game/new/${a.id}/${b.id}">${icon('game')}Сыграть ещё</a></div>`;
+    } else body = `<p>Проверьте на практике: ${GD.q.length} вопросов о жизни — каждый отвечает за себя и угадывает выбор партнёра.</p><a class="btn" href="#/game/new/${a.id}/${b.id}">${icon('game')}Сыграть</a>`;
+    return `<section class="card"><h3 class="card-h">Кто лучше знает друг друга</h3>${body}</section>`;
+  }
+
   // ───────── theory ─────────
   const EV = { 3: ['сильная научная база', 'ok'], 2: ['умеренная научная база', ''], 1: ['слабая научная база', 'warn'] };
   function vTheory(id) {
@@ -720,7 +1025,7 @@
         <p class="small">iPhone/iPad: откройте сайт в Safari → «Поделиться» → «На экран „Домой“». После первого запуска работает без интернета.</p>
         <p class="small">Android: Chrome → меню → «Установить приложение». Windows: <a href="https://github.com/IIOverlordII/The-connection-between-us/releases/latest" target="_blank" rel="noopener">Psychoprofile.exe</a> или Edge/Chrome → меню → «Приложения» → «Установить».</p>
         <button class="btn" id="installBtn"${installEvt ? '' : ' hidden'}>Установить приложение</button></div>
-      <div class="card"><h3 class="card-h">О приложении</h3><p class="small">${E.N} вопросов в ${E.MODS.length} блоках. Вопросы о чертах личности адаптированы из открытой базы International Personality Item Pool (общественное достояние), остальные составлены для этого приложения по описаниям научных моделей (см. «Теория»).</p>
+      <div class="card"><h3 class="card-h">О приложении</h3><p class="small">${E.N} вопросов в ${E.MODS.length} блоках теста и ${window.GAME.q.length} вопросов в игре «Кто лучше знает партнёра». Вопросы о чертах личности адаптированы из открытой базы International Personality Item Pool (общественное достояние), остальные составлены для этого приложения по описаниям научных моделей (см. «Теория»).</p>
         <p class="small">Результаты — самоописание, а не диагноз. Если вас беспокоит эмоциональное состояние, обратитесь к психологу или психотерапевту.</p></div>`;
     $$('[data-seg]').forEach(sg => sg.onclick = e => {
       const b = e.target.closest('button'); if (!b) return;
@@ -736,7 +1041,7 @@
   // ───────── routing ─────────
   function route() {
     const h = location.hash.replace(/^#\/?/, '');
-    const [a, b, c] = h.split('/');
+    const [a, b, c, d] = h.split('/');
     closeModal(); setExtra(''); keyHandler = null;
     renderNav(a || '');
     switch (a) {
@@ -748,6 +1053,8 @@
       case 'compare': vCompare(); break;
       case 'pair': vPair(b, c); break;
       case 'group': vGroup(b || ''); break;
+      case 'game': b === 'new' ? vGameNew(c, d) : b === 'play' ? vGamePlay(c) : b === 'res' ? vGameRes(c) : vGameHub(); break;
+      case 'g': vGameOpen(b); break;
       case 'theory': vTheory(b); break;
       case 'settings': vSettings(); break;
       default: vHome();
