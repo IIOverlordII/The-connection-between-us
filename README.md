@@ -3,7 +3,7 @@
 Офлайн‑приложение (PWA + .exe для Windows) на 10 языках: несколько человек проходят анкету — по очереди на одном устройстве
 или каждый на своём телефоне — и получают профиль каждого, совместимость и схожесть пар, матрицу и портрет группы.
 
-- **Сайт** (iPhone, Android, компьютер): **https://iioverlordii.github.io/The-connection-between-us/**
+- **Сайт** (iPhone, Android, компьютер): **https://aureliel.store/**
 - **Windows:** **[BetweenUs.exe](https://github.com/IIOverlordII/The-connection-between-us/releases/latest/download/BetweenUs.exe)** · [все сборки](https://github.com/IIOverlordII/The-connection-between-us/releases/latest)
 
 ## Что измеряется
@@ -78,8 +78,12 @@ python -m http.server 8766 --directory app     # http://127.0.0.1:8766
 
 | Что | Где | Workflow |
 |---|---|---|
-| Сайт (iPhone, Android, компьютер) | **https://iioverlordii.github.io/The-connection-between-us/** | `.github/workflows/pages.yml` |
+| Сайт (iPhone, Android, компьютер) | **https://aureliel.store/** | Cloudflare Pages: собирает `main`, папка `app` |
 | Windows .exe | **https://github.com/IIOverlordII/The-connection-between-us/releases/latest** → `BetweenUs.exe` | `.github/workflows/exe.yml` |
+
+Копия на GitHub Pages (`https://iioverlordii.github.io/The-connection-between-us/`, workflow `pages.yml`) нужна только для старых ссылок:
+если https://aureliel.store/ отвечает, она переадресует туда и переносит участников и игры, сохранённые в браузере
+(данные идут в части ссылки после `#`, на сервер не попадают). Если основной сайт недоступен, копия работает как обычно.
 
 На других ветках те же workflow проверяют сборку и прикладывают к запуску (вкладка Actions) превью сайта и `.exe`, но ничего не публикуют.
 
