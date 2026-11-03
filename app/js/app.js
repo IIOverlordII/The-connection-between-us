@@ -206,7 +206,7 @@
   function ring(v, label, col) {
     const c = 2 * Math.PI * 42;
     return `<div class="ring"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" class="ring-bg"/>
-      <circle cx="50" cy="50" r="42" class="ring-fg" transform="rotate(-90 50 50)" style="stroke:${col};stroke-dasharray:${(c * v / 100).toFixed(1)} ${c.toFixed(1)}"/>
+      <circle cx="50" cy="50" r="42" class="ring-fg" transform="rotate(-90 50 50)" style="stroke:${col};stroke-dasharray:${(c * v / 100).toFixed(1)} ${c.toFixed(1)}${v > 0 ? '' : ';stroke-opacity:0'}"/>
       <text x="50" y="57" text-anchor="middle" class="ring-v">${v}%</text></svg><div class="ring-l">${esc(label)}</div></div>`;
   }
   // red → amber → green; cells use a soft tint, bars a saturated tone
@@ -928,7 +928,7 @@
         <p class="center small muted">${te('g_score', { name: A.name, a: s.know[0], b: s.n })} · ${te('g_score', { name: B.name, a: s.know[1], b: s.n })}</p></div>
       <div class="row toolbar"><button class="btn" id="againBtn">${icon('game')}${te('g_rematch')}</button><button class="btn secondary" id="shareBtn">${icon('share')}${te(g.mode === 'join' ? 'g_send_res' : 'share')}</button></div>
       ${g.mode === 'join' ? `<div class="card done-card warn">${icon('share')}<div>${te('g_send_back', { name: A.name })}</div></div>` : ''}
-      <section class="card"><h3 class="card-h">${te('g_by_topic')}</h3><div class="tbl"><table class="cmp-t"><tr><th>${te('g_topic')}</th><th>${gAva(g, 0)} ${te('g_guessed')}</th><th>${gAva(g, 1)} ${te('g_guessed')}</th><th>${te('g_matched')}</th></tr>
+      <section class="card"><h3 class="card-h">${te('g_by_topic')}</h3><div class="tbl"><table class="gt"><tr><th>${te('g_topic')}</th><th>${gAva(g, 0)} ${te('g_guessed')}</th><th>${gAva(g, 1)} ${te('g_guessed')}</th><th>${te('g_matched')}</th></tr>
         ${s.cats.map(c => `<tr><td>${esc(catName(c.id))}</td><td>${c.k0}/${c.n}</td><td>${c.k1}/${c.n}</td><td>${c.eq}/${c.n}</td></tr>`).join('')}</table></div></section>
       ${s.talk.length ? `<section class="card"><h3 class="card-h">${te('g_talk')}</h3><p class="small muted">${te('g_talk_hint')}</p>
         <ul class="ins tip">${s.talk.slice(0, 6).map(x => `<li>${icon('bulb')}<span><b>${esc(GD.q[x.id][1])}</b><br>${esc(A.name)}: ${opt(x.id, x.own[0])} · ${esc(B.name)}: ${opt(x.id, x.own[1])}</span></li>`).join('')}</ul></section>` : ''}

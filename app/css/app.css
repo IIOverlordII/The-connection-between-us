@@ -387,3 +387,5 @@ table.heat td.self .ava { opacity: .35; }
 .lang-btn:hover { border-color: var(--primary); }
 .lang-item { border: 0; background: none; width: 100%; text-align: left; cursor: pointer; font: inherit; }
 .lang-item.on .li-title { color: var(--primary); }
+.gt th { white-space: normal; vertical-align: bottom; font-size: .85em; }
+.gt td:not(:first-child), .gt th:not(:first-child) { text-align: center; white-space: nowrap; }
