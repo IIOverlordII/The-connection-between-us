@@ -1,0 +1,4 @@
+desktop/.venv/
+desktop/build/
+dist/
+__pycache__/

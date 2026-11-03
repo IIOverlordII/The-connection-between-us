@@ -1,0 +1,66 @@
+# Builds "Психопрофиль.exe" on a Windows runner with the same script used locally.
+# Every push: the .exe is attached to the run as an artifact. Push to main: also published as the latest release,
+# so .../releases/latest/download/Psychoprofile.exe always points to the newest build.
+name: Психопрофиль.exe
+
+on:
+  push:
+    paths:
+      - 'app/**'
+      - 'desktop/**'
+      - 'tools/**'
+      - 'test/**'
+      - '.github/workflows/exe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  exe:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Тесты
+        run: node --test test/engine.test.js
+
+      - name: Сборка .exe (desktop\build_exe.ps1)
+        shell: pwsh
+        run: powershell -ExecutionPolicy Bypass -File desktop\build_exe.ps1
+
+      - name: Проверка
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem dist\*.exe | Select-Object -First 1
+          if (-not $exe) { throw 'exe не найден' }
+          "{0}  {1:N1} MB" -f $exe.Name, ($exe.Length / 1MB)
+          Copy-Item $exe.FullName Psychoprofile.exe
+
+      - name: Сохранить .exe
+        uses: actions/upload-artifact@v4
+        with:
+          name: Psychoprofile-windows
+          path: Psychoprofile.exe
+          retention-days: 30
+
+      # GitHub replaces non-ASCII characters in asset names, so the file is uploaded as Psychoprofile.exe
+      - name: Выложить в релиз
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete windows-latest --cleanup-tag --yes 2>/dev/null || true
+          gh release create windows-latest "Psychoprofile.exe#Психопрофиль для Windows" \
+            --target "$GITHUB_SHA" --latest \
+            --title "Психопрофиль для Windows" \
+            --notes "Последняя сборка из main (${GITHUB_SHA::7}). Скачайте Psychoprofile.exe и запустите — установка и интернет не нужны. Если Windows покажет «Система Windows защитила ваш компьютер», нажмите «Подробнее» → «Выполнить в любом случае»: файл не подписан сертификатом."

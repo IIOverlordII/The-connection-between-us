@@ -1,0 +1,72 @@
+# Publishes app/ to the gh-pages branch (GitHub Pages: Settings → Pages → Deploy from a branch → gh-pages).
+# Every branch gets tests + a downloadable preview; only main is published.
+name: Сайт (GitHub Pages)
+
+on:
+  push:
+    paths:
+      - 'app/**'
+      - 'tools/**'
+      - 'test/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  site:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Тесты
+        run: node --test test/engine.test.js
+
+      - name: Сборка (проверка data.js, офлайн-кэш)
+        run: python3 tools/build.py
+
+      - name: Собрать сайт
+        run: |
+          mkdir -p _site
+          cp -r app/. _site/
+          touch _site/.nojekyll
+
+      - name: Превью сайта
+        uses: actions/upload-artifact@v4
+        with:
+          name: site
+          path: _site
+          include-hidden-files: true
+          retention-days: 7
+
+      - name: Опубликовать в gh-pages
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin gh-pages >/dev/null; then
+            git fetch --depth=1 origin gh-pages
+            git worktree add --detach "$RUNNER_TEMP/pages" origin/gh-pages
+          else
+            git worktree add --detach "$RUNNER_TEMP/pages"
+            git -C "$RUNNER_TEMP/pages" checkout -q --orphan gh-pages-new
+          fi
+          cd "$RUNNER_TEMP/pages"
+          git rm -rqf --ignore-unmatch .
+          cp -r "$GITHUB_WORKSPACE/_site/." .
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Сайт не изменился"
+            exit 0
+          fi
+          git commit -q -m "Сайт: ${GITHUB_SHA::7}"
+          git push origin HEAD:gh-pages
