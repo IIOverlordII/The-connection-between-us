@@ -1016,7 +1016,7 @@
   }
 
   // ───────── settings ─────────
-  const SITE = 'https://iioverlordii.github.io/The-connection-between-us/';
+  const SITE = 'https://aureliel.store/';
   const RELEASE = 'https://github.com/IIOverlordII/The-connection-between-us/releases/latest';
   let installEvt = null;
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; });
@@ -1071,11 +1071,60 @@
     $('#view').focus({ preventScroll: true });
   }
 
+  // ───────── moving to the main domain ─────────
+  // Old copies (GitHub Pages) forward visitors to the main site together with the data saved in this browser:
+  // localStorage belongs to the origin, so without this people and games would stay behind.
+  // The data travels in the #fragment, which browsers never send to the server.
+  const MOVE = window.PSY_MOVE || { from: ['iioverlordii.github.io'], to: 'https://aureliel.store/' };
+  const b64u = s => { let b = ''; new TextEncoder().encode(s).forEach(c => { b += String.fromCharCode(c); }); return btoa(b).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
+  const unb64u = s => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0)));
+  async function moveIfOld() {
+    if (!MOVE.from.includes(location.hostname)) return false;
+    // the main site must answer, otherwise keep working here
+    try { await fetch(MOVE.to + 'manifest.webmanifest', { mode: 'no-cors', cache: 'no-store' }); } catch (e) { return false; }
+    const d = Store.d, back = location.hash.length > 2 ? '/' + encodeURIComponent(location.hash) : '';
+    const data = d.people.length || d.games.length ? b64u(JSON.stringify({ people: d.people, games: d.games, lang: d.lang, theme: d.theme, fs: d.fs })) : '';
+    location.replace(MOVE.to + (data ? `#/migrate/${data}${back}` : location.hash));
+    return true;
+  }
+  // #/migrate/<data>[/<original hash>] — merges data carried over from an old copy, then continues to the original page
+  function importMigration() {
+    const m = /^#\/migrate\/([A-Za-z0-9_-]+)(?:\/(.*))?$/.exec(location.hash);
+    if (!m) return -1;
+    let added = 0;
+    try {
+      const x = JSON.parse(unb64u(m[1])), ids = new Set(people().map(p => p.id)), gids = new Set(Store.d.games.map(g => g.id));
+      (Array.isArray(x.people) ? x.people : []).forEach(p => {
+        if (!p || typeof p.id !== 'string' || ids.has(p.id) || typeof p.name !== 'string' || typeof p.ans !== 'string' || !Array.isArray(p.mods) || !Array.isArray(p.todo)) return;
+        p.mods = E.MODS.filter(k => p.mods.includes(k)); p.todo = E.MODS.filter(k => p.todo.includes(k));
+        p.ans = (p.ans.replace(/[^0-5]/g, '0') + E.blank()).slice(0, E.N); p.color = (p.color | 0) % COLORS.length; p.pos = p.pos | 0;
+        people().push(p); added++;
+      });
+      (Array.isArray(x.games) ? x.games : []).forEach(g => {
+        if (g && typeof g.id === 'string' && !gids.has(g.id) && Array.isArray(g.ids) && Array.isArray(g.players) && g.players.length === 2 && Array.isArray(g.me)) Store.d.games.push(g);
+      });
+      if (!Store.d.lang && typeof x.lang === 'string') Store.d.lang = x.lang;
+      if (Store.d.theme === 'auto' && ['light', 'dark'].includes(x.theme)) Store.d.theme = x.theme;
+      if (Store.d.fs === 16 && [15, 18, 20].includes(x.fs)) Store.d.fs = x.fs;
+      Store.save();
+    } catch (e) { /* damaged link: just open the app */ }
+    let back = '#/';
+    try { if (m[2] && decodeURIComponent(m[2]).startsWith('#/')) back = decodeURIComponent(m[2]); } catch (e) { /* keep home */ }
+    history.replaceState(null, '', location.pathname + location.search + back);
+    return added;
+  }
+
   applyPrefs();
-  I.init(Store.d.lang, VER).then(() => {
-    $('#langBtn').onclick = langModal;
-    window.addEventListener('hashchange', () => { route(); window.scrollTo(0, 0); });
-    route();
+  moveIfOld().then(moved => {
+    if (moved) return;
+    const added = importMigration();
+    applyPrefs();
+    return I.init(Store.d.lang, VER).then(() => {
+      $('#langBtn').onclick = langModal;
+      window.addEventListener('hashchange', () => { route(); window.scrollTo(0, 0); });
+      route();
+      if (added > 0) toast(t('imp_added', { n: added }));
+    });
   });
 
   // offline cache on https; locally only with ?sw=1 so it does not get in the way of development
