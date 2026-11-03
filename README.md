@@ -1,10 +1,10 @@
-# Психопрофиль — тест характера и совместимости
+# Between Us — тест характера и совместимости
 
-Офлайн‑приложение (PWA + .exe для Windows): несколько человек проходят анкету — по очереди на одном устройстве
+Офлайн‑приложение (PWA + .exe для Windows) на 10 языках: несколько человек проходят анкету — по очереди на одном устройстве
 или каждый на своём телефоне — и получают профиль каждого, совместимость и схожесть пар, матрицу и портрет группы.
 
 - **Сайт** (iPhone, Android, компьютер): **https://iioverlordii.github.io/The-connection-between-us/**
-- **Windows:** **[Psychoprofile.exe](https://github.com/IIOverlordII/The-connection-between-us/releases/latest/download/Psychoprofile.exe)** · [все сборки](https://github.com/IIOverlordII/The-connection-between-us/releases/latest)
+- **Windows:** **[BetweenUs.exe](https://github.com/IIOverlordII/The-connection-between-us/releases/latest/download/BetweenUs.exe)** · [все сборки](https://github.com/IIOverlordII/The-connection-between-us/releases/latest)
 
 ## Что измеряется
 
@@ -44,6 +44,20 @@
 
 Вопросы лежат в `app/js/game-data.js`. Индекс вопроса — его номер в ссылках, поэтому новые вопросы добавляйте только в конец.
 
+## Языки
+
+English, Español, Português (Brasil), Deutsch, Français, Italiano, Polski, Türkçe, Русский, Українська.
+Язык выбирается автоматически по браузеру (по умолчанию — английский) и меняется кнопкой в шапке или в «Настройках».
+Ссылки и коды участников и игр от языка не зависят: можно сравнивать профили людей, проходивших тест на разных языках.
+
+- Исходный язык — русский: тексты лежат прямо в `app/js/data.js`, `app/js/game-data.js`, `app/js/strings.js`.
+- `python tools/build.py` выгружает их в `i18n/ru.json`, проверяет переводы `i18n/<lang>.json` и собирает `app/i18n/<lang>.js`.
+- Проверка (`node tools/i18n.mjs check <lang>`): все ключи на месте, то же число вопросов и вариантов ответа,
+  те же подстановки `{name}`, `{x}`…, нужные формы множественного числа. Пропущенный ключ показывается по-английски.
+- Изменили текст на русском — обновите тот же ключ в переводах; добавили ключ — добавьте его во все `i18n/*.json`.
+
+Переводы сделаны с помощью ИИ. Перед запуском продаж в стране попросите носителя языка вычитать хотя бы вопросы теста, игру и тексты результатов.
+
 ## Как пользоваться вдвоём или группой
 
 - **На одном устройстве:** «Новый участник» → тест → «Следующий участник» → … → «Сравнить всех».
@@ -65,16 +79,16 @@ python -m http.server 8766 --directory app     # http://127.0.0.1:8766
 | Что | Где | Workflow |
 |---|---|---|
 | Сайт (iPhone, Android, компьютер) | **https://iioverlordii.github.io/The-connection-between-us/** | `.github/workflows/pages.yml` |
-| Windows .exe | **https://github.com/IIOverlordII/The-connection-between-us/releases/latest** → `Psychoprofile.exe` | `.github/workflows/exe.yml` |
+| Windows .exe | **https://github.com/IIOverlordII/The-connection-between-us/releases/latest** → `BetweenUs.exe` | `.github/workflows/exe.yml` |
 
 На других ветках те же workflow проверяют сборку и прикладывают к запуску (вкладка Actions) превью сайта и `.exe`, но ничего не публикуют.
 
 **iPhone/iPad:** откройте сайт в **Safari** → «Поделиться» → **«На экран „Домой“»**. Приложение откроется на весь экран и после первого запуска работает без интернета.
 **Android:** Chrome → меню → «Установить приложение».
-**Windows:** скачайте `Psychoprofile.exe` из релиза и запустите. Установка не нужна. Файл не подписан сертификатом, поэтому Windows может показать
+**Windows:** скачайте `BetweenUs.exe` из релиза и запустите. Установка не нужна. Файл не подписан сертификатом, поэтому Windows может показать
 «Система Windows защитила ваш компьютер» → «Подробнее» → «Выполнить в любом случае». Ответы хранятся в `%APPDATA%\Psy-Profile`.
 
-Собрать `.exe` у себя: `powershell -ExecutionPolicy Bypass -File desktop\build_exe.ps1` → `dist\Психопрофиль.exe` (нужен Python 3.10+).
+Собрать `.exe` у себя: `powershell -ExecutionPolicy Bypass -File desktop\build_exe.ps1` → `dist\Between Us.exe` (нужен Python 3.10+).
 
 ## Структура
 
@@ -83,12 +97,17 @@ app/                 то, что публикуется и попадает в 
   js/data.js         модули, вопросы, шкалы, тексты результатов, «Теория» (правится руками)
   js/engine.js       подсчёт баллов, типы, код для обмена, формулы совместимости (без DOM)
   js/app.js          интерфейс: анкета, отчёты, сравнение, импорт, игра
+  js/strings.js      тексты интерфейса (русский — исходный язык)
+  js/i18n.js         выбор языка, загрузка и наложение переводов
+  i18n/<lang>.js     собранные переводы (генерируются, руками не править)
   js/game-data.js    300 вопросов игры «Кто лучше знает партнёра» (правится руками, только дописывать)
   js/game.js         подбор вопросов, коды игры, подсчёт результата (без DOM)
-tools/build.py       проверяет data.js и обновляет офлайн‑кэш (sw.js) и ?v= в index.html
+i18n/<lang>.json     переводы (ru.json — выгрузка исходных текстов для переводчиков)
+tools/i18n.mjs       выгрузка, проверка и сборка переводов
+tools/build.py       проверяет data.js и переводы, обновляет офлайн‑кэш (sw.js) и ?v= в index.html
 tools/make_icons.py  рисует PNG‑иконки и icon.ico (нужен Pillow)
 desktop/             оболочка для Windows (pywebview)
-test/                тесты: node --test test/engine.test.js test/game.test.js
+test/                тесты: node --test test/engine.test.js test/game.test.js test/i18n.test.js
 ```
 
 После любой правки в `app/` выполните `python tools/build.py`.

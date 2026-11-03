@@ -1,4 +1,4 @@
-﻿# Собирает "Психопрофиль.exe" (один файл) в папке dist\.
+﻿# Собирает "Between Us.exe" (один файл) в папке dist\.
 # Нужен Python 3.10+; зависимости ставятся в desktop\.venv.
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
@@ -15,7 +15,7 @@ python (Join-Path $root 'tools\build.py')
 if ($LASTEXITCODE -ne 0) { throw 'tools\build.py завершился с ошибкой' }
 
 & $py -m PyInstaller --noconfirm --clean --onefile --windowed `
-    --name 'Психопрофиль' `
+    --name 'Between Us' `
     --icon (Join-Path $root 'desktop\icon.ico') `
     --add-data "$(Join-Path $root 'app');app" `
     --distpath (Join-Path $root 'dist') `
@@ -23,4 +23,4 @@ if ($LASTEXITCODE -ne 0) { throw 'tools\build.py завершился с оши�
     --specpath (Join-Path $PSScriptRoot 'build') `
     (Join-Path $PSScriptRoot 'main.py')
 if ($LASTEXITCODE -ne 0) { throw 'PyInstaller завершился с ошибкой' }
-Write-Host "Готово: $(Join-Path $root 'dist\Психопрофиль.exe')"
+Write-Host "Готово: $(Join-Path $root 'dist\Between Us.exe')"

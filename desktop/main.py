@@ -1,7 +1,7 @@
-"""Психопрофиль — отдельная программа для Windows.
+"""Between Us — отдельная программа для Windows.
 
 Открывает приложение из папки app в собственном окне (движок Microsoft Edge WebView2).
-Ответы хранятся в %APPDATA%\\Psy-Profile.
+Ответы хранятся в %APPDATA%\\Psy-Profile (имя папки прежнее, чтобы не потерять данные).
 """
 import os
 import sys
@@ -18,7 +18,7 @@ def resource(*parts):
 def main():
     storage = os.path.join(os.environ.get('APPDATA') or os.path.expanduser('~'), 'Psy-Profile')
     os.makedirs(storage, exist_ok=True)
-    webview.create_window('Психопрофиль', url=resource('app', 'index.html'),
+    webview.create_window('Between Us', url=resource('app', 'index.html'),
                           width=1180, height=860, min_size=(400, 600), background_color='#F5F3FB')
     webview.start(private_mode=False, storage_path=storage)
 
