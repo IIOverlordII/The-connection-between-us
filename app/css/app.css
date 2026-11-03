@@ -321,6 +321,14 @@ details summary { cursor: pointer; color: var(--primary); font-weight: 650; marg
 .ins.plus li { background: var(--ok-soft); } .ins.plus svg { stroke: var(--ok); }
 .ins.minus li { background: var(--bad-soft); } .ins.minus svg { stroke: var(--bad); }
 .ins.tip li { background: var(--warn-soft); } .ins.tip svg { stroke: var(--warn); }
+
+/* full version: the card in place of paid sections, the price in the buy window */
+.lock-card { border: 2px solid var(--primary-soft); }
+.lock-card .card-h { display: flex; align-items: center; gap: 8px; }
+.lock-card .card-h svg, .inline-ic { width: 18px; height: 18px; flex: none; fill: none; stroke: var(--primary); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.inline-ic { display: inline-block; vertical-align: -3px; margin-right: 6px; }
+.price-big { font-size: 2em; font-weight: 700; margin: 0; }
+#modalBody .ins { margin: 12px 0 16px; }
 .tbl { overflow-x: auto; }
 .tbl table { border-collapse: collapse; width: 100%; font-size: .9em; }
 .tbl th, .tbl td { border-bottom: 1px solid var(--border); padding: 8px 6px; text-align: left; vertical-align: middle; }

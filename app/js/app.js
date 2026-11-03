@@ -1,6 +1,6 @@
 (function () {
   'use strict';
-  const D = window.PSY, E = window.Engine, I = window.I18n;
+  const D = window.PSY, E = window.Engine, I = window.I18n, Pay = window.Pay;
   const S = D.scales;
   const VER = ((document.currentScript && /[?&]v=([^&]+)/.exec(document.currentScript.src)) || [])[1] || '';
 
@@ -35,7 +35,8 @@
     back: '<path d="M15 18l-6-6 6-6"/>',
     game: '<rect x="3.5" y="3.5" width="17" height="17" rx="4"/><circle cx="8.5" cy="8.5" r="1.3"/><circle cx="15.5" cy="15.5" r="1.3"/><circle cx="15.5" cy="8.5" r="1.3"/><circle cx="8.5" cy="15.5" r="1.3"/><circle cx="12" cy="12" r="1.3"/>',
     trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8M9.5 17h5"/>',
-    globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>'
+    globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
+    lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>'
   };
   const icon = (n, cls = '') => `<svg class="${cls}" viewBox="0 0 24 24">${ICON[n] || ''}</svg>`;
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
@@ -87,7 +88,7 @@
   const LEGAL = [['pricing.html', 'legal_pricing'], ['terms.html', 'legal_terms'], ['refund.html', 'legal_refund'], ['privacy.html', 'legal_privacy']];
   const legalLinks = (cls = '') => `<p class="legal-links ${cls}">${LEGAL.map(([h, l]) => `<a href="${h}">${te(l)}</a>`).join(' · ')}</p>`;
   function renderNav(root) {
-    const map = { '': '#/', p: '#/', take: '#/', new: '#/', import: '#/', compare: '#/compare', pair: '#/compare', group: '#/compare', game: '#/game', g: '#/game', theory: '#/theory', settings: '#/settings' };
+    const map = { '': '#/', p: '#/', take: '#/', new: '#/', import: '#/', compare: '#/compare', pair: '#/compare', group: '#/compare', game: '#/game', g: '#/game', theory: '#/theory', settings: '#/settings', buy: '#/settings' };
     const cur = map[root] || '#/';
     $('#sidebar').innerHTML = `<div class="side-brand"><img src="icons/icon.svg" alt="">${te('app')}</div>` +
       NAV.map(([h, l, ic]) => `<a class="side-link${cur === h ? ' active' : ''}" href="${h}">${icon(ic)}${te(l)}</a>`).join('') +
@@ -115,7 +116,7 @@
   function toast(msg) {
     const el = $('#toast');
     el.textContent = msg; el.hidden = false;
-    clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; }, 2200);
+    clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; }, Math.max(2200, msg.length * 55)); // long messages stay longer
   }
   async function copy(text) {
     try { await navigator.clipboard.writeText(text); toast(t('copied')); return; } catch (e) { /* fall back below */ }
@@ -136,9 +137,83 @@
     };
   }
 
+  // ───────── full version ─────────
+  // Everything is free until Paddle is set up in pay.js; then an unlock code from the purchase-check server
+  // (stored as Store.d.lic) opens the full pair and group reports and the long game rounds on this device.
+  let full = !Pay.enabled;
+  async function loadLicense() {
+    const l = Store.d.lic, p = l && await Pay.verify(l.code);
+    full = !Pay.enabled || !!(p && p.t === l.txn);
+  }
+  function setLicense(r) { Store.d.lic = { code: r.code, txn: r.txn, checked: Date.now() }; Store.save(); full = true; }
+  const failText = err => t(err === 'not_found' ? 'full_not_found' : err === 'refunded' ? 'full_refunded' : 'full_error');
+  // about once a week while online: a refunded purchase switches the full version off
+  // (only an explicit "refunded" does, so a server misconfiguration can't lock out every buyer at once)
+  async function recheckLicense() {
+    const l = Store.d.lic;
+    if (!Pay.enabled || !l || !navigator.onLine || Date.now() - (l.checked || 0) < 7 * 864e5) return;
+    const r = await Pay.unlock({ txn: l.txn });
+    if (r.code) setLicense(r);
+    else if (r.error === 'refunded') { delete Store.d.lic; Store.save(); full = false; route(); toast(failText(r.error)); }
+  }
+  const sleep = ms => new Promise(res => setTimeout(res, ms));
+  // right after payment Paddle may need a few seconds before the transaction shows up as paid
+  async function afterPayment(txn) {
+    toast(t('full_checking'));
+    let r;
+    for (let i = 0; i < 4; i++) {
+      if (i) await sleep(2500);
+      r = await Pay.unlock({ txn });
+      if (r.code || r.error !== 'not_found') break;
+    }
+    if (!r.code) { toast(t('full_paid_wait')); return; }
+    setLicense(r); Pay.close(); route(); toast(t('full_done'));
+  }
+  function buyModal() {
+    if (!Pay.enabled) return;
+    const pr = Pay.price(I.lang());
+    openModal(`<h2>${te('full_title')}</h2><p class="price-big">${esc(pr)}</p><p class="small muted">${te('full_once')}</p>
+      <ul class="ins plus">${['full_f1', 'full_f2', 'full_f3', 'full_f4'].map(k => `<li>${icon('check')}<span>${te(k, { n: window.GAME.q.length })}</span></li>`).join('')}</ul>
+      ${Pay.canCheckout() ? `<button class="btn block" id="payBtn">${te('full_buy', { price: pr })}</button>`
+        : `<p class="small">${te('full_on_site')}</p><a class="btn block" href="${Pay.SITE}#/buy" target="_blank" rel="noopener">${esc(Pay.SITE.replace('https://', ''))}</a>`}
+      <button class="btn secondary block" id="restBtn" style="margin-top:8px">${te('full_restore')}</button>
+      <p class="note">${te('full_paddle')}</p>${legalLinks('note')}`);
+    if ($('#payBtn')) $('#payBtn').onclick = () => {
+      const dark = Store.d.theme === 'dark' || (Store.d.theme === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
+      closeModal();
+      Pay.checkout({ locale: I.lang(), theme: dark ? 'dark' : 'light', onPaid: afterPayment }).catch(() => toast(t('full_error')));
+    };
+    $('#restBtn').onclick = restoreModal;
+  }
+  function restoreModal() {
+    openModal(`<h2>${te('full_restore')}</h2><p class="small muted">${te('full_restore_hint')}</p>
+      <input class="input" id="restIn" type="text" inputmode="email" autocomplete="email" spellcheck="false" placeholder="${te('full_restore_ph')}">
+      <p class="small" id="restMsg" role="status"></p>
+      <button class="btn block" id="restGo">${te('full_restore')}</button>`);
+    const inp = $('#restIn'), msg = $('#restMsg'), btn = $('#restGo');
+    inp.focus();
+    const send = async () => {
+      const v = inp.value.trim();
+      const q = /^txn_/i.test(v) ? { txn: v.toLowerCase() } : { email: v };
+      if (q.email != null && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) { inp.focus(); msg.textContent = t('full_restore_hint'); return; }
+      btn.disabled = true; msg.textContent = t('full_checking');
+      const r = await Pay.unlock(q);
+      if (r.code) { setLicense(r); route(); toast(t('full_done')); return; }
+      btn.disabled = false; msg.textContent = failText(r.error);
+    };
+    btn.onclick = send;
+    inp.onkeydown = e => { if (e.key === 'Enter') send(); };
+  }
+  // shown in place of the paid sections of a report
+  const lockCard = (title, text) => `<section class="card lock-card"><h3 class="card-h">${icon('lock')}${te(title)}</h3><p class="small">${te(text)}</p>
+    <div class="row"><button class="btn" data-buy>${te('full_buy', { price: Pay.price(I.lang()) })}</button><button class="btn secondary" data-restore>${te('full_restore')}</button></div>
+    <p class="note">${te('full_once')} <a href="pricing.html">${te('legal_pricing')}</a></p></section>`;
+
   document.addEventListener('click', e => {
     const c = e.target.closest('[data-copy]');
     if (c) { e.preventDefault(); copy(c.dataset.copy); return; }
+    if (e.target.closest('[data-buy]')) { buyModal(); return; }
+    if (e.target.closest('[data-restore]')) { restoreModal(); return; }
     const el = e.target.closest('[data-close]');
     if (el) { if (!el.hasAttribute('href')) e.preventDefault(); closeModal(); }
   });
@@ -646,6 +721,7 @@
       <div class="card pair-head"><div class="duo">${ava(a, 'big')}<span class="amp">+</span>${ava(b, 'big')}</div>
         <div class="rings">${ring(r.compat, t('ring_compat', { ctx: ctxName }), 'var(--primary)')}${ring(r.sim, t('similarity'), 'var(--accent)')}</div>
         <p class="center">${th('compat_verdict', { label: `<b>${esc(r.label)}</b>`, ctx: esc(ctxName) })}<br><span class="small muted">${te('sim_expl')}</span></p></div>
+      ${full ? '' : lockCard('full_pair_t', 'full_pair_text') + gameCardForPair(a, b)}${full ? `
       <section class="card"><h3 class="card-h">${te('parts_title')}</h3>${r.parts.map(x => `<div class="part">${bar(x.name, x.v, heatBar(x.v))}<div class="small muted part-h">${esc(x.hint)} · ${te('weight', { n: r0(x.w * 100) })}</div></div>`).join('')}
         ${miss.length ? `<p class="note">${te('missing_both', { list: miss.map(m => quote(modName(m))).join(D.eng.sep) })}</p>` : ''}</section>
       <section class="card"><h3 class="card-h">${te('strengths')}</h3>${li(r.plus, 'plus', 'check')}</section>
@@ -661,7 +737,7 @@
       <section class="card"><h3 class="card-h">${te(both('att') ? 'temp_att' : 'temp_title')}</h3><div class="maps">
         ${tempMap([Object.assign(tempPt(pa), { c: color(a), t: a.name }), Object.assign(tempPt(pb), { c: color(b), t: b.name })])}
         ${both('att') ? attMap([{ x: pa.att.avo, y: pa.att.anx, c: color(a), t: a.name }, { x: pb.att.avo, y: pb.att.anx, c: color(b), t: b.name }]) : ''}</div></section>
-      ${both('val') ? `<section class="card"><h3 class="card-h">${te('val_title')}</h3>${legend([a, b])}${radar([{ c: pa.val.c, col: color(a) }, { c: pb.val.c, col: color(b) }])}</section>` : ''}
+      ${both('val') ? `<section class="card"><h3 class="card-h">${te('val_title')}</h3>${legend([a, b])}${radar([{ c: pa.val.c, col: color(a) }, { c: pb.val.c, col: color(b) }])}</section>` : ''}` : ''}
       <p class="note">${te('pair_note')} <a href="#/theory/compat">${te('science')}</a></p>`;
     bindCtx();
   }
@@ -691,7 +767,7 @@
         <div class="tbl"><table class="heat"><tr><th></th>${list.map(p => `<th>${ava(p)}</th>`).join('')}</tr>
         ${list.map((p, i) => `<tr><th class="hn">${ava(p)}<span>${esc(p.name)}</span></th>${list.map((_, j) => cell(i, j)).join('')}</tr>`).join('')}</table></div>
         <p class="note">${te('matrix_note')}</p></section>
-      <div class="grid hl">${hl.map(([k, p, s]) => `<a class="tile" href="#/pair/${list[p.i].id}/${list[p.j].id}"><span class="tile-main"><span class="muted small">${te(k)}</span><b>${pn(p)}</b><span class="small">${esc(s)}</span></span></a>`).join('')}</div>
+      ${full ? `<div class="grid hl">${hl.map(([k, p, s]) => `<a class="tile" href="#/pair/${list[p.i].id}/${list[p.j].id}"><span class="tile-main"><span class="muted small">${te(k)}</span><b>${pn(p)}</b><span class="small">${esc(s)}</span></span></a>`).join('')}</div>
       <section class="card"><h3 class="card-h">${te('portrait')}</h3>
         ${g.notes.length ? `<ul class="ins tip">${g.notes.map(x => `<li>${icon('bulb')}<span>${esc(x)}</span></li>`).join('')}</ul>` : `<p>${te('balanced')}</p>`}
         ${legend(list)}${DOM_ORDER.map(k => dots(D.domains[k].name, list.map(p => ({ v: prof(p).dom[k].pct, c: color(p), t: p.name })))).join('')}
@@ -701,7 +777,7 @@
         <p class="note">${te('roles_best_note')}</p></section>
       <section class="card"><h3 class="card-h">${te(withAtt.length >= 2 ? 'temp_att' : 'temp_title')}</h3><div class="maps">
         ${tempMap(list.map(p => Object.assign(tempPt(prof(p)), { c: color(p), t: p.name })))}
-        ${withAtt.length >= 2 ? attMap(withAtt.map(p => ({ x: prof(p).att.avo, y: prof(p).att.anx, c: color(p), t: p.name }))) : ''}</div></section>
+        ${withAtt.length >= 2 ? attMap(withAtt.map(p => ({ x: prof(p).att.avo, y: prof(p).att.anx, c: color(p), t: p.name }))) : ''}</div></section>` : lockCard('full_group_t', 'full_group_text')}
       <section class="card"><h3 class="card-h">${te('members')}</h3><div class="list">${list.map(p => { const P = prof(p); return `<a class="list-item" href="#/p/${p.id}">${ava(p)}<span class="li-main"><span class="li-title">${esc(p.name)}</span>
         <span class="li-sub"><b>${P.type.code}</b> ${esc(D.types[P.type.code].name)} · ${esc(D.temperaments[P.temp.id].name)} · ${esc(D.roles[P.roles[0].id].name)}</span></span>${icon('chev', 'chev')}</a>`; }).join('')}</div></section>
       <p class="note">${te('group_note')} <a href="#/theory/compat">${te('science_compat')}</a></p>`;
@@ -768,7 +844,7 @@
     setTitle(t('g_new'), '#/game');
     const set = Store.d.gset;
     const A = byId(pa), B = byId(pb);
-    let mode = set.mode, n = set.n, cats = set.cats.length ? set.cats.slice() : GM.CAT_IDS.slice();
+    let mode = set.mode, n = full ? set.n : 10, cats = set.cats.length ? set.cats.slice() : GM.CAT_IDS.slice();
     const names = people().map(p => p.name).filter((v, i, a) => a.indexOf(v) === i);
     view().innerHTML = `<div class="card">
         <label class="lbl" for="gA">${te('g_first')}</label><input class="input" id="gA" maxlength="30" placeholder="${te('name_ph')}" value="${esc(A ? A.name : '')}" autocomplete="off">
@@ -778,6 +854,7 @@
       <div class="card">
         <div class="setting"><span class="label">${te('g_mode')}</span>${seg('gmode', [['local', t('g_local')], ['invite', t('g_invite')]], mode)}</div>
         <div class="setting"><span class="label">${te('g_count')}</span>${seg('gn', [[10, '10'], [20, '20'], [30, '30']], n)}</div>
+        ${full ? '' : `<p class="note">${icon('lock', 'inline-ic')}${te('full_game')}</p>`}
         <div class="lbl">${te('g_topics')}</div><div class="chips" id="gCats"></div>
       </div>
       <button class="btn block" id="gStart">${te('start')}</button>`;
@@ -800,6 +877,7 @@
     };
     $$('[data-seg="gmode"], [data-seg="gn"]').forEach(sg => sg.onclick = e => {
       const b = e.target.closest('button'); if (!b) return;
+      if (sg.dataset.seg === 'gn' && !full && +b.dataset.v > 10) { buyModal(); return; }
       if (sg.dataset.seg === 'gmode') mode = b.dataset.v; else n = +b.dataset.v;
       $$('button', sg).forEach(x => x.classList.toggle('on', x === b));
     });
@@ -944,7 +1022,7 @@
     $('#againBtn').onclick = () => {
       const mode = g.mode === 'local' ? 'local' : 'invite';
       const names = g.me.includes(0) || mode === 'local' ? [A.name, B.name] : [B.name, A.name];
-      const ng = newGame(names, g.ids.length, g.cats && g.cats.length ? g.cats : GM.CAT_IDS, mode);
+      const ng = newGame(names, full ? g.ids.length : Math.min(10, g.ids.length), g.cats && g.cats.length ? g.cats : GM.CAT_IDS, mode);
       go('#/game/play/' + ng.id);
     };
     $('#delBtn').onclick = () => {
@@ -1031,6 +1109,9 @@
         <div class="setting"><span class="label">${te('language')}</span><button class="btn secondary" id="langPick">${icon('globe')}${esc(curLang)}</button></div>
         <div class="setting"><span class="label">${te('theme')}</span>${seg('theme', [['auto', t('theme_auto')], ['light', t('theme_light')], ['dark', t('theme_dark')]], Store.d.theme)}</div>
         <div class="setting"><span class="label">${te('font')}</span>${seg('fs', [[15, 'A−'], [16, 'A'], [18, 'A+'], [20, 'A++']], Store.d.fs)}</div></div>
+      ${Pay.enabled ? `<div class="card"><h3 class="card-h">${te('full_title')}</h3>${full
+        ? `<p class="small">${te('full_active')}${Store.d.lic ? ' ' + te('full_order', { txn: Store.d.lic.txn }) : ''}</p>`
+        : `<p class="small">${te('full_sub')}</p><div class="row"><button class="btn" data-buy>${te('full_buy', { price: Pay.price(I.lang()) })}</button><button class="btn secondary" data-restore>${te('full_restore')}</button></div>`}</div>` : ''}
       <div class="card"><h3 class="card-h">${te('data')}</h3><p class="small">${te('data_text')}</p>
         <div class="row"><button class="btn secondary" id="expBtn"${dn.length ? '' : ' disabled'}>${te('all_codes_btn')}</button><button class="btn danger" id="wipeBtn"${people().length ? '' : ' disabled'}>${te('delete_all')}</button></div></div>
       <div class="card"><h3 class="card-h">${te('install')}</h3><p class="small">${te('site')} <a href="${SITE}" target="_blank" rel="noopener">${esc(SITE.replace('https://', ''))}</a></p>
@@ -1070,6 +1151,7 @@
       case 'g': vGameOpen(b); break;
       case 'theory': vTheory(b); break;
       case 'settings': vSettings(); break;
+      case 'buy': vSettings(); if (!full) buyModal(); break; // link from the Windows program and old copies
       default: vHome();
     }
     $('#view').focus({ preventScroll: true });
@@ -1123,11 +1205,12 @@
     if (moved) return;
     const added = importMigration();
     applyPrefs();
-    return I.init(Store.d.lang, VER).then(() => {
+    return I.init(Store.d.lang, VER).then(loadLicense).then(() => {
       $('#langBtn').onclick = langModal;
       window.addEventListener('hashchange', () => { route(); window.scrollTo(0, 0); });
       route();
       if (added > 0) toast(t('imp_added', { n: added }));
+      recheckLicense();
     });
   });
 

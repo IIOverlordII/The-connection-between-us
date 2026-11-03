@@ -1,0 +1,17 @@
+// Cloudflare Workers Builds deploys this on every push to main (npx wrangler deploy).
+// The site is the static app/ folder; the Worker script (worker/index.mjs) runs only for /api/*.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "the-connection-between-us",
+  "compatibility_date": "2026-11-03",
+  "main": "worker/index.mjs",
+  "assets": {
+    "directory": "./app",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
+  },
+  "vars": {
+    // price of the full version in Paddle (pri_…); empty keeps /api/unlock switched off
+    "PADDLE_PRICE_ID": ""
+  }
+}
