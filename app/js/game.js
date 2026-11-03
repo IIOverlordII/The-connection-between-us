@@ -122,7 +122,7 @@
       talk: items.filter(x => !x.ok[0] && !x.ok[1])
     };
   }
-  const level = p => p >= 85 ? 'Читаете мысли' : p >= 70 ? 'Отлично знаете' : p >= 55 ? 'Хорошо знаете' : p >= 40 ? 'Есть что открыть' : 'Впереди много открытий';
+  const level = p => G.levels[p >= 85 ? 0 : p >= 70 ? 1 : p >= 55 ? 2 : p >= 40 ? 3 : 4];
 
   root.Game = { FORMAT, Q, CAT_IDS, byCat, opts, pick, encode, decode, score, complete, level };
 })(typeof window !== 'undefined' ? window : globalThis);

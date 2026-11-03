@@ -3,6 +3,8 @@
 // Never reorder or delete entries — only append new ones at the end (any category).
 // Entry: [category, prompt, option1, option2, (option3), (option4)] — 2 to 4 options.
 window.GAME = {
+  // verdict by guessed share: >=85%, >=70%, >=55%, >=40%, below
+  levels: ['Читаете мысли', 'Отлично знаете', 'Хорошо знаете', 'Есть что открыть', 'Впереди много открытий'],
   cats: [
     { id: 'trip', name: 'Отдых и путешествия' },
     { id: 'food', name: 'Еда и вкусы' },
