@@ -199,29 +199,11 @@
   }
   const stretch = v => clamp(Math.round(50 + (v - 50) * 1.3), 3, 98);
   const CHAR = modScales.char;
-  const PARTS = {
-    char: 'Сходство характеров', val: 'Общие ценности', mor: 'Моральные взгляды', mind: 'Стиль мышления и биоритм',
-    assets: 'Личные ресурсы обоих', attach: 'Привязанность', conf: 'Поведение в конфликтах', care: 'Языки заботы',
-    dom: 'Баланс лидерства', roles: 'Взаимодополняемость ролей'
-  };
-  const PART_HINT = {
-    char: 'насколько похожи 10 аспектов личности и честность',
-    val: 'совпадают ли жизненные приоритеты — по исследованиям, важнее сходства характеров',
-    mor: 'насколько похоже ваше чувство «правильного»',
-    mind: 'анализ или интуиция, нужда в определённости, жаворонок или сова',
-    assets: 'эмоциональная устойчивость, доброжелательность, добросовестность и честность каждого — сильнейшие предикторы удовлетворённости',
-    attach: 'надёжность привязанности обоих и ловушки сочетаний',
-    conf: 'сотрудничество, опасные сочетания стилей и «четыре всадника» Готтмана',
-    care: 'похоже ли вы чувствуете заботу',
-    dom: 'не будет ли борьбы за лидерство или, наоборот, вакуума решений',
-    roles: 'покрывают ли вы вместе ключевые роли в работе'
-  };
   const WEIGHTS = {
     love: { char: .12, val: .15, mor: .08, mind: .05, assets: .18, attach: .17, conf: .13, care: .07, dom: .05 },
     friends: { char: .22, val: .15, mor: .08, mind: .15, assets: .15, attach: .05, conf: .10, care: .05, dom: .05 },
     work: { char: .08, val: .10, mor: .04, mind: .12, assets: .24, conf: .17, roles: .17, dom: .08 }
   };
-  const CTX = { love: 'Пара', friends: 'Дружба', work: 'Работа' };
 
   function asset(P) {
     const d = P.dom;
@@ -272,7 +254,7 @@
     Object.keys(W).forEach(k => {
       if (v[k] == null) return;
       sw += W[k]; sv += W[k] * v[k];
-      parts.push({ id: k, name: PARTS[k], hint: PART_HINT[k], v: Math.round(v[k]), w: W[k] });
+      parts.push({ id: k, name: D.eng.parts[k], hint: D.eng.hints[k], v: Math.round(v[k]), w: W[k] });
     });
     const compat = stretch(sv / sw);
     const simParts = [[v.char, 2], [v.val, 1], [v.mor, 1], [v.mind, 1], [both('conf') ? simDist(a.z, b.z, ['cmp', 'col', 'cpr', 'avd', 'acc'], 1) : null, 1], [v.care, .5]];
@@ -285,176 +267,149 @@
   }
   const roleV = (P, id) => { const r = P.roles.find(x => x.id === id); return r ? r.v : 0; };
   function label(x) {
-    return x >= 75 ? 'Отличная' : x >= 60 ? 'Хорошая' : x >= 45 ? 'Умеренная' : 'Непростая';
+    const L = D.eng.labels;
+    return x >= 75 ? L.great : x >= 60 ? L.good : x >= 45 ? L.fair : L.hard;
   }
 
-  // Rule-based observations. Names appear only in the nominative (subject or address) — Russian names are not declined.
+  // text helpers: templates live in PSY.eng (translated per language); names are always nominative
+  const fmt = (t, v) => String(t).replace(/\{(\w+)\}/g, (m, k) => (v && v[k] != null ? v[k] : m));
+  const T = (k, v) => fmt(D.eng.ins[k], v);
+  const q = x => fmt(D.eng.quote, { x });
+  const joinList = arr => arr.join(D.eng.sep);
+
+  // Rule-based observations.
   function insights(A, B, ctx, plus, minus, tips) {
     const a = A.P, b = B.P, an = A.name, bn = B.name;
     const love = ctx === 'love', work = ctx === 'work';
     const dz = k => [a.dom[k].z, b.dom[k].z];
-    const hiLo = (za, zb) => za >= zb ? [an, bn] : [bn, an];
+    const hiLo = (za, zb) => za >= zb ? { h: an, l: bn } : { h: bn, l: an };
     const gap = 1.2, HI = 0.5;
 
     // Extraversion
     let [x, y] = dz('E');
-    if (Math.abs(x - y) >= gap) {
-      const [h, l] = hiLo(x, y);
-      minus.push(`${h} заряжается от людей и активности, ${l} — от тишины и уединения. Договоритесь о балансе: совместные выходы чередуйте со временем на восстановление.`);
-    } else if (x > HI && y > HI) plus.push('Оба общительны и энергичны — вам легко вместе в компаниях, поездках и новых знакомствах.');
-    else if (x < -HI && y < -HI) plus.push('Оба цените спокойствие и узкий круг — вам комфортно вдвоём без лишней суеты.');
+    if (Math.abs(x - y) >= gap) minus.push(T('e_gap', hiLo(x, y)));
+    else if (x > HI && y > HI) plus.push(T('e_hi'));
+    else if (x < -HI && y < -HI) plus.push(T('e_lo'));
 
     // Neuroticism
     [x, y] = dz('N');
-    if (x > HI && y > HI) minus.push('Вы оба остро переживаете стресс и в трудные периоды можете «раскачивать» друг друга. Договоритесь заранее о паузах в ссорах и о том, какая поддержка нужна каждому.');
+    if (x > HI && y > HI) minus.push(T('n_hi'));
     else if (Math.abs(x - y) >= gap) {
-      const [h, l] = hiLo(x, y);
-      plus.push(`${l} — спокойная опора в стрессовых ситуациях, ${h} привносит эмоциональную глубину и чуткость к рискам.`);
-      tips.push(`${l}, не обесценивайте переживания партнёра фразой «не накручивай» — лучше спросите, чем помочь.`);
-    } else if (x < -HI && y < -HI) plus.push('Оба эмоционально устойчивы — кризисы вы переживаете без лишних драм.');
+      const v = hiLo(x, y);
+      plus.push(T('n_gap', v));
+      tips.push(T('n_gap_tip', v));
+    } else if (x < -HI && y < -HI) plus.push(T('n_lo'));
 
     // Agreeableness
     [x, y] = dz('A');
-    if (x > HI && y > HI) plus.push('Оба доброжелательны и умеете уступать — серьёзных конфликтов будет немного.');
-    else if (x < -HI && y < -HI) minus.push('Оба прямолинейны и не любите уступать — споры могут быть жёсткими. Правило: критикуйте поступок, а не человека.');
+    if (x > HI && y > HI) plus.push(T('a_hi'));
+    else if (x < -HI && y < -HI) minus.push(T('a_lo'));
     const [cx, cy] = [a.z.com || 0, b.z.com || 0];
     if (Math.abs(cx - cy) >= gap + .2) {
-      const [h, l] = hiLo(cx, cy);
-      minus.push(`${h} ждёт эмоционального участия, а ${l} скорее предложит решение, чем сочувствие.`);
-      tips.push(`${l}, когда партнёру плохо, иногда достаточно просто выслушать и сказать «понимаю».`);
+      const v = hiLo(cx, cy);
+      minus.push(T('com_gap', v));
+      tips.push(T('com_tip', v));
     }
 
     // Conscientiousness / order
     [x, y] = dz('C');
     const [ox, oy] = [a.z.ord || 0, b.z.ord || 0];
-    if (Math.abs(ox - oy) >= gap) {
-      const [h, l] = hiLo(ox, oy);
-      minus.push(work
-        ? `${h} ценит порядок и сроки, ${l} работает гибко и «по вдохновению». Фиксируйте договорённости и дедлайны письменно.`
-        : `Разное отношение к порядку: ${h} любит структуру и планы, ${l} — свободу и импровизацию. Это частая тема бытовых споров — заранее распределите зоны ответственности.`);
-    }
-    if (x > HI && y > HI) plus.push('Оба надёжны и организованны — планы и обещания выполняются.');
-    else if (x < -HI && y < -HI) minus.push('Организованность у обоих невысокая — рутина и сроки могут «повисать». Помогут общий календарь и напоминания.');
+    if (Math.abs(ox - oy) >= gap) minus.push(T(work ? 'ord_gap_work' : 'ord_gap', hiLo(ox, oy)));
+    if (x > HI && y > HI) plus.push(T('c_hi'));
+    else if (x < -HI && y < -HI) minus.push(T('c_lo'));
 
     // Openness
     [x, y] = dz('O');
-    if (Math.abs(x - y) >= gap) {
-      const [h, l] = hiLo(x, y);
-      minus.push(`${h} тянется к новому — идеям, местам, экспериментам, ${l} ценит привычное и проверенное. Чередуйте новое с любимым.`);
-    } else if (x > HI && y > HI) plus.push('Обоим интересны идеи и новое — темы для разговоров не закончатся.');
+    if (Math.abs(x - y) >= gap) minus.push(T('o_gap', hiLo(x, y)));
+    else if (x > HI && y > HI) plus.push(T('o_hi'));
 
     // Assertiveness balance
-    if (za(a) >= 0.6 && za(b) >= 0.6) minus.push(work
-      ? 'Два лидера: оба привыкли решать сами. Чётко разделите зоны ответственности и право последнего слова.'
-      : 'Два лидера: оба привыкли решать. Разделите сферы, где решает каждый, иначе неизбежна борьба за руль.');
-    else if (za(a) <= -0.6 && za(b) <= -0.6) minus.push('Никто не стремится брать инициативу — решения могут откладываться. Договоритесь, кто за что отвечает.');
+    if (za(a) >= 0.6 && za(b) >= 0.6) minus.push(T(work ? 'ass_hi_work' : 'ass_hi'));
+    else if (za(a) <= -0.6 && za(b) <= -0.6) minus.push(T('ass_lo'));
     else if (Math.abs(za(a) - za(b)) >= 1.2) {
-      const [h, l] = hiLo(za(a), za(b));
-      plus.push(`${h} охотно берёт инициативу, ${l} не борется за лидерство — роли распределяются естественно.`);
-      tips.push(`${h}, чаще спрашивайте мнение партнёра, даже если он(а) не настаивает.`);
+      const v = hiLo(za(a), za(b));
+      plus.push(T('ass_gap', v));
+      tips.push(T('ass_tip', v));
     }
 
     // Honesty-humility
     const [hx, hy] = [a.z.hon || 0, b.z.hon || 0];
-    if (Math.abs(hx - hy) >= gap + .2) {
-      const [h, l] = hiLo(hx, hy);
-      minus.push(`${h} особенно ценит прямоту и скромность, ${l} прагматичнее и больше думает о статусе. Обсудите, что каждый считает «честной игрой».`);
-    } else if (hx > HI && hy > HI) plus.push('Оба высоко цените честность — фундамент для доверия.');
+    if (Math.abs(hx - hy) >= gap + .2) minus.push(T('hon_gap', hiLo(hx, hy)));
+    else if (hx > HI && hy > HI) plus.push(T('hon_hi'));
 
     // Values
     if (a.val && b.val) {
       const shared = Object.keys(a.val.c).filter(k => a.val.c[k] > 4 && b.val.c[k] > 4)
-        .sort((p, q) => (b.val.c[q] + a.val.c[q]) - (b.val.c[p] + a.val.c[p])).slice(0, 3);
-      if (shared.length) plus.push(`Общие главные ценности: ${shared.map(k => '«' + S[k].name + '»').join(', ')}. Это прочная основа для общих целей.`);
+        .sort((p, r) => (b.val.c[r] + a.val.c[r]) - (b.val.c[p] + a.val.c[p])).slice(0, 3);
+      if (shared.length) plus.push(T('val_shared', { list: joinList(shared.map(k => q(S[k].name))) }));
       const oc = P => (P.val.ho.open || 0) - (P.val.ho.cons || 0);
-      if (Math.abs(oc(a) - oc(b)) >= 25) {
-        const [h, l] = oc(a) > oc(b) ? [an, bn] : [bn, an];
-        minus.push(`${h} стремится к переменам и свободе, ${l} — к стабильности и порядку. На этом часто спорят о деньгах, переездах, работе и воспитании.`);
-      }
+      if (Math.abs(oc(a) - oc(b)) >= 25) minus.push(T('val_oc', oc(a) > oc(b) ? { h: an, l: bn } : { h: bn, l: an }));
       const st = P => (P.val.ho.self || 0) - (P.val.ho.trans || 0);
-      if (Math.abs(st(a) - st(b)) >= 25) {
-        const [h, l] = st(a) > st(b) ? [an, bn] : [bn, an];
-        minus.push(`Разные мотивы. ${h}: на первом месте успех и влияние. ${l}: важнее забота о людях и справедливость. Уважайте мотивы друг друга.`);
-      }
+      if (Math.abs(st(a) - st(b)) >= 25) minus.push(T('val_st', st(a) > st(b) ? { h: an, l: bn } : { h: bn, l: an }));
     }
 
     // Moral foundations
     if (a.mor && b.mor) {
       const bx = a.mor.bind - a.mor.ind, by = b.mor.bind - b.mor.ind;
-      if (Math.abs(bx - by) >= 22) {
-        const [h, l] = bx > by ? [an, bn] : [bn, an];
-        minus.push(`Разные моральные «настройки». ${h}: важны традиции, лояльность и уважение к авторитетам. ${l}: на первом месте личная свобода, забота и справедливость. Политика и религия могут быть острыми темами — договоритесь спорить уважительно.`);
-      } else if (simDist(a.s, b.s, modScales.mor, 18) >= 70) plus.push('Похожее чувство «правильного» — в спорных вопросах вы чаще на одной стороне.');
+      if (Math.abs(bx - by) >= 22) minus.push(T('mor_gap', bx > by ? { h: an, l: bn } : { h: bn, l: an }));
+      else if (simDist(a.s, b.s, modScales.mor, 18) >= 70) plus.push(T('mor_sim'));
     }
 
     // Mind
     if (a.mind && b.mind) {
       const t1 = a.mind.think, t2 = b.mind.think;
-      if ((t1 === 'ana' && t2 === 'intu') || (t1 === 'intu' && t2 === 'ana')) {
-        const [h, l] = t1 === 'ana' ? [an, bn] : [bn, an];
-        plus.push(`Вы решаете по-разному: ${h} — анализом, ${l} — интуицией. Вместе это сильная связка: интуиция предлагает, анализ проверяет.`);
-      }
+      if ((t1 === 'ana' && t2 === 'intu') || (t1 === 'intu' && t2 === 'ana')) plus.push(T('think', t1 === 'ana' ? { h: an, l: bn } : { h: bn, l: an }));
       const [qx, qy] = [a.z.clo || 0, b.z.clo || 0];
-      if (Math.abs(qx - qy) >= gap) {
-        const [h, l] = hiLo(qx, qy);
-        minus.push(`${h} нуждается в ясности и плане, ${l} предпочитает оставлять варианты открытыми. Решите, что планируете заранее, а что — по ходу.`);
-      }
+      if (Math.abs(qx - qy) >= gap) minus.push(T('clo_gap', hiLo(qx, qy)));
       if (a.s.morn != null && b.s.morn != null) {
-        if (Math.abs(a.s.morn - b.s.morn) >= 40) {
-          const [h, l] = a.s.morn > b.s.morn ? [an, bn] : [bn, an];
-          minus.push(`Разные биоритмы: ${h} — жаворонок, ${l} — сова. Важные разговоры и общие дела планируйте на дневное время, когда в форме оба.`);
-        } else if (love && Math.abs(a.s.morn - b.s.morn) <= 15) plus.push('Похожие биоритмы — легко совпадать по режиму дня.');
+        if (Math.abs(a.s.morn - b.s.morn) >= 40) minus.push(T('morn_gap', a.s.morn > b.s.morn ? { h: an, l: bn } : { h: bn, l: an }));
+        else if (love && Math.abs(a.s.morn - b.s.morn) <= 15) plus.push(T('morn_same'));
       }
-      if (a.mind.sens && b.mind.sens) tips.push('Оба высокочувствительны: берегите общее пространство от перегрузки — тишина и паузы нужны вам обоим.');
-      if ((a.z.grow || 0) > HI && (b.z.grow || 0) > HI) plus.push('Оба верите в развитие — будете поддерживать рост друг друга.');
+      if (a.mind.sens && b.mind.sens) tips.push(T('sens_both'));
+      if ((a.z.grow || 0) > HI && (b.z.grow || 0) > HI) plus.push(T('grow_both'));
     }
 
     // Attachment
     if (!work && a.att && b.att) {
       const ia = a.att.id, ib = b.att.id;
-      if (ia === 'sec' && ib === 'sec') plus.push('Оба с надёжным стилем привязанности — это один из сильнейших предикторов устойчивых отношений.');
-      else if ((ia === 'anx' && ib === 'avo') || (ia === 'avo' && ib === 'anx')) {
-        const [h, l] = ia === 'anx' ? [an, bn] : [bn, an];
-        minus.push(`Ловушка «тревожный — избегающий»: ${h} при отдалении ищет близости, ${l} от напора отстраняется ещё сильнее. Помогает ясность: заранее договаривайтесь о связи («напишу вечером») и о праве на паузу.`);
-      } else if (ia === 'anx' && ib === 'anx') minus.push('Оба тревожитесь в близости и легко заражаете друг друга сомнениями. Говорите о потребностях прямо вместо проверок.');
-      else if ((ia === 'avo' || ia === 'fea') && (ib === 'avo' || ib === 'fea')) minus.push('Оба держите дистанцию — отношения спокойные, но может не хватать близости. Планируйте время для откровенных разговоров.');
-      if ((ia === 'sec') !== (ib === 'sec')) {
-        const s = ia === 'sec' ? an : bn;
-        plus.push(`${s} с надёжной привязанностью может стать «якорем» и помочь партнёру чувствовать себя спокойнее.`);
-      }
+      if (ia === 'sec' && ib === 'sec') plus.push(T('att_sec'));
+      else if ((ia === 'anx' && ib === 'avo') || (ia === 'avo' && ib === 'anx')) minus.push(T('att_trap', ia === 'anx' ? { h: an, l: bn } : { h: bn, l: an }));
+      else if (ia === 'anx' && ib === 'anx') minus.push(T('att_anx'));
+      else if ((ia === 'avo' || ia === 'fea') && (ib === 'avo' || ib === 'fea')) minus.push(T('att_avo'));
+      if ((ia === 'sec') !== (ib === 'sec')) plus.push(T('att_anchor', { s: ia === 'sec' ? an : bn }));
     }
 
     // Conflict
     if (a.conf && b.conf) {
       const hi = (P, id) => (P.z[id] || 0) >= 0.6;
-      if (hi(a, 'col') && hi(b, 'col')) plus.push('Оба решаете разногласия сотрудничеством — это сильная сторона.');
-      if (hi(a, 'cmp') && hi(b, 'cmp')) minus.push('Оба склонны «побеждать» в споре — есть риск эскалации. Договоритесь о стоп-слове и возвращайтесь к разговору через 20 минут.');
-      [[a, b, an, bn], [b, a, bn, an]].forEach(([p, q, pn, qn]) => {
-        if (hi(p, 'cmp') && hi(q, 'avd')) minus.push(`Схема «догоняющий — убегающий»: ${pn} давит, чтобы решить сейчас, ${qn} уходит от разговора. Назначайте время для обсуждения — так обоим спокойнее.`);
-        if (hi(p, 'cmp') && hi(q, 'acc')) tips.push(`${pn} обычно настаивает, ${qn} уступает. Ссор меньше, но у уступающего копится обида — время от времени меняйтесь ролями.`);
+      if (hi(a, 'col') && hi(b, 'col')) plus.push(T('col_both'));
+      if (hi(a, 'cmp') && hi(b, 'cmp')) minus.push(T('cmp_both'));
+      [[a, b, an, bn], [b, a, bn, an]].forEach(([p, r, pn, rn]) => {
+        if (hi(p, 'cmp') && hi(r, 'avd')) minus.push(T('pursue', { h: pn, l: rn }));
+        if (hi(p, 'cmp') && hi(r, 'acc')) tips.push(T('yield', { h: pn, l: rn }));
       });
-      if (hi(a, 'avd') && hi(b, 'avd')) minus.push('Оба избегаете острых тем — проблемы могут копиться незаметно. Раз в неделю устраивайте спокойный «разговор о нас».');
+      if (hi(a, 'avd') && hi(b, 'avd')) minus.push(T('avd_both'));
       const risky = [[a, an], [b, bn]].filter(([p]) => p.conf.risk === 'high').map(([, n]) => n);
-      if (risky.length) minus.push(`${risky.join(' и ')}: в ссорах заметны разрушительные паттерны — критика личности, оборона, сарказм или «стена». По Готтману, именно они сильнее всего предсказывают разрыв. Пробуйте мягкий старт: «я чувствую… когда… мне бы хотелось…».`);
+      if (risky.length) minus.push(T('horsemen', { names: risky.join(D.eng.and) }));
     }
 
     // Care
     if (!work && a.care && b.care) {
       const ta = a.care.rank[0], tb = b.care.rank[0];
-      if (ta === tb) plus.push(`Совпадает главный способ чувствовать заботу — «${S[ta].name}».`);
-      tips.push(`${an} лучше всего чувствует заботу через «${S[ta].name}» и «${S[a.care.rank[1]].name}»: ${S[ta].how}.`);
-      tips.push(`${bn} лучше всего чувствует заботу через «${S[tb].name}» и «${S[b.care.rank[1]].name}»: ${S[tb].how}.`);
+      if (ta === tb) plus.push(T('care_same', { x: q(S[ta].name) }));
+      tips.push(T('care_tip', { name: an, x: q(S[ta].name), y: q(S[a.care.rank[1]].name), how: S[ta].how }));
+      tips.push(T('care_tip', { name: bn, x: q(S[tb].name), y: q(S[b.care.rank[1]].name), how: S[tb].how }));
     }
 
     // Work roles
     if (work) {
       const ra = a.roles[0].id, rb = b.roles[0].id;
-      if (ra !== rb) plus.push(`Роли дополняют друг друга: ${an} — ${D.roles[ra].name.toLowerCase()}, ${bn} — ${D.roles[rb].name.toLowerCase()}.`);
-      else minus.push(`Оба сильнее всего в роли «${D.roles[ra].name}» — возможна конкуренция. Договоритесь, кто за что отвечает.`);
+      if (ra !== rb) plus.push(T('roles_diff', { a: an, b: bn, ra: q(D.roles[ra].name), rb: q(D.roles[rb].name) }));
+      else minus.push(T('roles_same', { role: q(D.roles[ra].name) }));
       const missing = Object.keys(D.roles).filter(id => Math.max(roleV(a, id), roleV(b, id)) < 50);
-      if (missing.length) tips.push(`В паре слабо представлены роли: ${missing.map(id => '«' + D.roles[id].name + '»').join(', ')}. Учитывайте это при распределении задач.`);
+      if (missing.length) tips.push(T('roles_missing', { list: joinList(missing.map(id => q(D.roles[id].name))) }));
     }
-    if (!plus.length) plus.push('Явных совпадений немного — но различия тоже бывают ресурсом, если их понимать.');
+    if (!plus.length) plus.push(T('none'));
   }
   const za = P => P.z.ass || 0;
 
@@ -479,18 +434,18 @@
       list.forEach((x, i) => { const v = roleV(x.P, id); if (v > bv) { bv = v; best = i; } });
       return { id, best, v: bv };
     });
-    const notes = [];
-    if (dom.E.m > 0.5) notes.push('Энергичная, общительная компания — легко собраться и придумать движ.');
-    else if (dom.E.m < -0.5) notes.push('Спокойная, «камерная» компания — вам хорошо в небольших встречах и глубоких разговорах.');
-    if (dom.C.m < -0.5) notes.push('В группе мало организованности — назначьте ответственного за планы и сроки.');
-    if (dom.A.m < -0.4) notes.push('Группа прямолинейная и спорная — договоритесь о правилах дискуссии.');
-    if (dom.N.m > 0.5) notes.push('Многие в группе остро реагируют на стресс — важна атмосфера поддержки.');
-    if (dom.O.sd > 1.1) notes.push('Очень разное отношение к новому: одним нужны эксперименты, другим — стабильность. Чередуйте форматы.');
-    const missing = roles.filter(r => r.v < 55).map(r => '«' + D.roles[r.id].name + '»');
-    if (missing.length) notes.push(`Слабо представлены роли: ${missing.join(', ')}.`);
+    const notes = [], G = D.eng.group;
+    if (dom.E.m > 0.5) notes.push(G.e_hi);
+    else if (dom.E.m < -0.5) notes.push(G.e_lo);
+    if (dom.C.m < -0.5) notes.push(G.c_lo);
+    if (dom.A.m < -0.4) notes.push(G.a_lo);
+    if (dom.N.m > 0.5) notes.push(G.n_hi);
+    if (dom.O.sd > 1.1) notes.push(G.o_spread);
+    const missing = roles.filter(r => r.v < 55).map(r => q(D.roles[r.id].name));
+    if (missing.length) notes.push(fmt(G.roles_missing, { list: joinList(missing) }));
     pairs.sort((p, q) => q.compat - p.compat);
     return { M, pairs, dom, roles, notes };
   }
 
-  root.Engine = { N, MODS, modCount, modScales, byScale, sequence, profile, encode, decode, pack, unpack, pair, group, Phi, CTX, blank };
+  root.Engine = { N, MODS, modCount, modScales, byScale, sequence, profile, encode, decode, pack, unpack, pair, group, Phi, blank, fmt };
 })(typeof window !== 'undefined' ? window : globalThis);

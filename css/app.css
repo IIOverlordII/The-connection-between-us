@@ -380,3 +380,12 @@ table.heat td.self .ava { opacity: .35; }
 .fail { color: var(--bad); }
 .q-card.g-card { min-height: 0; padding: 16px 18px; }
 .gopts button { padding: 10px 14px; }
+.lang-btn {
+  border: 1px solid var(--border); background: var(--surface); border-radius: 999px; padding: 5px 11px; min-width: 44px;
+  font-weight: 700; font-size: .8em; cursor: pointer; letter-spacing: .04em; color: var(--text);
+}
+.lang-btn:hover { border-color: var(--primary); }
+.lang-item { border: 0; background: none; width: 100%; text-align: left; cursor: pointer; font: inherit; }
+.lang-item.on .li-title { color: var(--primary); }
+.gt th { white-space: normal; vertical-align: bottom; font-size: .85em; }
+.gt td:not(:first-child), .gt th:not(:first-child) { text-align: center; white-space: nowrap; }
