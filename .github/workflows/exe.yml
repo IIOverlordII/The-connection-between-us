@@ -31,7 +31,7 @@ jobs:
           node-version: 22
 
       - name: Тесты
-        run: node --test test/engine.test.js
+        run: node --test test/engine.test.js test/game.test.js
 
       - name: Сборка .exe (desktop\build_exe.ps1)
         shell: pwsh

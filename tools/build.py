@@ -16,6 +16,7 @@ if node:
     check = r"""
 global.window = globalThis;
 require(process.argv[1] + '/js/data.js'); require(process.argv[1] + '/js/engine.js');
+require(process.argv[1] + '/js/game-data.js'); require(process.argv[1] + '/js/game.js');
 const D = PSY, err = [];
 const mods = new Set(D.modules.map(m => m.id));
 D.items.forEach(([s, k, t], i) => {
@@ -29,7 +30,13 @@ Object.entries(D.scales).forEach(([id, s]) => {
 });
 Object.keys(D.types).length === 16 || err.push('types: need 16');
 if (D.items.length > 255) err.push('items: share code stores the count in one byte');
-console.log(JSON.stringify({ err, items: D.items.length, mods: Engine.modCount }));
+const cats = new Set(GAME.cats.map(c => c.id));
+GAME.q.forEach((q, i) => {
+  if (!cats.has(q[0])) err.push(`game q${i}: unknown category ${q[0]}`);
+  if (q.length < 4 || q.length > 6) err.push(`game q${i}: needs 2–4 options`);
+});
+if (GAME.q.length > 65535) err.push('game: ids are stored in two bytes');
+console.log(JSON.stringify({ err, items: D.items.length, mods: Engine.modCount, game: GAME.q.length }));
 """
     r = subprocess.run([node, '-e', check, str(APP)], capture_output=True, text=True, encoding='utf-8')
     if r.returncode:
@@ -37,7 +44,7 @@ console.log(JSON.stringify({ err, items: D.items.length, mods: Engine.modCount }
     else:
         info = json.loads(r.stdout)
         errors += info['err']
-        print(f"items: {info['items']} {info['mods']}")
+        print(f"items: {info['items']} {info['mods']}, game questions: {info['game']}")
 else:
     print('node не найден — проверка data.js пропущена')
 
