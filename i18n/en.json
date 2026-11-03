@@ -351,7 +351,11 @@
     "install_btn": "Install the app",
     "about": "About",
     "about_text": "{n} questions in {m} test sections and {g} questions in the game “{game}”. The personality trait questions are adapted from the open International Personality Item Pool (public domain); the rest were written for this app based on descriptions of scientific models (see “Theory”).",
-    "about_disclaimer": "The results are a self-description, not a diagnosis. If you are worried about your emotional state, please talk to a psychologist or psychotherapist."
+    "about_disclaimer": "The results are a self-description, not a diagnosis. If you are worried about your emotional state, please talk to a psychologist or psychotherapist.",
+    "legal_pricing": "Pricing",
+    "legal_terms": "Terms",
+    "legal_refund": "Refunds",
+    "legal_privacy": "Privacy"
   },
   "eng": {
     "quote": "“{x}”",

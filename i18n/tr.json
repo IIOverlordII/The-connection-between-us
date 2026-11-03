@@ -351,7 +351,11 @@
     "install_btn": "Uygulamayı yükle",
     "about": "Uygulama hakkında",
     "about_text": "Testin {m} bölümünde {n} soru ve “{game}” oyununda {g} soru var. Kişilik özellikleriyle ilgili sorular açık International Personality Item Pool veritabanından (kamu malı) uyarlanmıştır; diğerleri bu uygulama için bilimsel modellerin tanımlarına göre hazırlanmıştır (bkz. “Teori”).",
-    "about_disclaimer": "Sonuçlar bir öz tanımlamadır, teşhis değil. Duygusal durumun seni endişelendiriyorsa bir psikoloğa ya da psikoterapiste başvur."
+    "about_disclaimer": "Sonuçlar bir öz tanımlamadır, teşhis değil. Duygusal durumun seni endişelendiriyorsa bir psikoloğa ya da psikoterapiste başvur.",
+    "legal_pricing": "Fiyatlar",
+    "legal_terms": "Koşullar",
+    "legal_refund": "İadeler",
+    "legal_privacy": "Gizlilik"
   },
   "eng": {
     "quote": "“{x}”",

@@ -83,12 +83,15 @@
 
   // ───────── shell ─────────
   const NAV = [['#/', 'nav_home', 'home'], ['#/compare', 'nav_compare', 'users'], ['#/game', 'nav_game', 'game'], ['#/theory', 'nav_theory', 'book'], ['#/settings', 'nav_settings', 'gear']];
+  // pricing and policy pages (English documents next to index.html)
+  const LEGAL = [['pricing.html', 'legal_pricing'], ['terms.html', 'legal_terms'], ['refund.html', 'legal_refund'], ['privacy.html', 'legal_privacy']];
+  const legalLinks = (cls = '') => `<p class="legal-links ${cls}">${LEGAL.map(([h, l]) => `<a href="${h}">${te(l)}</a>`).join(' · ')}</p>`;
   function renderNav(root) {
     const map = { '': '#/', p: '#/', take: '#/', new: '#/', import: '#/', compare: '#/compare', pair: '#/compare', group: '#/compare', game: '#/game', g: '#/game', theory: '#/theory', settings: '#/settings' };
     const cur = map[root] || '#/';
     $('#sidebar').innerHTML = `<div class="side-brand"><img src="icons/icon.svg" alt="">${te('app')}</div>` +
       NAV.map(([h, l, ic]) => `<a class="side-link${cur === h ? ' active' : ''}" href="${h}">${icon(ic)}${te(l)}</a>`).join('') +
-      `<div class="side-foot">${te('side_foot')}</div>`;
+      `<div class="side-foot">${te('side_foot')}${legalLinks()}</div>`;
     $('#tabbar').innerHTML = NAV.map(([h, l, ic]) => `<a class="tab${cur === h ? ' active' : ''}" href="${h}">${icon(ic)}<span>${te(l)}</span></a>`).join('');
     $('#langBtn').textContent = I.lang().toUpperCase();
   }
@@ -240,7 +243,8 @@
       <div class="row" style="margin:14px 0"><button class="btn secondary" id="importBtn">${icon('link')}${te('add_by_code')}</button></div>
       ${ps.length < 2 ? `<div class="card"><h3 style="margin-top:0">${te('how_title')}</h3>
         <ol class="steps"><li><b>${te('how1_b')}</b> ${te('how1')}</li><li><b>${te('how2_b')}</b> ${te('how2')}</li><li><b>${te('how3_b')}</b> ${te('how3')}</li></ol>
-        <p class="small muted">${te('how_note')}</p></div>` : ''}`;
+        <p class="small muted">${te('how_note')}</p></div>` : ''}
+      ${legalLinks('note center')}`;
     $('#importBtn').onclick = importModal;
   }
   const compareHref = ids => ids.length === 2 ? `#/pair/${ids[0]}/${ids[1]}` : `#/group/${ids.join(',')}`;
@@ -1034,7 +1038,7 @@
         <p class="small">${th('inst_windows', { link: `<a href="${RELEASE}" target="_blank" rel="noopener">BetweenUs.exe</a>` })}</p>
         <button class="btn" id="installBtn"${installEvt ? '' : ' hidden'}>${te('install_btn')}</button></div>
       <div class="card"><h3 class="card-h">${te('about')}</h3><p class="small">${te('about_text', { n: E.N, m: E.MODS.length, g: window.GAME.q.length, game: t('game_title') })}</p>
-        <p class="small">${te('about_disclaimer')}</p></div>`;
+        <p class="small">${te('about_disclaimer')}</p>${legalLinks('small')}</div>`;
     $$('[data-seg]').forEach(sg => sg.onclick = e => {
       const b = e.target.closest('button'); if (!b) return;
       const k = sg.dataset.seg;

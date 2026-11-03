@@ -352,7 +352,11 @@
     "install_btn": "Instalar la aplicación",
     "about": "Acerca de la aplicación",
     "about_text": "{n} preguntas en {m} bloques del test y {g} preguntas en el juego «{game}». Las preguntas sobre rasgos de personalidad están adaptadas del banco abierto International Personality Item Pool (dominio público); el resto se ha redactado para esta aplicación a partir de las descripciones de los modelos científicos (consulta «Teoría»).",
-    "about_disclaimer": "Los resultados son una autodescripción, no un diagnóstico. Si te preocupa tu estado emocional, busca ayuda psicológica profesional."
+    "about_disclaimer": "Los resultados son una autodescripción, no un diagnóstico. Si te preocupa tu estado emocional, busca ayuda psicológica profesional.",
+    "legal_pricing": "Precios",
+    "legal_terms": "Términos",
+    "legal_refund": "Reembolsos",
+    "legal_privacy": "Privacidad"
   },
   "eng": {
     "quote": "«{x}»",

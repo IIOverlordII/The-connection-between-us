@@ -351,7 +351,11 @@
     "install_btn": "App installieren",
     "about": "Über die App",
     "about_text": "{n} Fragen in {m} Testblöcken und {g} Fragen im Spiel „{game}“. Die Fragen zu Persönlichkeitsmerkmalen sind aus der offenen Datenbank International Personality Item Pool (gemeinfrei) übernommen und angepasst, die übrigen wurden für diese App anhand der Beschreibungen wissenschaftlicher Modelle verfasst (siehe „Theorie“).",
-    "about_disclaimer": "Die Ergebnisse sind eine Selbstbeschreibung, keine Diagnose. Wenn dich deine seelische Verfassung beunruhigt, wende dich an eine psychologische oder psychotherapeutische Fachperson."
+    "about_disclaimer": "Die Ergebnisse sind eine Selbstbeschreibung, keine Diagnose. Wenn dich deine seelische Verfassung beunruhigt, wende dich an eine psychologische oder psychotherapeutische Fachperson.",
+    "legal_pricing": "Preise",
+    "legal_terms": "AGB",
+    "legal_refund": "Rückerstattung",
+    "legal_privacy": "Datenschutz"
   },
   "eng": {
     "quote": "„{x}“",

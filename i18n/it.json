@@ -352,7 +352,11 @@
     "install_btn": "Installa l'app",
     "about": "Informazioni",
     "about_text": "{n} domande in {m} blocchi del test e {g} domande nel gioco «{game}». Le domande sui tratti di personalità sono adattate dall'archivio aperto International Personality Item Pool (di pubblico dominio); le altre sono state scritte per questa app a partire dalle descrizioni dei modelli scientifici (vedi «Teoria»).",
-    "about_disclaimer": "I risultati sono un'autodescrizione, non una diagnosi. Se il tuo stato emotivo ti preoccupa, rivolgiti a uno psicologo o a uno psicoterapeuta."
+    "about_disclaimer": "I risultati sono un'autodescrizione, non una diagnosi. Se il tuo stato emotivo ti preoccupa, rivolgiti a uno psicologo o a uno psicoterapeuta.",
+    "legal_pricing": "Prezzi",
+    "legal_terms": "Termini",
+    "legal_refund": "Rimborsi",
+    "legal_privacy": "Privacy"
   },
   "eng": {
     "quote": "«{x}»",

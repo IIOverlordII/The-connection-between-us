@@ -352,7 +352,11 @@
     "install_btn": "Installer l'application",
     "about": "À propos",
     "about_text": "{n} questions réparties en {m} blocs dans le test et {g} questions dans le jeu « {game} ». Les questions sur les traits de personnalité sont adaptées de la base ouverte International Personality Item Pool (domaine public) ; les autres ont été rédigées pour cette application à partir des descriptions des modèles scientifiques (voir « Théorie »).",
-    "about_disclaimer": "Les résultats sont une auto-description, pas un diagnostic. Si votre état émotionnel vous inquiète, adressez-vous à un psychologue ou à un psychothérapeute."
+    "about_disclaimer": "Les résultats sont une auto-description, pas un diagnostic. Si votre état émotionnel vous inquiète, adressez-vous à un psychologue ou à un psychothérapeute.",
+    "legal_pricing": "Tarifs",
+    "legal_terms": "Conditions",
+    "legal_refund": "Remboursements",
+    "legal_privacy": "Confidentialité"
   },
   "eng": {
     "quote": "« {x} »",

@@ -353,7 +353,11 @@
     "install_btn": "Zainstaluj aplikację",
     "about": "O aplikacji",
     "about_text": "{n} pytań w {m} blokach testu i {g} pytań w grze „{game}”. Pytania o cechy osobowości zaadaptowano z otwartej bazy International Personality Item Pool (domena publiczna), pozostałe opracowano dla tej aplikacji na podstawie opisów modeli naukowych (zob. „Teoria”).",
-    "about_disclaimer": "Wyniki to samoopis, a nie diagnoza. Jeśli niepokoi cię twój stan emocjonalny, zwróć się do psychologa lub psychoterapeuty."
+    "about_disclaimer": "Wyniki to samoopis, a nie diagnoza. Jeśli niepokoi cię twój stan emocjonalny, zwróć się do psychologa lub psychoterapeuty.",
+    "legal_pricing": "Cennik",
+    "legal_terms": "Regulamin",
+    "legal_refund": "Zwroty",
+    "legal_privacy": "Prywatność"
   },
   "eng": {
     "quote": "„{x}”",
