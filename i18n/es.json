@@ -200,7 +200,7 @@
     "ring_compat": "Compatibilidad {ctx}",
     "similarity": "Similitud",
     "compatibility": "Compatibilidad",
-    "compat_verdict": "{label} compatibilidad {ctx}.",
+    "compat_verdict": "Compatibilidad {ctx}: {label}.",
     "sim_expl": "La similitud mide el parecido entre las dos personas. La compatibilidad también tiene en cuenta lo que ayuda a una relación, haya parecido o no.",
     "parts_title": "De qué depende",
     "weight": "peso {n}%",
@@ -383,10 +383,10 @@
       "roles": "si entre ambas personas se cubren los roles clave del trabajo"
     },
     "labels": {
-      "great": "Excelente",
-      "good": "Buena",
-      "fair": "Moderada",
-      "hard": "Difícil"
+      "great": "excelente",
+      "good": "buena",
+      "fair": "moderada",
+      "hard": "difícil"
     },
     "ins": {
       "e_gap": "{h} se recarga con la gente y la actividad; {l}, con el silencio y la soledad. Conviene pactar un equilibrio: alternar los planes en común con tiempo para recuperarse.",

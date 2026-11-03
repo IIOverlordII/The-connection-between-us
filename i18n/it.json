@@ -200,7 +200,7 @@
     "ring_compat": "Compatibilità {ctx}",
     "similarity": "Somiglianza",
     "compatibility": "Compatibilità",
-    "compat_verdict": "Compatibilità {label} {ctx}.",
+    "compat_verdict": "Compatibilità {ctx}: {label}.",
     "sim_expl": "La somiglianza indica quanto vi somigliate. La compatibilità considera anche ciò che aiuta una relazione a prescindere dalla somiglianza.",
     "parts_title": "Da cosa dipende",
     "weight": "peso {n}%",
