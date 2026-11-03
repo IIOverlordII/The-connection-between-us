@@ -1,4 +1,4 @@
-"""Готовит app/ к публикации: проверяет данные, обновляет офлайн-кэш (sw.js) и версии в index.html.
+"""Готовит app/ к публикации: проверяет данные и переводы, собирает app/i18n/*.js, обновляет офлайн-кэш (sw.js) и версии в index.html.
 
     python tools/build.py
 
@@ -47,6 +47,14 @@ console.log(JSON.stringify({ err, items: D.items.length, mods: Engine.modCount, 
         print(f"items: {info['items']} {info['mods']}, game questions: {info['game']}")
 else:
     print('node не найден — проверка data.js пропущена')
+
+# ───────────── переводы: i18n/ru.json из встроенных текстов, проверка и сборка app/i18n/<lang>.js ─────────────
+if node:
+    for step in ('export', 'build'):
+        r = subprocess.run([node, str(ROOT / 'tools' / 'i18n.mjs'), step], capture_output=True, text=True, encoding='utf-8')
+        print(r.stdout.strip())
+        if r.returncode:
+            errors.append(f'i18n {step}: ' + (r.stderr.strip() or 'см. вывод выше')[:300])
 
 # ───────────── офлайн-кэш ─────────────
 files = sorted(str(p.relative_to(APP)).replace('\\', '/') for p in APP.rglob('*') if p.is_file() and p.name != 'sw.js')
