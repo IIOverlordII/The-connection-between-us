@@ -3,28 +3,29 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Психопрофиль</title>
-<meta name="description" content="Тест характера и совместимости: Большая пятёрка, 16 типов, темперамент, привязанность, ценности, мышление. Сравнение пар, друзей и команд.">
+<title>Between Us</title>
+<meta name="description" content="Personality and compatibility test: Big Five, 16 types, temperament, attachment, values, thinking style. Compare couples, friends and teams.">
 <meta name="theme-color" content="#6d28d9">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Психопрофиль">
+<meta name="apple-mobile-web-app-title" content="Between Us">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="stylesheet" href="css/app.css?v=4dd45618da">
+<link rel="stylesheet" href="css/app.css?v=ed3d6fcf6a">
 </head>
 <body>
 <div class="layout">
   <aside class="sidebar" id="sidebar"></aside>
   <div class="main">
     <header class="topbar">
-      <button class="icon-btn" id="backBtn" aria-label="Назад" hidden>
+      <button class="icon-btn" id="backBtn" aria-label="Back" hidden>
         <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
       </button>
-      <h1 class="topbar-title" id="title">Психопрофиль</h1>
+      <h1 class="topbar-title" id="title">Between Us</h1>
       <div class="topbar-extra" id="topExtra"></div>
+      <button class="lang-btn" id="langBtn" aria-label="Language">··</button>
     </header>
     <main id="view" tabindex="-1"></main>
   </div>
@@ -33,17 +34,19 @@
 <div class="modal" id="modal" hidden>
   <div class="modal-backdrop" data-close></div>
   <div class="modal-card" role="dialog" aria-modal="true">
-    <button class="icon-btn modal-close" data-close aria-label="Закрыть">
+    <button class="icon-btn modal-close" data-close aria-label="Close">
       <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
     </button>
     <div class="modal-body" id="modalBody"></div>
   </div>
 </div>
 <div class="toast" id="toast" role="status" hidden></div>
-<script src="js/data.js?v=4dd45618da"></script>
-<script src="js/engine.js?v=4dd45618da"></script>
-<script src="js/game-data.js?v=4dd45618da"></script>
-<script src="js/game.js?v=4dd45618da"></script>
-<script src="js/app.js?v=4dd45618da"></script>
+<script src="js/data.js?v=ed3d6fcf6a"></script>
+<script src="js/engine.js?v=ed3d6fcf6a"></script>
+<script src="js/game-data.js?v=ed3d6fcf6a"></script>
+<script src="js/game.js?v=ed3d6fcf6a"></script>
+<script src="js/strings.js?v=ed3d6fcf6a"></script>
+<script src="js/i18n.js?v=ed3d6fcf6a"></script>
+<script src="js/app.js?v=ed3d6fcf6a"></script>
 </body>
 </html>

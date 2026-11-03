@@ -1,7 +1,8 @@
 (function () {
   'use strict';
-  const D = window.PSY, E = window.Engine;
+  const D = window.PSY, E = window.Engine, I = window.I18n;
   const S = D.scales;
+  const VER = ((document.currentScript && /[?&]v=([^&]+)/.exec(document.currentScript.src)) || [])[1] || '';
 
   // ───────── utils ─────────
   const $ = (s, el = document) => el.querySelector(s);
@@ -9,6 +10,14 @@
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
   const r0 = v => Math.round(v);
+  // texts: t → plain text (escape before use), te → escaped text, th → escaped template with ready HTML values
+  const t = (k, v) => I.t(k, v);
+  const te = (k, v) => esc(I.t(k, v));
+  const th = (k, html) => esc(I.t(k)).replace(/\{(\w+)\}/g, (m, x) => (html[x] != null ? html[x] : m));
+  const tp = (k, n, v) => I.tp(k, n, v);
+  const quote = x => I.fill(D.eng.quote, { x });
+  const qWord = n => tp('q_count', n);
+  const minutes = n => t('about_min', { n: Math.max(1, Math.round(n * 7 / 60)) }); // ~7 s per item
   const COLORS = ['#7c3aed', '#e11d48', '#059669', '#d97706', '#2563eb', '#0891b2', '#db2777', '#65a30d'];
   const ICON = {
     home: '<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>',
@@ -25,15 +34,10 @@
     bulb: '<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V17h5v-1.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/>',
     back: '<path d="M15 18l-6-6 6-6"/>',
     game: '<rect x="3.5" y="3.5" width="17" height="17" rx="4"/><circle cx="8.5" cy="8.5" r="1.3"/><circle cx="15.5" cy="15.5" r="1.3"/><circle cx="15.5" cy="8.5" r="1.3"/><circle cx="8.5" cy="15.5" r="1.3"/><circle cx="12" cy="12" r="1.3"/>',
-    trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8M9.5 17h5"/>'
+    trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8M9.5 17h5"/>',
+    globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>'
   };
   const icon = (n, cls = '') => `<svg class="${cls}" viewBox="0 0 24 24">${ICON[n] || ''}</svg>`;
-  const plural = (n, forms) => {
-    const [one, few, many] = forms.split('|'), m10 = n % 10, m100 = n % 100;
-    return m10 === 1 && m100 !== 11 ? one : m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14) ? few : many;
-  };
-  const qWord = n => `${n} ${plural(n, 'вопрос|вопроса|вопросов')}`;
-  const minutes = n => Math.max(1, Math.round(n * 7 / 60)); // ~7 s per item
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 
   // ───────── storage ─────────
@@ -43,7 +47,7 @@
     load() {
       let saved = {};
       try { saved = JSON.parse(localStorage.getItem(this.key) || '{}') || {}; } catch (e) { saved = {}; }
-      this.d = Object.assign({ theme: 'auto', fs: 16, ctx: 'love', people: [], sel: [], mode: 'compat', games: [], gset: { mode: 'local', n: 20, cats: [] }, gfilter: 'all' }, saved);
+      this.d = Object.assign({ theme: 'auto', fs: 16, lang: '', ctx: 'love', people: [], sel: [], mode: 'compat', games: [], gset: { mode: 'local', n: 20, cats: [] }, gfilter: 'all' }, saved);
       this.d.people.forEach(p => { if (!p.ans || p.ans.length !== E.N) p.ans = ((p.ans || '') + E.blank()).slice(0, E.N); });
     },
     save() { try { localStorage.setItem(this.key, JSON.stringify(this.d)); } catch (e) { /* private mode or quota */ } }
@@ -55,6 +59,7 @@
   const done = () => people().filter(p => p.mods.length);
   const color = p => COLORS[p.color % COLORS.length];
   const ava = (p, cls = '') => `<span class="ava ${cls}" style="background:${color(p)}">${esc((p.name.trim()[0] || '?').toUpperCase())}</span>`;
+  const modName = id => D.modules.find(x => x.id === id).name;
 
   // profile cache keyed by answers + modules
   const cache = new Map();
@@ -70,25 +75,26 @@
     const used = people().map(p => p.color);
     let c = 0;
     while (used.includes(c) && c < COLORS.length) c++;
-    const p = { id: uid(), name: name.trim() || 'Без имени', color: c % COLORS.length, created: Date.now(),
+    const p = { id: uid(), name: name.trim() || t('no_name'), color: c % COLORS.length, created: Date.now(),
       mods: imported ? mods : [], todo: imported ? [] : mods, ans: ans || E.blank(), pos: 0, done: imported ? Date.now() : 0, imported: !!imported };
     people().push(p); Store.save();
     return p;
   }
 
   // ───────── shell ─────────
-  const NAV = [['#/', 'Главная', 'home'], ['#/compare', 'Сравнение', 'users'], ['#/game', 'Игра', 'game'], ['#/theory', 'Теория', 'book'], ['#/settings', 'Настройки', 'gear']];
+  const NAV = [['#/', 'nav_home', 'home'], ['#/compare', 'nav_compare', 'users'], ['#/game', 'nav_game', 'game'], ['#/theory', 'nav_theory', 'book'], ['#/settings', 'nav_settings', 'gear']];
   function renderNav(root) {
     const map = { '': '#/', p: '#/', take: '#/', new: '#/', import: '#/', compare: '#/compare', pair: '#/compare', group: '#/compare', game: '#/game', g: '#/game', theory: '#/theory', settings: '#/settings' };
     const cur = map[root] || '#/';
-    $('#sidebar').innerHTML = `<div class="side-brand"><img src="icons/icon.svg" alt="">Психопрофиль</div>` +
-      NAV.map(([h, l, ic]) => `<a class="side-link${cur === h ? ' active' : ''}" href="${h}">${icon(ic)}${esc(l)}</a>`).join('') +
-      `<div class="side-foot">Ответы хранятся только на этом устройстве.</div>`;
-    $('#tabbar').innerHTML = NAV.map(([h, l, ic]) => `<a class="tab${cur === h ? ' active' : ''}" href="${h}">${icon(ic)}<span>${esc(l)}</span></a>`).join('');
+    $('#sidebar').innerHTML = `<div class="side-brand"><img src="icons/icon.svg" alt="">${te('app')}</div>` +
+      NAV.map(([h, l, ic]) => `<a class="side-link${cur === h ? ' active' : ''}" href="${h}">${icon(ic)}${te(l)}</a>`).join('') +
+      `<div class="side-foot">${te('side_foot')}</div>`;
+    $('#tabbar').innerHTML = NAV.map(([h, l, ic]) => `<a class="tab${cur === h ? ' active' : ''}" href="${h}">${icon(ic)}<span>${te(l)}</span></a>`).join('');
+    $('#langBtn').textContent = I.lang().toUpperCase();
   }
   function setTitle(s, back) {
     $('#title').textContent = s;
-    document.title = s === 'Психопрофиль' ? s : `${s} — Психопрофиль`;
+    document.title = s === t('app') ? s : `${s} — ${t('app')}`;
     const b = $('#backBtn');
     b.hidden = !back;
     b.onclick = () => { if (typeof back === 'string') location.hash = back; else history.back(); };
@@ -104,19 +110,28 @@
   function closeModal() { $('#modal').hidden = true; $('#modalBody').innerHTML = ''; }
   let toastT = 0;
   function toast(msg) {
-    const t = $('#toast');
-    t.textContent = msg; t.hidden = false;
-    clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 2200);
+    const el = $('#toast');
+    el.textContent = msg; el.hidden = false;
+    clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; }, 2200);
   }
   async function copy(text) {
-    try { await navigator.clipboard.writeText(text); toast('Скопировано'); return; } catch (e) { /* fall back below */ }
+    try { await navigator.clipboard.writeText(text); toast(t('copied')); return; } catch (e) { /* fall back below */ }
     const ta = document.createElement('textarea');
     ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
     document.body.appendChild(ta); ta.select();
-    try { document.execCommand('copy'); toast('Скопировано'); } catch (e) { toast('Не удалось скопировать — выделите текст вручную'); }
+    try { document.execCommand('copy'); toast(t('copied')); } catch (e) { toast(t('copy_fail')); }
     ta.remove();
   }
   const seg = (name, items, cur) => `<div class="seg" data-seg="${name}">${items.map(([v, l]) => `<button data-v="${v}" class="${String(cur) === String(v) ? 'on' : ''}">${esc(l)}</button>`).join('')}</div>`;
+  function langModal() {
+    openModal(`<h2>${te('language')}</h2><div class="list">${I.LANGS.map(([c, n]) =>
+      `<button class="list-item lang-item${c === I.lang() ? ' on' : ''}" data-lang="${c}"><span class="li-main"><span class="li-title">${esc(n)}</span></span>${c === I.lang() ? icon('check', 'chev') : ''}</button>`).join('')}</div>`);
+    $('#modalBody .list').onclick = e => {
+      const b = e.target.closest('[data-lang]'); if (!b) return;
+      Store.d.lang = b.dataset.lang; Store.save();
+      if (b.dataset.lang !== I.lang()) location.reload(); else closeModal();
+    };
+  }
 
   document.addEventListener('click', e => {
     const c = e.target.closest('[data-copy]');
@@ -132,7 +147,7 @@
   });
 
   // ───────── charts (inline SVG / CSS, no libraries) ─────────
-  const level = p => p >= 85 ? 'очень высокий' : p >= 65 ? 'высокий' : p >= 35 ? 'средний' : p >= 15 ? 'низкий' : 'очень низкий';
+  const level = p => t(p >= 85 ? 'lvl_vhi' : p >= 65 ? 'lvl_hi' : p >= 35 ? 'lvl_mid' : p >= 15 ? 'lvl_lo' : 'lvl_vlo');
   function bar(label, v, col, sub) {
     return `<div class="srow"><div class="sl">${esc(label)}${sub ? `<small>${esc(sub)}</small>` : ''}</div>
       <div class="track"><i style="width:${clamp(v, 1, 100).toFixed(1)}%;background:${col}"></i></div><div class="sv">${r0(v)}</div></div>`;
@@ -166,16 +181,16 @@
     return h + '</svg>';
   }
   const tempPt = P => ({ x: 50 + P.dom.E.z * 22, y: 50 + P.dom.N.z * 22 });
-  const tempMap = pts => map2d({ pts, lx: 50, ly: 50, circle: true, q: ['Меланхолик', 'Холерик', 'Флегматик', 'Сангвиник'],
-    xa: ['интроверсия', 'экстраверсия'], ya: ['эмоциональная стабильность', 'эмоциональная чувствительность'], aria: 'Карта темперамента' });
-  const attMap = pts => map2d({ pts, lx: 45, ly: 55, q: ['Тревожный', 'Тревожно-избегающий', 'Надёжный', 'Избегающий'],
-    xa: ['близость комфортна', 'дистанция'], ya: ['спокойствие в отношениях', 'тревога в отношениях'], aria: 'Карта привязанности' });
+  const tempMap = pts => { const T = D.temperaments; return map2d({ pts, lx: 50, ly: 50, circle: true, q: [T.mel.name, T.chol.name, T.phl.name, T.sang.name],
+    xa: [t('ax_intro'), t('ax_extra')], ya: [t('ax_stable'), t('ax_sensitive')], aria: t('aria_temp') }); };
+  const attMap = pts => { const A = D.attach; return map2d({ pts, lx: 45, ly: 55, q: [A.anx.name, A.fea.name, A.sec.name, A.avo.name],
+    xa: [t('ax_close'), t('ax_distance')], ya: [t('ax_calm'), t('ax_anxious')], aria: t('aria_att') }); };
 
   const VAL_ORDER = ['sd', 'st', 'he', 'ac', 'po', 'se', 'co', 'tr', 'be', 'un'];
   function radar(series) {
     const C = 180, R = 100, n = VAL_ORDER.length;
     const pt = (i, f) => { const a = -Math.PI / 2 + i * 2 * Math.PI / n; return [C + Math.cos(a) * R * f, C + Math.sin(a) * R * f]; };
-    let h = `<svg class="radar" viewBox="-96 4 552 352" role="img" aria-label="Круг ценностей">`;
+    let h = `<svg class="radar" viewBox="-96 4 552 352" role="img" aria-label="${te('aria_values')}">`;
     [0.25, 0.5, 0.75, 1].forEach(f => { h += `<polygon class="rd-ring" points="${VAL_ORDER.map((_, i) => pt(i, f).join(',')).join(' ')}"/>`; });
     VAL_ORDER.forEach((k, i) => {
       const [x, y] = pt(i, 1), [lx, ly] = pt(i, 1.12);
@@ -191,7 +206,7 @@
   function ring(v, label, col) {
     const c = 2 * Math.PI * 42;
     return `<div class="ring"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" class="ring-bg"/>
-      <circle cx="50" cy="50" r="42" class="ring-fg" transform="rotate(-90 50 50)" style="stroke:${col};stroke-dasharray:${(c * v / 100).toFixed(1)} ${c.toFixed(1)}"/>
+      <circle cx="50" cy="50" r="42" class="ring-fg" transform="rotate(-90 50 50)" style="stroke:${col};stroke-dasharray:${(c * v / 100).toFixed(1)} ${c.toFixed(1)}${v > 0 ? '' : ';stroke-opacity:0'}"/>
       <text x="50" y="57" text-anchor="middle" class="ring-v">${v}%</text></svg><div class="ring-l">${esc(label)}</div></div>`;
   }
   // red → amber → green; cells use a soft tint, bars a saturated tone
@@ -204,30 +219,28 @@
     if (p.todo.length) {
       const seq = E.sequence(p.todo), all = seq.filter(x => x.i != null).length;
       const dn = seq.slice(0, p.pos).filter(x => x.i != null).length;
-      sub = `<span class="badge warn">в процессе ${dn}/${all}</span>`;
+      sub = `<span class="badge warn">${te('in_progress', { a: dn, b: all })}</span>`;
     } else if (p.mods.length) {
       const P = prof(p);
-      sub = `<b>${esc(P.type.code)}</b> · ${esc(D.types[P.type.code].name)} · ${esc(D.temperaments[P.temp.id].name)}${p.imported ? ' · <span class="muted">по коду</span>' : ''}`;
-    } else sub = '<span class="muted">не начат</span>';
+      sub = `<b>${esc(P.type.code)}</b> · ${esc(D.types[P.type.code].name)} · ${esc(D.temperaments[P.temp.id].name)}${p.imported ? ` · <span class="muted">${te('by_code')}</span>` : ''}`;
+    } else sub = `<span class="muted">${te('not_started')}</span>`;
     const href = p.todo.length ? `#/take/${p.id}` : `#/p/${p.id}`;
     return `<a class="list-item" href="${href}">${ava(p)}<span class="li-main"><span class="li-title">${esc(p.name)}</span><span class="li-sub">${sub}</span></span>${icon('chev', 'chev')}</a>`;
   }
   function vHome() {
-    setTitle('Психопрофиль');
+    setTitle(t('app'));
     const ps = people(), dn = done();
     view().innerHTML = `
-      <div class="hero"><h2>Тест характера и совместимости</h2>
-        <p>Узнайте свой характер, темперамент, стиль привязанности, ценности и тип мышления — и сравните себя с партнёром, друзьями или командой.</p>
-        <div class="hero-actions"><a class="btn light" href="#/new">${icon('plus')}Новый участник</a>
-        ${dn.length >= 2 ? `<a class="btn ghost-light" href="${compareHref(dn.map(p => p.id))}">${icon('heart')}Сравнить всех</a>` : ''}
-        <a class="btn ghost-light" href="#/game">${icon('game')}Кто лучше знает партнёра</a></div></div>
-      ${ps.length ? `<h3>Участники</h3><div class="list">${ps.map(personRow).join('')}</div>` : ''}
-      <div class="row" style="margin:14px 0"><button class="btn secondary" id="importBtn">${icon('link')}Добавить по коду или ссылке</button></div>
-      ${ps.length < 2 ? `<div class="card"><h3 style="margin-top:0">Как это работает</h3>
-        <ol class="steps"><li><b>Каждый проходит тест</b> — по очереди на этом устройстве или на своём телефоне. Полный тест — около 15 минут, быстрый — 6.</li>
-        <li><b>Получает профиль:</b> Большая пятёрка, 16 типов, темперамент, привязанность, ценности, мораль, мышление, стиль в конфликтах и роль в команде.</li>
-        <li><b>Сравнивайте:</b> совместимость и схожесть пары, друзей или команды, сильные стороны, зоны трения и советы.</li></ol>
-        <p class="small muted">Результатом можно поделиться ссылкой или кодом. Ответы никуда не отправляются: всё хранится на устройстве.</p></div>` : ''}`;
+      <div class="hero"><h2>${te('tagline')}</h2>
+        <p>${te('home_sub')}</p>
+        <div class="hero-actions"><a class="btn light" href="#/new">${icon('plus')}${te('new_person')}</a>
+        ${dn.length >= 2 ? `<a class="btn ghost-light" href="${compareHref(dn.map(p => p.id))}">${icon('heart')}${te('compare_all')}</a>` : ''}
+        <a class="btn ghost-light" href="#/game">${icon('game')}${te('game_title')}</a></div></div>
+      ${ps.length ? `<h3>${te('participants')}</h3><div class="list">${ps.map(personRow).join('')}</div>` : ''}
+      <div class="row" style="margin:14px 0"><button class="btn secondary" id="importBtn">${icon('link')}${te('add_by_code')}</button></div>
+      ${ps.length < 2 ? `<div class="card"><h3 style="margin-top:0">${te('how_title')}</h3>
+        <ol class="steps"><li><b>${te('how1_b')}</b> ${te('how1')}</li><li><b>${te('how2_b')}</b> ${te('how2')}</li><li><b>${te('how3_b')}</b> ${te('how3')}</li></ol>
+        <p class="small muted">${te('how_note')}</p></div>` : ''}`;
     $('#importBtn').onclick = importModal;
   }
   const compareHref = ids => ids.length === 2 ? `#/pair/${ids[0]}/${ids[1]}` : `#/group/${ids.join(',')}`;
@@ -235,23 +248,23 @@
   // ───────── new participant ─────────
   const PRESETS = { full: E.MODS.slice(), quick: ['char', 'att'] };
   function vNew() {
-    setTitle('Новый участник', '#/');
+    setTitle(t('new_person'), '#/');
     let mods = PRESETS.full.slice(), preset = 'full', col = people().length % COLORS.length;
     function draw() {
       const n = mods.reduce((s, m) => s + E.modCount[m], 0);
       $('#modsBox').innerHTML = D.modules.map(m => `<label class="chk${m.req ? ' req' : ''}"><input type="checkbox" value="${m.id}"${mods.includes(m.id) ? ' checked' : ''}${m.req ? ' disabled' : ''}>
-        <span><b>${esc(m.name)}</b> <span class="muted small">· ${qWord(E.modCount[m.id])}</span><br><span class="small muted">${esc(m.sub)}</span></span></label>`).join('');
-      $('#est').textContent = `${qWord(n)} · около ${minutes(n)} мин`;
+        <span><b>${esc(m.name)}</b> <span class="muted small">· ${esc(qWord(E.modCount[m.id]))}</span><br><span class="small muted">${esc(m.sub)}</span></span></label>`).join('');
+      $('#est').textContent = `${qWord(n)} · ${minutes(n)}`;
       $$('[data-seg="preset"] button').forEach(b => b.classList.toggle('on', b.dataset.v === preset));
     }
     view().innerHTML = `<div class="card">
-        <label class="lbl" for="nm">Имя</label><input class="input" id="nm" maxlength="40" placeholder="Например, Аня" autocomplete="off">
-        <label class="lbl">Цвет</label><div class="swatches">${COLORS.map((c, i) => `<button class="sw${i === col ? ' on' : ''}" data-c="${i}" style="background:${c}" aria-label="Цвет ${i + 1}"></button>`).join('')}</div>
+        <label class="lbl" for="nm">${te('name')}</label><input class="input" id="nm" maxlength="40" placeholder="${te('name_ph')}" autocomplete="off">
+        <label class="lbl">${te('color')}</label><div class="swatches">${COLORS.map((c, i) => `<button class="sw${i === col ? ' on' : ''}" data-c="${i}" style="background:${c}" aria-label="${te('color_n', { n: i + 1 })}"></button>`).join('')}</div>
       </div>
-      <div class="card"><div class="row"><b style="flex:1">Что пройти</b>${seg('preset', [['full', 'Полный'], ['quick', 'Быстрый'], ['custom', 'Свой набор']], preset)}</div>
+      <div class="card"><div class="row"><b style="flex:1">${te('what_take')}</b>${seg('preset', [['full', t('preset_full')], ['quick', t('preset_quick')], ['custom', t('preset_custom')]], preset)}</div>
         <div id="modsBox" class="mods"></div><p class="muted small" id="est"></p></div>
-      <button class="btn block" id="startBtn">Начать тест</button>
-      <p class="small muted center" style="margin-top:10px">Нет правильных и неправильных ответов. Отвечайте честно — так результат будет точнее.</p>`;
+      <button class="btn block" id="startBtn">${te('start_test')}</button>
+      <p class="small muted center" style="margin-top:10px">${te('honest_note')}</p>`;
     draw();
     $('#nm').focus();
     $('[data-seg="preset"]').onclick = e => {
@@ -264,7 +277,7 @@
     $('.swatches').onclick = e => { const b = e.target.closest('.sw'); if (!b) return; col = +b.dataset.c; $$('.sw').forEach(x => x.classList.toggle('on', x === b)); };
     const start = () => {
       const name = $('#nm').value.trim();
-      if (!name) { $('#nm').focus(); toast('Введите имя'); return; }
+      if (!name) { $('#nm').focus(); toast(t('enter_name')); return; }
       const ordered = E.MODS.filter(m => mods.includes(m));
       const p = addPerson(name, ordered, null, false);
       p.color = col; Store.save();
@@ -303,22 +316,22 @@
       const prog = `<div class="progress"><i style="width:${dn / total * 100}%"></i></div>`;
       if (st.intro) {
         const m = D.modules.find(x => x.id === st.intro), cnt = E.modCount[m.id];
-        view().innerHTML = `${prog}<div class="card intro-card"><div class="kicker">Блок ${modList.indexOf(m.id) + 1} из ${modList.length}</div>
+        view().innerHTML = `${prog}<div class="card intro-card"><div class="kicker">${te('block_of', { a: modList.indexOf(m.id) + 1, b: modList.length })}</div>
           <h2>${esc(m.name)}</h2><p class="muted">${esc(m.sub)}</p><p>${esc(m.intro)}</p>
-          <p class="small muted">${qWord(cnt)} · около ${minutes(cnt)} мин</p>
-          <button class="btn block" id="goBtn">${dn ? 'Продолжить' : 'Начать'}</button>
-          ${p.pos ? `<button class="btn ghost block" id="prevBtn">${icon('back')}Назад</button>` : ''}</div>
-          <p class="small muted center">Подсказка: клавиши <kbd>1</kbd>–<kbd>5</kbd> — ответ, <kbd>←</kbd> — назад.</p>`;
+          <p class="small muted">${esc(qWord(cnt))} · ${esc(minutes(cnt))}</p>
+          <button class="btn block" id="goBtn">${te(dn ? 'continue' : 'start')}</button>
+          ${p.pos ? `<button class="btn ghost block" id="prevBtn">${icon('back')}${te('back')}</button>` : ''}</div>
+          <p class="small muted center">${th('keys_hint', { k1: '<kbd>1</kbd>', k5: '<kbd>5</kbd>', left: '<kbd>←</kbd>' })}</p>`;
         $('#goBtn').onclick = () => move(1);
         if ($('#prevBtn')) $('#prevBtn').onclick = () => move(-1);
         return;
       }
       const it = D.items[st.i], m = D.modules.find(x => x.id === st.mod), cur = p.ans.charCodeAt(st.i) - 48;
-      view().innerHTML = `${prog}<div class="q-wrap"><div class="q-meta"><span>${esc(m.name)}</span><span>${dn + 1} из ${total}</span></div>
+      view().innerHTML = `${prog}<div class="q-wrap"><div class="q-meta"><span>${esc(m.name)}</span><span>${te('of', { a: dn + 1, b: total })}</span></div>
         <div class="card q-card"><div class="q-prompt">${esc(m.prompt)}</div><div class="q-text">${esc(it[2])}</div></div>
         <div class="ans">${D.answers.map((a, i) => `<button data-v="${i + 1}" class="${cur === i + 1 ? 'on' : ''}"><span class="ak">${i + 1}</span>${esc(a)}</button>`).join('')}</div>
-        <div class="q-nav"><button class="btn ghost" id="prevBtn">${icon('back')}Назад</button><span class="spacer"></span>
-          <button class="btn ghost" id="skipBtn">${cur >= 1 ? 'Далее' : 'Пропустить'}</button></div></div>`;
+        <div class="q-nav"><button class="btn ghost" id="prevBtn">${icon('back')}${te('back')}</button><span class="spacer"></span>
+          <button class="btn ghost" id="skipBtn">${te(cur >= 1 ? 'next' : 'skip')}</button></div></div>`;
       $('.ans').onclick = e => { const b = e.target.closest('button'); if (b) answer(+b.dataset.v); };
       $('#prevBtn').onclick = () => move(-1);
       $('#skipBtn').onclick = () => move(1);
@@ -342,17 +355,17 @@
 
   // ───────── personal report ─────────
   const DOM_ORDER = ['O', 'C', 'E', 'A', 'N'];
-  const LETTER = { E: 'экстраверсия', I: 'интроверсия', N: 'интуиция (идеи)', S: 'ощущение (факты)', F: 'чувство (ценности)', T: 'мышление (логика)', J: 'суждение (план)', P: 'восприятие (гибкость)' };
   const domText = (k, pct) => { const d = D.domains[k]; return pct >= 65 ? d.hi : pct <= 35 ? d.lo : d.mid; };
   const card = (title, body, id) => `<section class="card"${id ? ` id="${id}"` : ''}><h3 class="card-h">${esc(title)}</h3>${body}</section>`;
+  const more = href => `<a href="${href}">${te('more')}</a>`;
 
   function secSummary(p, P) {
     const T = D.types[P.type.code], chips = [];
     chips.push(`<span class="chip">${esc(D.temperaments[P.temp.id].name)}</span>`);
-    if (P.att) chips.push(`<span class="chip">Привязанность: ${esc(D.attach[P.att.id].name.toLowerCase())}</span>`);
+    if (P.att) chips.push(`<span class="chip">${te('chip_att', { x: D.attach[P.att.id].name })}</span>`);
     if (P.mind) chips.push(`<span class="chip">${esc(D.thinking[P.mind.think].name)}</span>`);
-    if (P.mind && P.mind.chrono) chips.push(`<span class="chip">${esc(D.chrono[P.mind.chrono].split(' ')[0])}</span>`);
-    chips.push(`<span class="chip">Роль: ${esc(D.roles[P.roles[0].id].name.toLowerCase())}</span>`);
+    if (P.mind && P.mind.chrono) chips.push(`<span class="chip">${esc(D.chrono[P.mind.chrono].name)}</span>`);
+    chips.push(`<span class="chip">${te('chip_role', { x: D.roles[P.roles[0].id].name })}</span>`);
     return `<div class="hero person" style="--pc:${color(p)}"><div class="row">${ava(p, 'big')}<div style="flex:1;min-width:0"><div class="kicker">${esc(p.name)}</div>
       <h2><span class="code">${esc(P.type.code)}</span> ${esc(T.name)}</h2><p>${esc(T.tag)}</p></div></div><div class="chips">${chips.join('')}</div></div>`;
   }
@@ -362,93 +375,87 @@
       const d = D.domains[k], v = P.dom[k].pct;
       const asp = d.asp.map(a => bar(S[a].name, P.pct[a], 'var(--primary-2)')).join('');
       const ext = d.asp.filter(a => P.pct[a] >= 62 || P.pct[a] <= 38).map(a => `<li>${esc(P.pct[a] >= 62 ? S[a].hi : S[a].lo)}</li>`).join('');
-      return `<div class="dom"><div class="dom-h"><b>${esc(d.name)}</b><span class="muted small">${esc(d.alt)}</span><span class="lvl">${level(v)}</span></div>
+      return `<div class="dom"><div class="dom-h"><b>${esc(d.name)}</b><span class="muted small">${esc(d.alt)}</span><span class="lvl">${esc(level(v))}</span></div>
         ${bar('', v, col)}<p class="small">${esc(domText(k, v))}</p><div class="asp">${asp}</div>${ext ? `<ul class="small tight">${ext}</ul>` : ''}</div>`;
     }).join('');
     const h = P.pct.hon;
-    const hon = `<div class="dom"><div class="dom-h"><b>Честность-скромность</b><span class="muted small">шестой фактор HEXACO</span><span class="lvl">${level(h)}</span></div>
+    const hon = `<div class="dom"><div class="dom-h"><b>${esc(S.hon.name)}</b><span class="muted small">${te('hon_alt')}</span><span class="lvl">${esc(level(h))}</span></div>
       ${bar('', h, col)}<p class="small">${esc(h >= 50 ? S.hon.hi : S.hon.lo)}</p></div>`;
-    return card('Характер: Большая пятёрка', blocks + hon +
-      `<p class="note">Шкала 0–100 — примерное положение относительно среднего человека: 50 — типичный уровень, 80 — выше, чем примерно у 80% людей. Нормы ориентировочные.</p>`);
+    return card(t('big5_title'), blocks + hon + `<p class="note">${te('scale_note')}</p>`);
   }
   function secType(P) {
     const T = D.types[P.type.code], L = P.type.letters;
     const weak = L.map((x, i) => ({ x, i })).filter(o => o.x.p < 58);
     const alts = weak.map(o => { const c = P.type.code.split(''); c[o.i] = o.x.o; return c.join(''); });
-    return card('Тип личности: 16 типов', `<div class="tcode">${L.map(x => `<div class="tl"><b>${x.l}</b><small>${r0(x.p)}%</small></div>`).join('')}</div>
-      <h3 class="sub-h">${esc(T.name)} — ${esc(T.tag.toLowerCase())}</h3><p>${esc(T.d)}</p>
-      <div class="pm"><div><h4>Сильные стороны</h4><ul>${T.plus.map(s => `<li>${esc(s)}</li>`).join('')}</ul></div>
-      <div><h4>Зоны роста</h4><ul>${T.minus.map(s => `<li>${esc(s)}</li>`).join('')}</ul></div></div>
-      <div class="letters">${L.map(x => `<div class="small"><b>${x.l}</b> ${esc(LETTER[x.l])} — ${r0(x.p)}% <span class="muted">· ${x.o} ${esc(LETTER[x.o])} — ${r0(100 - x.p)}%</span></div>`).join('')}</div>
-      ${alts.length ? `<p class="small">Слабо выражены: ${weak.map(o => o.x.l + '/' + o.x.o).join(', ')} — вам могут подходить и соседние типы: ${alts.map(c => `<b>${c}</b> «${esc(D.types[c].name)}»`).join(', ')}.</p>` : ''}
-      <p class="note">Код вычислен из Большой пятёрки по соответствиям, найденным Маккрае и Костой (1989). Это не официальный MBTI®. <a href="#/theory/jung">Почему типы — упрощение</a></p>`);
+    return card(t('type_title'), `<div class="tcode">${L.map(x => `<div class="tl"><b>${x.l}</b><small>${r0(x.p)}%</small></div>`).join('')}</div>
+      <h3 class="sub-h">${esc(T.name)}</h3><p class="muted">${esc(T.tag)}</p><p>${esc(T.d)}</p>
+      <div class="pm"><div><h4>${te('strengths')}</h4><ul>${T.plus.map(s => `<li>${esc(s)}</li>`).join('')}</ul></div>
+      <div><h4>${te('growth')}</h4><ul>${T.minus.map(s => `<li>${esc(s)}</li>`).join('')}</ul></div></div>
+      <div class="letters">${L.map(x => `<div class="small"><b>${x.l}</b> ${te('L_' + x.l)} — ${r0(x.p)}% <span class="muted">· ${x.o} ${te('L_' + x.o)} — ${r0(100 - x.p)}%</span></div>`).join('')}</div>
+      ${alts.length ? `<p class="small">${th('weak_letters', { letters: weak.map(o => o.x.l + '/' + o.x.o).join(', '), types: alts.map(c => `<b>${c}</b> ${esc(quote(D.types[c].name))}`).join(', ') })}</p>` : ''}
+      <p class="note">${te('type_note')} <a href="#/theory/jung">${te('why_types')}</a></p>`);
   }
   function secTemp(P, p) {
     const T = D.temperaments[P.temp.id], A = D.temperaments[P.temp.alt];
-    return card('Темперамент', `<div class="split">${tempMap([Object.assign(tempPt(P), { c: color(p), t: p.name })])}<div>
+    return card(t('temp_title'), `<div class="split">${tempMap([Object.assign(tempPt(P), { c: color(p), t: p.name })])}<div>
       <h3 class="sub-h">${esc(T.name)} <span class="muted small">· ${esc(T.axis)}</span></h3><p>${esc(T.d)}</p><p class="small">${esc(T.stress)}</p>
-      ${P.temp.mixed ? `<p class="small muted">Вы близко к центру круга: черты выражены умеренно, заметны и черты соседнего типа — ${esc(A.name.toLowerCase())}.</p>` : `<p class="small muted">Второй по близости тип — ${esc(A.name.toLowerCase())}.</p>`}
-      </div></div><p class="note">По Айзенку: горизонталь — экстраверсия, вертикаль — нейротизм. <a href="#/theory/temp">Подробнее</a></p>`);
+      <p class="small muted">${te(P.temp.mixed ? 'temp_mixed' : 'temp_second', { x: A.name })}</p>
+      </div></div><p class="note">${te('temp_note')} ${more('#/theory/temp')}</p>`);
   }
   function secAtt(P, p) {
     if (!P.att) return '';
     const A = D.attach[P.att.id];
-    return card('Привязанность в близких отношениях', `<div class="split">${attMap([{ x: P.att.avo, y: P.att.anx, c: color(p), t: p.name }])}<div>
-      <h3 class="sub-h">${esc(A.name)} стиль</h3><p>${esc(A.d)}</p><p class="small tip">${icon('bulb')}<span>${esc(A.tip)}</span></p>
+    return card(t('att_title'), `<div class="split">${attMap([{ x: P.att.avo, y: P.att.anx, c: color(p), t: p.name }])}<div>
+      <h3 class="sub-h">${te('att_style', { x: A.name })}</h3><p>${esc(A.d)}</p><p class="small tip">${icon('bulb')}<span>${esc(A.tip)}</span></p>
       ${bar(S.anx.name, P.s.anx, 'var(--primary)')}${bar(S.avo.name, P.s.avo, 'var(--primary)')}</div></div>
-      <p class="note">Стиль привязанности не приговор: он меняется с опытом надёжных отношений. <a href="#/theory/attach">Подробнее</a></p>`);
+      <p class="note">${te('att_note')} ${more('#/theory/attach')}</p>`);
   }
   function secVal(P, p) {
     if (!P.val) return '';
     const c = P.val.c, ho = P.val.ho;
     const oc = (ho.open || 0) - (ho.cons || 0), st = (ho.self || 0) - (ho.trans || 0);
-    const t1 = oc > 10 ? 'Вас больше влекут перемены, свобода и новое, чем стабильность.' : oc < -10 ? 'Стабильность, порядок и традиции для вас важнее перемен.' : 'Вы держите баланс между стремлением к новому и стабильностью.';
-    const t2 = st > 10 ? 'Сейчас на первом плане личные цели — успех и влияние.' : st < -10 ? 'Забота о людях и справедливость для вас важнее личного статуса.' : 'Вы держите баланс между личными целями и заботой о других.';
-    return card('Ценности', `<div class="split">${radar([{ c, col: color(p) }])}<div>
-      <h4>Главные ценности</h4><ol class="tops">${P.val.top.map(k => `<li><b>${esc(S[k].name)}</b> — ${esc(S[k].desc)}</li>`).join('')}</ol>
+    const t1 = t(oc > 10 ? 'val_oc_hi' : oc < -10 ? 'val_oc_lo' : 'val_oc_mid'), t2 = t(st > 10 ? 'val_st_hi' : st < -10 ? 'val_st_lo' : 'val_st_mid');
+    return card(t('val_title'), `<div class="split">${radar([{ c, col: color(p) }])}<div>
+      <h4>${te('val_top')}</h4><ol class="tops">${P.val.top.map(k => `<li><b>${esc(S[k].name)}</b> — ${esc(S[k].desc)}</li>`).join('')}</ol>
       <p>${esc(t1)} ${esc(t2)}</p></div></div>
-      <p class="note">Показан порядок приоритетов: каждая ценность относительно вашего среднего уровня (теория Шварца). <a href="#/theory/values">Подробнее</a></p>`);
+      <p class="note">${te('val_note')} ${more('#/theory/values')}</p>`);
   }
   function secMor(P) {
     if (!P.mor) return '';
     const ids = E.modScales.mor, m = P.mor;
-    const t = m.bind >= m.ind - 10
-      ? 'Ваша мораль опирается и на заботу и справедливость, и на «связывающие» основания — лояльность, авторитет и святыни. По Хайдту, такой профиль чаще встречается у людей с традиционными взглядами.'
-      : 'Ваша мораль опирается прежде всего на заботу и справедливость, а лояльность, авторитет и святыни для вас вторичны. По Хайдту, такой профиль чаще встречается у людей с либеральными взглядами.';
-    return card('Мораль', ids.map(k => bar(S[k].name, P.pct[k], 'var(--primary)', S[k].desc)).join('') + `<p>${esc(t)}</p><p class="note"><a href="#/theory/moral">О теории моральных оснований</a></p>`);
+    return card(t('mor_title'), ids.map(k => bar(S[k].name, P.pct[k], 'var(--primary)', S[k].desc)).join('') +
+      `<p>${te(m.bind >= m.ind - 10 ? 'mor_bind' : 'mor_ind')}</p><p class="note"><a href="#/theory/moral">${te('mor_link')}</a></p>`);
   }
   function secMind(P) {
     if (!P.mind) return '';
     const T = D.thinking[P.mind.think], ids = ['ana', 'intu', 'clo', 'grow', 'sens', 'morn'];
     const ext = ids.filter(k => P.pct[k] >= 65 || P.pct[k] <= 35).map(k => `<li>${esc(P.pct[k] >= 65 ? S[k].hi : S[k].lo)}</li>`).join('');
-    return card('Мышление и восприятие', `<h3 class="sub-h">${esc(T.name)}</h3><p>${esc(T.d)}</p>
+    return card(t('mind_title'), `<h3 class="sub-h">${esc(T.name)}</h3><p>${esc(T.d)}</p>
       ${ids.map(k => bar(S[k].name, P.pct[k], 'var(--primary)')).join('')}
       ${ext ? `<ul class="small tight">${ext}</ul>` : ''}
-      ${P.mind.chrono ? `<p><b>Хронотип:</b> ${esc(D.chrono[P.mind.chrono])}.</p>` : ''}
-      <p class="note"><a href="#/theory/mind">Типы мышления и устройство разума</a></p>`);
+      ${P.mind.chrono ? `<p><b>${te('chrono_label')}</b> ${esc(D.chrono[P.mind.chrono].full)}</p>` : ''}
+      <p class="note"><a href="#/theory/mind">${te('mind_link')}</a></p>`);
   }
   function secConf(P) {
     if (!P.conf) return '';
-    const top = P.conf.top[0], second = P.conf.top[1];
-    const risk = { low: ['низкий', 'ok'], mid: ['умеренный', 'warn'], high: ['высокий', 'bad'] }[P.conf.risk];
-    return card('В конфликтах', `<h3 class="sub-h">Ведущий стиль — ${esc(S[top].name.toLowerCase())}</h3><p>${esc(S[top].hi)}</p>
-      <p class="small muted">Второй по выраженности — ${esc(S[second].name.toLowerCase())}.</p>
+    const top = P.conf.top[0], second = P.conf.top[1], cls = { low: 'ok', mid: 'warn', high: 'bad' }[P.conf.risk];
+    return card(t('conf_title'), `<h3 class="sub-h">${te('conf_lead', { x: S[top].name })}</h3><p>${esc(S[top].hi)}</p>
+      <p class="small muted">${te('conf_second', { x: S[second].name })}</p>
       ${['col', 'cpr', 'acc', 'avd', 'cmp'].map(k => bar(S[k].name, P.pct[k], 'var(--primary)', S[k].desc)).join('')}
-      <div class="risk ${risk[1]}"><b>Разрушительные паттерны: ${risk[0]} уровень.</b> ${P.conf.risk === 'low' ? 'В ссорах вы редко переходите на личности — отличная основа.' :
-        'Критика личности, оборона, сарказм и «стена» — по Готтману, главные предвестники разрыва. Противоядия: мягкий старт разговора, признание своей части ответственности, благодарность и пауза на 20 минут, если эмоции зашкаливают.'}</div>
-      <p class="note"><a href="#/theory/conflict">Стили конфликта и «четыре всадника»</a></p>`);
+      <div class="risk ${cls}"><b>${te('risk_' + P.conf.risk)}</b> ${te(P.conf.risk === 'low' ? 'risk_ok_text' : 'risk_bad_text')}</div>
+      <p class="note"><a href="#/theory/conflict">${te('conf_link')}</a></p>`);
   }
   function secCare(P) {
     if (!P.care) return '';
     const r = P.care.rank;
-    return card('Как вы чувствуете заботу', r.map(k => bar(S[k].name, P.s[k], 'var(--primary)')).join('') +
-      `<p><b>Чтобы порадовать вас:</b> ${esc(S[r[0]].how)}; а ещё — ${esc(S[r[1]].how)}.</p><p class="note">Научная база «языков любви» слабая — это подсказка, а не диагноз. <a href="#/theory/care">Подробнее</a></p>`);
+    return card(t('care_title'), r.map(k => bar(S[k].name, P.s[k], 'var(--primary)')).join('') +
+      `<p><b>${te('care_please')}</b> ${te('care_line', { a: S[r[0]].how, b: S[r[1]].how })}</p><p class="note">${te('care_note')} ${more('#/theory/care')}</p>`);
   }
   function secRoles(P) {
     const [a, b] = P.roles;
-    return card('Роль в команде', `<p><b>${esc(D.roles[a.id].name)}</b> — ${esc(D.roles[a.id].d)}. Вторая сильная роль — <b>${esc(D.roles[b.id].name.toLowerCase())}</b>: ${esc(D.roles[b.id].d)}.</p>
+    return card(t('roles_title'), `<p>${th('roles_line', { a: `<b>${esc(D.roles[a.id].name)}</b>`, ad: esc(D.roles[a.id].d), b: `<b>${esc(D.roles[b.id].name)}</b>`, bd: esc(D.roles[b.id].d) })}</p>
       ${P.roles.map(x => bar(D.roles[x.id].name, x.v, 'var(--primary)')).join('')}
-      <p class="note">Роли выведены из черт характера и стиля мышления.</p>`);
+      <p class="note">${te('roles_note')}</p>`);
   }
   function vReport(id, flag) {
     const p = byId(id);
@@ -459,30 +466,30 @@
     const missing = E.MODS.filter(m => !p.mods.includes(m));
     const others = done().filter(x => x.id !== p.id);
     view().innerHTML = `
-      ${flag === 'new' ? `<div class="card done-card">${icon('check')}<div><b>Готово!</b> Профиль сохранён.${others.length ? ' Можно сравнить себя с остальными.' : ''}
-        <div class="row" style="margin-top:8px"><a class="btn" href="#/new">Следующий участник</a>${others.length ? `<a class="btn secondary" href="${compareHref([p.id].concat(others.map(o => o.id)))}">Сравнить</a>` : ''}</div></div></div>` : ''}
-      ${p.todo.length ? `<div class="card done-card warn">${icon('warn')}<div>Есть незаконченные блоки. <a href="#/take/${p.id}">Продолжить тест</a></div></div>` : ''}
+      ${flag === 'new' ? `<div class="card done-card">${icon('check')}<div><b>${te('done_title')}</b> ${te('done_saved')}${others.length ? ' ' + te('done_can_compare') : ''}
+        <div class="row" style="margin-top:8px"><a class="btn" href="#/new">${te('next_person')}</a>${others.length ? `<a class="btn secondary" href="${compareHref([p.id].concat(others.map(o => o.id)))}">${te('compare')}</a>` : ''}</div></div></div>` : ''}
+      ${p.todo.length ? `<div class="card done-card warn">${icon('warn')}<div>${te('unfinished')} <a href="#/take/${p.id}">${te('continue_test')}</a></div></div>` : ''}
       ${secSummary(p, P)}
-      <div class="row toolbar"><button class="btn secondary" id="shareBtn">${icon('share')}Поделиться</button>
-        ${others.length ? `<button class="btn secondary" id="cmpBtn">${icon('heart')}Сравнить с…</button>` : ''}</div>
+      <div class="row toolbar"><button class="btn secondary" id="shareBtn">${icon('share')}${te('share')}</button>
+        ${others.length ? `<button class="btn secondary" id="cmpBtn">${icon('heart')}${te('compare_with')}</button>` : ''}</div>
       ${secBig5(P)}${secType(P)}${secTemp(P, p)}${secAtt(P, p)}${secVal(P, p)}${secMor(P)}${secMind(P)}${secConf(P)}${secCare(P)}${secRoles(P)}
-      <section class="card"><h3 class="card-h">Управление</h3>
-        ${missing.length && !p.todo.length ? `<p>Не пройдены блоки: ${missing.map(m => '«' + esc(D.modules.find(x => x.id === m).name) + '»').join(', ')}. С ними совместимость будет точнее.</p>
-          <p><button class="btn" id="moreBtn">Пройти недостающие (${qWord(missing.reduce((s, m) => s + E.modCount[m], 0))})</button></p>` : ''}
-        <div class="row"><button class="btn secondary" id="renBtn">Переименовать</button><button class="btn secondary" id="retakeBtn">Пройти заново</button><button class="btn danger" id="delBtn">Удалить</button></div>
-        <p class="note">Результаты самоотчёта — не медицинский и не психиатрический диагноз. Ответы меняются вместе с настроением и обстоятельствами; со временем тест стоит пройти ещё раз.</p></section>`;
+      <section class="card"><h3 class="card-h">${te('manage')}</h3>
+        ${missing.length && !p.todo.length ? `<p>${te('missing_blocks', { list: missing.map(m => quote(modName(m))).join(D.eng.sep) })}</p>
+          <p><button class="btn" id="moreBtn">${te('take_missing', { q: qWord(missing.reduce((s, m) => s + E.modCount[m], 0)) })}</button></p>` : ''}
+        <div class="row"><button class="btn secondary" id="renBtn">${te('rename')}</button><button class="btn secondary" id="retakeBtn">${te('retake')}</button><button class="btn danger" id="delBtn">${te('delete')}</button></div>
+        <p class="note">${te('report_note')}</p></section>`;
     $('#shareBtn').onclick = () => shareModal([p]);
-    if ($('#cmpBtn')) $('#cmpBtn').onclick = () => openModal(`<h2>Сравнить ${esc(p.name)} с…</h2><div class="list">${others.map(o =>
+    if ($('#cmpBtn')) $('#cmpBtn').onclick = () => openModal(`<h2>${te('compare_x_with', { name: p.name })}</h2><div class="list">${others.map(o =>
       `<a class="list-item" href="#/pair/${p.id}/${o.id}" data-close>${ava(o)}<span class="li-main"><span class="li-title">${esc(o.name)}</span></span>${icon('chev', 'chev')}</a>`).join('')}</div>
-      ${others.length > 1 ? `<p style="margin-top:12px"><a class="btn block" data-close href="${compareHref([p.id].concat(others.map(o => o.id)))}">Сравнить со всеми</a></p>` : ''}`);
+      ${others.length > 1 ? `<p style="margin-top:12px"><a class="btn block" data-close href="${compareHref([p.id].concat(others.map(o => o.id)))}">${te('compare_with_all')}</a></p>` : ''}`);
     if ($('#moreBtn')) $('#moreBtn').onclick = () => { p.todo = missing; p.pos = 0; Store.save(); go('#/take/' + p.id); };
-    $('#renBtn').onclick = () => { const n = prompt('Новое имя', p.name); if (n && n.trim()) { p.name = n.trim().slice(0, 40); Store.save(); route(); } };
+    $('#renBtn').onclick = () => { const n = prompt(t('new_name'), p.name); if (n && n.trim()) { p.name = n.trim().slice(0, 40); Store.save(); route(); } };
     $('#retakeBtn').onclick = () => {
-      if (!confirm(`Пройти тест заново? Текущие ответы ${p.name} будут удалены.`)) return;
+      if (!confirm(t('retake_confirm', { name: p.name }))) return;
       p.todo = p.mods.slice(); p.mods = []; p.ans = E.blank(); p.pos = 0; p.imported = false; Store.save(); go('#/take/' + p.id);
     };
     $('#delBtn').onclick = () => {
-      if (!confirm(`Удалить участника «${p.name}» и все его ответы?`)) return;
+      if (!confirm(t('delete_confirm', { name: p.name }))) return;
       Store.d.people = people().filter(x => x.id !== p.id);
       Store.d.sel = Store.d.sel.filter(x => x !== p.id);
       cache.delete(p.id); Store.save(); go('#/');
@@ -490,21 +497,21 @@
   }
 
   // ───────── sharing / import ─────────
-  const webBase = () => /^https?:$/.test(location.protocol) ? location.href.split('#')[0] : '';
+  const webBase = () => /^https?:$/.test(location.protocol) ? location.href.split('#')[0].split('?')[0] : '';
   const shareLine = p => `${p.name}: ${E.encode(p.mods, p.ans)}`;
   function shareModal(list) {
     const base = webBase();
     const one = list.length === 1 ? list[0] : null;
     const text = list.map(shareLine).join('\n');
     const link = one && base ? `${base}#/import/${E.encode(one.mods, one.ans)}/${encodeURIComponent(one.name)}` : '';
-    openModal(`<h2>${one ? 'Поделиться результатом' : 'Поделиться группой'}</h2>
-      <p class="small muted">Отправьте ${link ? 'ссылку или код' : 'код'} тому, с кем хотите сравниться: в приложении — «Главная → Добавить по коду или ссылке». В коде только ответы и имя, без других личных данных.</p>
-      ${link ? `<label class="lbl">Ссылка</label><div class="copy"><input class="input" readonly value="${esc(link)}"><button class="btn secondary" data-copy="${esc(link)}">Копировать</button></div>` : ''}
-      <label class="lbl">${one ? 'Код' : 'Коды всех участников'}</label>
-      <div class="copy"><textarea class="input code-ta" readonly rows="${Math.min(6, list.length + 1)}">${esc(text)}</textarea><button class="btn secondary" data-copy="${esc(text)}">Копировать</button></div>
-      ${navigator.share ? `<button class="btn block" id="nativeShare" style="margin-top:12px">${icon('share')}Отправить…</button>` : ''}`);
+    openModal(`<h2>${te(one ? 'share_result' : 'share_group')}</h2>
+      <p class="small muted">${te(link ? 'share_hint_link' : 'share_hint_code')}</p>
+      ${link ? `<label class="lbl">${te('link')}</label><div class="copy"><input class="input" readonly value="${esc(link)}"><button class="btn secondary" data-copy="${esc(link)}">${te('copy')}</button></div>` : ''}
+      <label class="lbl">${te(one ? 'code' : 'all_codes')}</label>
+      <div class="copy"><textarea class="input code-ta" readonly rows="${Math.min(6, list.length + 1)}">${esc(text)}</textarea><button class="btn secondary" data-copy="${esc(text)}">${te('copy')}</button></div>
+      ${navigator.share ? `<button class="btn block" id="nativeShare" style="margin-top:12px">${icon('share')}${te('send')}</button>` : ''}`);
     const ns = $('#nativeShare');
-    if (ns) ns.onclick = () => navigator.share(link ? { title: 'Психопрофиль', text: `Мой психопрофиль: ${one.name}`, url: link } : { title: 'Психопрофиль', text }).catch(() => { /* cancelled */ });
+    if (ns) ns.onclick = () => navigator.share(link ? { title: t('app'), text: t('share_text', { name: one.name }), url: link } : { title: t('app'), text }).catch(() => { /* cancelled */ });
   }
   function parseShared(text) {
     const out = [];
@@ -526,7 +533,7 @@
     entries.forEach(({ code, name }) => {
       const d = E.decode(code);
       if (!d || !d.mods.includes('char')) { bad++; return; }
-      const nm = (name || '').trim().slice(0, 40) || 'Без имени';
+      const nm = (name || '').trim().slice(0, 40) || t('no_name');
       const ex = people().find(p => p.name === nm && p.ans === d.ans && p.mods.join() === d.mods.join());
       if (ex) { dup.push(ex); return; }
       added.push(addPerson(nm, d.mods, d.ans, true));
@@ -534,53 +541,53 @@
     return { added, dup, bad };
   }
   function importModal() {
-    openModal(`<h2>Добавить по коду или ссылке</h2>
-      <p class="small muted">Вставьте ссылку или код, которыми поделился другой участник, или ссылку на игру. Профилей можно несколько — каждый с новой строки.</p>
-      <textarea class="input" id="impTa" rows="5" placeholder="Аня: AQKHf3…"></textarea>
-      <button class="btn block" id="impBtn" style="margin-top:12px">Добавить</button>`);
+    openModal(`<h2>${te('add_by_code')}</h2>
+      <p class="small muted">${te('import_hint')}</p>
+      <textarea class="input" id="impTa" rows="5" placeholder="${te('import_ph')}"></textarea>
+      <button class="btn block" id="impBtn" style="margin-top:12px">${te('add')}</button>`);
     $('#impTa').focus();
     $('#impBtn').onclick = () => {
       const txt = $('#impTa').value;
-      const gm = txt.match(/#\/g\/([A-Za-z0-9_-]+)/) || txt.match(/Игра\s*[:：]\s*([A-Za-z0-9_-]{8,})/);
-      const gcode = gm ? gm[1] : (txt.match(/[A-Za-z0-9_-]{16,}/g) || []).find(t => window.Game.decode(t));
+      const gm = txt.match(/#\/g\/([A-Za-z0-9_-]+)/);
+      const gcode = gm ? gm[1] : (txt.match(/[A-Za-z0-9_-]{16,}/g) || []).find(x => window.Game.decode(x));
       if (gcode) {
-        if (!window.Game.decode(gcode)) { toast('Код игры повреждён — проверьте, что он скопирован целиком'); return; }
+        if (!window.Game.decode(gcode)) { toast(t('game_code_bad')); return; }
         closeModal(); go('#/g/' + gcode); return;
       }
       const r = importEntries(parseShared(txt));
-      if (!r.added.length && !r.dup.length) { toast(r.bad ? 'Код повреждён — проверьте, что он скопирован целиком' : 'Код не найден'); return; }
+      if (!r.added.length && !r.dup.length) { toast(t(r.bad ? 'code_bad' : 'code_none')); return; }
       closeModal();
-      const msg = [r.added.length && `Добавлено: ${r.added.length}`, r.dup.length && `уже были: ${r.dup.length}`, r.bad && `ошибок: ${r.bad}`].filter(Boolean).join(', ');
+      const msg = [r.added.length && t('imp_added', { n: r.added.length }), r.dup.length && t('imp_dup', { n: r.dup.length }), r.bad && t('imp_bad', { n: r.bad })].filter(Boolean).join(', ');
       toast(msg);
       const all = r.added.concat(r.dup);
       if (all.length === 1) go('#/p/' + all[0].id); else route();
     };
   }
   function vImport(code, name) {
-    setTitle('Добавить участника', '#/');
+    setTitle(t('add_person'), '#/');
     let nm = '';
     try { nm = decodeURIComponent(name || ''); } catch (e) { nm = name || ''; }
     const d = E.decode(code);
-    if (!d || !d.mods.includes('char')) { view().innerHTML = `<div class="card empty">Ссылка повреждена или устарела. Попросите отправить её ещё раз.<p><a class="btn" href="#/">На главную</a></p></div>`; return; }
+    if (!d || !d.mods.includes('char')) { view().innerHTML = `<div class="card empty">${te('link_broken')}<p><a class="btn" href="#/">${te('to_home')}</a></p></div>`; return; }
     const ex = people().find(p => p.ans === d.ans && p.mods.join() === d.mods.join());
     const P = E.profile(d.ans, d.mods);
-    view().innerHTML = `<div class="card"><h2>Вам отправили психопрофиль</h2>
-      <p><b>${esc(P.type.code)}</b> «${esc(D.types[P.type.code].name)}» · ${esc(D.temperaments[P.temp.id].name)} · блоков: ${d.mods.length} из ${E.MODS.length}</p>
-      <label class="lbl" for="nm">Имя</label><input class="input" id="nm" maxlength="40" value="${esc(nm)}">
-      ${ex ? `<p class="small muted">Этот профиль уже есть на устройстве: <a href="#/p/${ex.id}">${esc(ex.name)}</a>.</p>` : ''}
-      <button class="btn block" id="addBtn" style="margin-top:12px">Добавить в участники</button>
-      <p class="small muted" style="margin-top:10px">Затем пройдите тест сами — и сравните результаты.</p></div>`;
+    view().innerHTML = `<div class="card"><h2>${te('sent_profile')}</h2>
+      <p><b>${esc(P.type.code)}</b> ${esc(quote(D.types[P.type.code].name))} · ${esc(D.temperaments[P.temp.id].name)} · ${te('blocks_n', { a: d.mods.length, b: E.MODS.length })}</p>
+      <label class="lbl" for="nm">${te('name')}</label><input class="input" id="nm" maxlength="40" value="${esc(nm)}">
+      ${ex ? `<p class="small muted">${te('exists')} <a href="#/p/${ex.id}">${esc(ex.name)}</a></p>` : ''}
+      <button class="btn block" id="addBtn" style="margin-top:12px">${te('add_to_people')}</button>
+      <p class="small muted" style="margin-top:10px">${te('then_take')}</p></div>`;
     $('#addBtn').onclick = () => { const p = addPerson($('#nm').value, d.mods, d.ans, true); history.replaceState(null, '', '#/p/' + p.id); route(); };
   }
 
   // ───────── compare: picker ─────────
-  const CTX_ITEMS = [['love', 'Пара'], ['friends', 'Дружба'], ['work', 'Работа']];
+  const ctxItems = () => [['love', t('ctx_love')], ['friends', t('ctx_friends')], ['work', t('ctx_work')]];
   function vCompare() {
-    setTitle('Сравнение');
+    setTitle(t('nav_compare'));
     const dn = done();
     if (dn.length < 2) {
-      view().innerHTML = `<div class="card empty">${icon('users', 'big-ico')}<p>Для сравнения нужны минимум два участника, прошедших тест.</p>
-        <p><a class="btn" href="#/new">Новый участник</a> <button class="btn secondary" id="importBtn">Добавить по коду</button></p></div>`;
+      view().innerHTML = `<div class="card empty">${icon('users', 'big-ico')}<p>${te('need_two')}</p>
+        <p><a class="btn" href="#/new">${te('new_person')}</a> <button class="btn secondary" id="importBtn">${te('add_by_code_short')}</button></p></div>`;
       $('#importBtn').onclick = importModal;
       return;
     }
@@ -590,13 +597,13 @@
       $('#pick').innerHTML = dn.map(p => `<label class="chk"><input type="checkbox" value="${p.id}"${sel.includes(p.id) ? ' checked' : ''}>${ava(p)}
         <span><b>${esc(p.name)}</b><br><span class="small muted">${esc(prof(p).type.code)} · ${esc(D.temperaments[prof(p).temp.id].name)}</span></span></label>`).join('');
       $('#goCmp').disabled = sel.length < 2;
-      $('#goCmp').textContent = sel.length === 2 ? 'Сравнить пару' : sel.length > 2 ? `Сравнить группу (${sel.length})` : 'Выберите минимум двоих';
+      $('#goCmp').textContent = sel.length === 2 ? t('cmp_pair') : sel.length > 2 ? t('cmp_group', { n: sel.length }) : t('pick_two');
     }
-    view().innerHTML = `<div class="card"><div class="row"><b style="flex:1">Контекст</b>${seg('ctx', CTX_ITEMS, Store.d.ctx)}</div>
-      <p class="small muted" style="margin:8px 0 0">От контекста зависит, что важнее: в паре — привязанность и конфликты, в дружбе — сходство, в работе — надёжность и роли.</p></div>
-      <div class="card"><b>Кого сравниваем</b><div id="pick" class="mods"></div></div>
+    view().innerHTML = `<div class="card"><div class="row"><b style="flex:1">${te('context')}</b>${seg('ctx', ctxItems(), Store.d.ctx)}</div>
+      <p class="small muted" style="margin:8px 0 0">${te('ctx_hint')}</p></div>
+      <div class="card"><b>${te('who')}</b><div id="pick" class="mods"></div></div>
       <button class="btn block" id="goCmp"></button>
-      <div class="row" style="margin-top:12px"><button class="btn secondary" id="shareAll">${icon('share')}Поделиться всей группой</button></div>`;
+      <div class="row" style="margin-top:12px"><button class="btn secondary" id="shareAll">${icon('share')}${te('share_all')}</button></div>`;
     draw();
     $('#pick').onchange = () => { sel = $$('#pick input:checked').map(i => i.value); Store.d.sel = sel; Store.save(); draw(); };
     $('[data-seg="ctx"]').onclick = e => { const b = e.target.closest('button'); if (!b) return; Store.d.ctx = b.dataset.v; Store.save(); $$('[data-seg="ctx"] button').forEach(x => x.classList.toggle('on', x === b)); };
@@ -604,7 +611,7 @@
     $('#shareAll').onclick = () => shareModal(dn);
   }
   function ctxBar() {
-    return `<div class="row ctx-row"><span class="muted small">Контекст:</span>${seg('ctx', CTX_ITEMS, Store.d.ctx)}</div>`;
+    return `<div class="row ctx-row"><span class="muted small">${te('context_colon')}</span>${seg('ctx', ctxItems(), Store.d.ctx)}</div>`;
   }
   function bindCtx() {
     $('[data-seg="ctx"]').onclick = e => { const b = e.target.closest('button'); if (!b) return; Store.d.ctx = b.dataset.v; Store.save(); route(); };
@@ -616,42 +623,42 @@
     if (!a || !b || !a.mods.length || !b.mods.length) return go('#/compare');
     setTitle(`${a.name} + ${b.name}`, '#/compare');
     const A = ent(a), B = ent(b), r = E.pair(A, B, Store.d.ctx), pa = A.P, pb = B.P;
-    const li = (arr, cls, ic) => arr.length ? `<ul class="ins ${cls}">${arr.map(t => `<li>${icon(ic)}<span>${esc(t)}</span></li>`).join('')}</ul>` : '';
-    const ctxName = { love: 'для пары', friends: 'для дружбы', work: 'для работы' }[r.ctx];
+    const li = (arr, cls, ic) => arr.length ? `<ul class="ins ${cls}">${arr.map(x => `<li>${icon(ic)}<span>${esc(x)}</span></li>`).join('')}</ul>` : '';
+    const ctxName = t('for_' + r.ctx);
     const rowsCmp = [
-      ['Тип (16)', P => `<b>${P.type.code}</b> ${esc(D.types[P.type.code].name)}`],
-      ['Темперамент', P => esc(D.temperaments[P.temp.id].name)],
-      ['Привязанность', P => P.att ? esc(D.attach[P.att.id].name) : '—'],
-      ['Главные ценности', P => P.val ? P.val.top.slice(0, 2).map(k => esc(S[k].name)).join(', ') : '—'],
-      ['Мышление', P => P.mind ? esc(D.thinking[P.mind.think].name) : '—'],
-      ['Хронотип', P => P.mind && P.mind.chrono ? esc(D.chrono[P.mind.chrono].split(' ')[0]) : '—'],
-      ['Стиль в споре', P => P.conf ? esc(S[P.conf.top[0]].name) : '—'],
-      ['Забота', P => P.care ? esc(S[P.care.rank[0]].name) : '—'],
-      ['Роль', P => esc(D.roles[P.roles[0].id].name)]
+      ['row_type', P => `<b>${P.type.code}</b> ${esc(D.types[P.type.code].name)}`],
+      ['row_temp', P => esc(D.temperaments[P.temp.id].name)],
+      ['row_att', P => P.att ? esc(D.attach[P.att.id].name) : '—'],
+      ['row_vals', P => P.val ? P.val.top.slice(0, 2).map(k => esc(S[k].name)).join(', ') : '—'],
+      ['row_mind', P => P.mind ? esc(D.thinking[P.mind.think].name) : '—'],
+      ['row_chrono', P => P.mind && P.mind.chrono ? esc(D.chrono[P.mind.chrono].name) : '—'],
+      ['row_conf', P => P.conf ? esc(S[P.conf.top[0]].name) : '—'],
+      ['row_care', P => P.care ? esc(S[P.care.rank[0]].name) : '—'],
+      ['row_role', P => esc(D.roles[P.roles[0].id].name)]
     ];
     const both = m => pa.has(m) && pb.has(m);
     const miss = E.MODS.filter(m => !both(m));
     view().innerHTML = `${ctxBar()}
       <div class="card pair-head"><div class="duo">${ava(a, 'big')}<span class="amp">+</span>${ava(b, 'big')}</div>
-        <div class="rings">${ring(r.compat, 'Совместимость ' + ctxName, 'var(--primary)')}${ring(r.sim, 'Схожесть', 'var(--accent)')}</div>
-        <p class="center"><b>${esc(r.label)} совместимость</b> ${ctxName}.<br><span class="small muted">Схожесть — насколько вы похожи. Совместимость учитывает и то, что помогает отношениям независимо от сходства.</span></p></div>
-      <section class="card"><h3 class="card-h">Из чего складывается</h3>${r.parts.map(x => `<div class="part">${bar(x.name, x.v, heatBar(x.v))}<div class="small muted part-h">${esc(x.hint)} · вес ${r0(x.w * 100)}%</div></div>`).join('')}
-        ${miss.length ? `<p class="note">Не учтены блоки, которые прошли не оба: ${miss.map(m => '«' + esc(D.modules.find(x => x.id === m).name) + '»').join(', ')}.</p>` : ''}</section>
-      <section class="card"><h3 class="card-h">Сильные стороны</h3>${li(r.plus, 'plus', 'check')}</section>
-      ${r.minus.length ? `<section class="card"><h3 class="card-h">Зоны трения</h3>${li(r.minus, 'minus', 'warn')}</section>` : ''}
-      ${r.tips.length ? `<section class="card"><h3 class="card-h">Советы</h3>${li(r.tips, 'tip', 'bulb')}</section>` : ''}
+        <div class="rings">${ring(r.compat, t('ring_compat', { ctx: ctxName }), 'var(--primary)')}${ring(r.sim, t('similarity'), 'var(--accent)')}</div>
+        <p class="center">${th('compat_verdict', { label: `<b>${esc(r.label)}</b>`, ctx: esc(ctxName) })}<br><span class="small muted">${te('sim_expl')}</span></p></div>
+      <section class="card"><h3 class="card-h">${te('parts_title')}</h3>${r.parts.map(x => `<div class="part">${bar(x.name, x.v, heatBar(x.v))}<div class="small muted part-h">${esc(x.hint)} · ${te('weight', { n: r0(x.w * 100) })}</div></div>`).join('')}
+        ${miss.length ? `<p class="note">${te('missing_both', { list: miss.map(m => quote(modName(m))).join(D.eng.sep) })}</p>` : ''}</section>
+      <section class="card"><h3 class="card-h">${te('strengths')}</h3>${li(r.plus, 'plus', 'check')}</section>
+      ${r.minus.length ? `<section class="card"><h3 class="card-h">${te('frictions')}</h3>${li(r.minus, 'minus', 'warn')}</section>` : ''}
+      ${r.tips.length ? `<section class="card"><h3 class="card-h">${te('tips')}</h3>${li(r.tips, 'tip', 'bulb')}</section>` : ''}
       ${gameCardForPair(a, b)}
-      <section class="card"><h3 class="card-h">Коротко о каждом</h3><div class="tbl"><table class="cmp-t"><tr><th></th><th>${ava(a)} ${esc(a.name)}</th><th>${ava(b)} ${esc(b.name)}</th></tr>
-        ${rowsCmp.map(([l, f]) => `<tr><td class="muted">${esc(l)}</td><td>${f(pa)}</td><td>${f(pb)}</td></tr>`).join('')}</table></div></section>
-      <section class="card"><h3 class="card-h">Характеры рядом</h3>${legend([a, b])}
+      <section class="card"><h3 class="card-h">${te('brief')}</h3><div class="tbl"><table class="cmp-t"><tr><th></th><th>${ava(a)} ${esc(a.name)}</th><th>${ava(b)} ${esc(b.name)}</th></tr>
+        ${rowsCmp.map(([l, f]) => `<tr><td class="muted">${te(l)}</td><td>${f(pa)}</td><td>${f(pb)}</td></tr>`).join('')}</table></div></section>
+      <section class="card"><h3 class="card-h">${te('side_by_side')}</h3>${legend([a, b])}
         ${DOM_ORDER.map(k => dots(D.domains[k].name, [{ v: pa.dom[k].pct, c: color(a), t: a.name }, { v: pb.dom[k].pct, c: color(b), t: b.name }])).join('')}
-        ${dots('Честность-скромность', [{ v: pa.pct.hon, c: color(a), t: a.name }, { v: pb.pct.hon, c: color(b), t: b.name }])}
-        <details><summary>10 аспектов</summary>${E.modScales.char.filter(k => k !== 'hon').map(k => dots(S[k].name, [{ v: pa.pct[k], c: color(a), t: a.name }, { v: pb.pct[k], c: color(b), t: b.name }])).join('')}</details></section>
-      <section class="card"><h3 class="card-h">Темперамент${both('att') ? ' и привязанность' : ''}</h3><div class="maps">
+        ${dots(S.hon.name, [{ v: pa.pct.hon, c: color(a), t: a.name }, { v: pb.pct.hon, c: color(b), t: b.name }])}
+        <details><summary>${te('aspects10')}</summary>${E.modScales.char.filter(k => k !== 'hon').map(k => dots(S[k].name, [{ v: pa.pct[k], c: color(a), t: a.name }, { v: pb.pct[k], c: color(b), t: b.name }])).join('')}</details></section>
+      <section class="card"><h3 class="card-h">${te(both('att') ? 'temp_att' : 'temp_title')}</h3><div class="maps">
         ${tempMap([Object.assign(tempPt(pa), { c: color(a), t: a.name }), Object.assign(tempPt(pb), { c: color(b), t: b.name })])}
         ${both('att') ? attMap([{ x: pa.att.avo, y: pa.att.anx, c: color(a), t: a.name }, { x: pb.att.avo, y: pb.att.anx, c: color(b), t: b.name }]) : ''}</div></section>
-      ${both('val') ? `<section class="card"><h3 class="card-h">Ценности</h3>${legend([a, b])}${radar([{ c: pa.val.c, col: color(a) }, { c: pb.val.c, col: color(b) }])}</section>` : ''}
-      <p class="note">Совместимость здесь — повод для разговора, а не приговор. Исследования показывают: счастье пары больше зависит от того, как вы относитесь друг к другу, чем от совпадения черт. <a href="#/theory/compat">Что говорит наука</a></p>`;
+      ${both('val') ? `<section class="card"><h3 class="card-h">${te('val_title')}</h3>${legend([a, b])}${radar([{ c: pa.val.c, col: color(a) }, { c: pb.val.c, col: color(b) }])}</section>` : ''}
+      <p class="note">${te('pair_note')} <a href="#/theory/compat">${te('science')}</a></p>`;
     bindCtx();
   }
 
@@ -660,7 +667,7 @@
     const list = ids.split(',').map(byId).filter(p => p && p.mods.length);
     if (list.length < 2) return go('#/compare');
     if (list.length === 2) return go(`#/pair/${list[0].id}/${list[1].id}`);
-    setTitle(`Группа (${list.length})`, '#/compare');
+    setTitle(t('group_n', { n: list.length }), '#/compare');
     const ents = list.map(ent), g = E.group(ents, Store.d.ctx), key = Store.d.mode === 'sim' ? 'sim' : 'compat';
     const cell = (i, j) => {
       if (i === j) return `<td class="self">${ava(list[i])}</td>`;
@@ -670,38 +677,37 @@
     const bySim = g.pairs.slice().sort((p, q) => q.sim - p.sim);
     const pn = p => `${esc(list[p.i].name)} + ${esc(list[p.j].name)}`;
     const hl = [
-      ['Самая гармоничная пара', g.pairs[0], `совместимость ${g.pairs[0].compat}%`],
-      ['Самые похожие', bySim[0], `схожесть ${bySim[0].sim}%`],
-      ['Самые разные', bySim[bySim.length - 1], `схожесть ${bySim[bySim.length - 1].sim}%`]
+      ['hl_best', g.pairs[0], t('compat_n', { n: g.pairs[0].compat })],
+      ['hl_sim', bySim[0], t('sim_n', { n: bySim[0].sim })],
+      ['hl_diff', bySim[bySim.length - 1], t('sim_n', { n: bySim[bySim.length - 1].sim })]
     ];
     const withAtt = list.filter(p => prof(p).att);
     view().innerHTML = `${ctxBar()}
-      <section class="card"><div class="row"><h3 class="card-h" style="flex:1;margin:0">Матрица</h3>${seg('mode', [['compat', 'Совместимость'], ['sim', 'Схожесть']], key)}</div>
+      <section class="card"><div class="row"><h3 class="card-h" style="flex:1;margin:0">${te('matrix')}</h3>${seg('mode', [['compat', t('compatibility')], ['sim', t('similarity')]], key)}</div>
         <div class="tbl"><table class="heat"><tr><th></th>${list.map(p => `<th>${ava(p)}</th>`).join('')}</tr>
         ${list.map((p, i) => `<tr><th class="hn">${ava(p)}<span>${esc(p.name)}</span></th>${list.map((_, j) => cell(i, j)).join('')}</tr>`).join('')}</table></div>
-        <p class="note">Нажмите на число, чтобы открыть подробный отчёт по паре.</p></section>
-      <div class="grid hl">${hl.map(([t, p, s]) => `<a class="tile" href="#/pair/${list[p.i].id}/${list[p.j].id}"><span class="tile-main"><span class="muted small">${t}</span><b>${pn(p)}</b><span class="small">${s}</span></span></a>`).join('')}</div>
-      <section class="card"><h3 class="card-h">Портрет группы</h3>
-        ${g.notes.length ? `<ul class="ins tip">${g.notes.map(t => `<li>${icon('bulb')}<span>${esc(t)}</span></li>`).join('')}</ul>` : '<p>Сбалансированная группа без ярких перекосов.</p>'}
+        <p class="note">${te('matrix_note')}</p></section>
+      <div class="grid hl">${hl.map(([k, p, s]) => `<a class="tile" href="#/pair/${list[p.i].id}/${list[p.j].id}"><span class="tile-main"><span class="muted small">${te(k)}</span><b>${pn(p)}</b><span class="small">${esc(s)}</span></span></a>`).join('')}</div>
+      <section class="card"><h3 class="card-h">${te('portrait')}</h3>
+        ${g.notes.length ? `<ul class="ins tip">${g.notes.map(x => `<li>${icon('bulb')}<span>${esc(x)}</span></li>`).join('')}</ul>` : `<p>${te('balanced')}</p>`}
         ${legend(list)}${DOM_ORDER.map(k => dots(D.domains[k].name, list.map(p => ({ v: prof(p).dom[k].pct, c: color(p), t: p.name })))).join('')}
-        ${dots('Честность-скромность', list.map(p => ({ v: prof(p).pct.hon, c: color(p), t: p.name })))}</section>
-      <section class="card"><h3 class="card-h">Роли в команде</h3><div class="tbl"><table>${g.roles.map(x => `<tr><td><b>${esc(D.roles[x.id].name)}</b><br><span class="small muted">${esc(D.roles[x.id].d)}</span></td>
+        ${dots(S.hon.name, list.map(p => ({ v: prof(p).pct.hon, c: color(p), t: p.name })))}</section>
+      <section class="card"><h3 class="card-h">${te('team_roles')}</h3><div class="tbl"><table>${g.roles.map(x => `<tr><td><b>${esc(D.roles[x.id].name)}</b><br><span class="small muted">${esc(D.roles[x.id].d)}</span></td>
         <td class="nowrap">${ava(list[x.best])} ${esc(list[x.best].name)}</td><td class="nowrap"><span class="badge ${x.v >= 65 ? 'ok' : x.v >= 55 ? '' : 'warn'}">${r0(x.v)}</span></td></tr>`).join('')}</table></div>
-        <p class="note">Для каждой роли показан самый подходящий участник.</p></section>
-      <section class="card"><h3 class="card-h">Темперамент${withAtt.length >= 2 ? ' и привязанность' : ''}</h3><div class="maps">
+        <p class="note">${te('roles_best_note')}</p></section>
+      <section class="card"><h3 class="card-h">${te(withAtt.length >= 2 ? 'temp_att' : 'temp_title')}</h3><div class="maps">
         ${tempMap(list.map(p => Object.assign(tempPt(prof(p)), { c: color(p), t: p.name })))}
         ${withAtt.length >= 2 ? attMap(withAtt.map(p => ({ x: prof(p).att.avo, y: prof(p).att.anx, c: color(p), t: p.name }))) : ''}</div></section>
-      <section class="card"><h3 class="card-h">Участники</h3><div class="list">${list.map(p => { const P = prof(p); return `<a class="list-item" href="#/p/${p.id}">${ava(p)}<span class="li-main"><span class="li-title">${esc(p.name)}</span>
+      <section class="card"><h3 class="card-h">${te('members')}</h3><div class="list">${list.map(p => { const P = prof(p); return `<a class="list-item" href="#/p/${p.id}">${ava(p)}<span class="li-main"><span class="li-title">${esc(p.name)}</span>
         <span class="li-sub"><b>${P.type.code}</b> ${esc(D.types[P.type.code].name)} · ${esc(D.temperaments[P.temp.id].name)} · ${esc(D.roles[P.roles[0].id].name)}</span></span>${icon('chev', 'chev')}</a>`; }).join('')}</div></section>
-      <p class="note">Это повод для разговора, а не приговор. <a href="#/theory/compat">Что говорит наука о совместимости</a></p>`;
+      <p class="note">${te('group_note')} <a href="#/theory/compat">${te('science_compat')}</a></p>`;
     bindCtx();
     $('[data-seg="mode"]').onclick = e => { const b = e.target.closest('button'); if (!b) return; Store.d.mode = b.dataset.v; Store.save(); route(); };
   }
 
-  // ───────── game: «Кто лучше знает партнёра» ─────────
+  // ───────── game: who knows the partner better ─────────
   const GM = window.Game, GD = window.GAME;
-  const CAT_NAME = {};
-  GD.cats.forEach(c => { CAT_NAME[c.id] = c.name; });
+  const catName = id => (GD.cats.find(c => c.id === id) || {}).name || id;
   const games = () => Store.d.games;
   const gById = id => games().find(g => g.id === id);
   const blankAns = n => Array.from({ length: n }, () => [-1, -1]);
@@ -733,48 +739,46 @@
   }
   function gStatusText(g) {
     if (gDone(g)) { const s = GM.score(g); return `${esc(g.players[0].name)} ${s.know[0]} : ${s.know[1]} ${esc(g.players[1].name)}`; }
-    const t = gTurn(g);
-    if (t == null) return `<span class="badge warn">ждём ответа: ${esc(g.players[g.me.includes(0) ? 1 : 0].name)}</span>`;
-    const dn = g.players[t].ans.filter(x => x[0] >= 0 && x[1] >= 0).length;
-    return `<span class="badge warn">в процессе ${dn}/${g.ids.length}</span>`;
+    const k = gTurn(g);
+    if (k == null) return `<span class="badge warn">${te('g_waiting', { name: g.players[g.me.includes(0) ? 1 : 0].name })}</span>`;
+    const dn = g.players[k].ans.filter(x => x[0] >= 0 && x[1] >= 0).length;
+    return `<span class="badge warn">${te('in_progress', { a: dn, b: g.ids.length })}</span>`;
   }
 
   function vGameHub() {
-    setTitle('Кто лучше знает партнёра');
+    setTitle(t('game_title'));
     const list = games();
-    view().innerHTML = `<div class="hero game-hero"><h2>Кто лучше знает партнёра?</h2>
-        <p>${GD.q.length} вопросов о жизни: отдых, деньги, быт, любовь, мечты. Каждый отвечает за себя и угадывает выбор партнёра — а потом смотрите, кто угадал больше и в чём вы совпадаете.</p>
-        <div class="hero-actions"><a class="btn light" href="#/game/new">${icon('game')}Новая игра</a></div></div>
-      ${list.length ? `<h3>Ваши игры</h3><div class="list">${list.map(g => `<a class="list-item" href="${gTurn(g) != null ? '#/game/play/' + g.id : '#/game/res/' + g.id}">
-        <span class="duo-s">${gAva(g, 0)}${gAva(g, 1)}</span><span class="li-main"><span class="li-title">${esc(g.players[0].name)} и ${esc(g.players[1].name)}</span>
-        <span class="li-sub">${gStatusText(g)} · ${g.ids.length} ${plural(g.ids.length, 'вопрос|вопроса|вопросов')}</span></span>${icon('chev', 'chev')}</a>`).join('')}</div>` : ''}
-      <div class="row" style="margin:14px 0"><button class="btn secondary" id="importBtn">${icon('link')}Открыть ссылку или код игры</button></div>
-      <div class="card"><h3 class="card-h">Как играть</h3><ol class="steps">
-        <li><b>На одном устройстве:</b> сначала отвечает один — за себя и за партнёра, потом передаёт телефон второму.</li>
-        <li><b>На разных устройствах:</b> ответьте сами и отправьте ссылку. Партнёр ответит на те же вопросы и пришлёт ссылку с результатом.</li>
-        <li><b>Результат:</b> кто сколько угадал, где совпали вкусы и о чём стоит поговорить — там, где не угадал никто.</li></ol></div>`;
+    view().innerHTML = `<div class="hero game-hero"><h2>${te('game_title')}</h2>
+        <p>${te('g_hero_sub', { n: GD.q.length })}</p>
+        <div class="hero-actions"><a class="btn light" href="#/game/new">${icon('game')}${te('g_new')}</a></div></div>
+      ${list.length ? `<h3>${te('g_yours')}</h3><div class="list">${list.map(g => `<a class="list-item" href="${gTurn(g) != null ? '#/game/play/' + g.id : '#/game/res/' + g.id}">
+        <span class="duo-s">${gAva(g, 0)}${gAva(g, 1)}</span><span class="li-main"><span class="li-title">${te('g_pair', { a: g.players[0].name, b: g.players[1].name })}</span>
+        <span class="li-sub">${gStatusText(g)} · ${esc(qWord(g.ids.length))}</span></span>${icon('chev', 'chev')}</a>`).join('')}</div>` : ''}
+      <div class="row" style="margin:14px 0"><button class="btn secondary" id="importBtn">${icon('link')}${te('g_open')}</button></div>
+      <div class="card"><h3 class="card-h">${te('g_how')}</h3><ol class="steps">
+        <li><b>${te('g_how1_b')}</b> ${te('g_how1')}</li><li><b>${te('g_how2_b')}</b> ${te('g_how2')}</li><li><b>${te('g_how3_b')}</b> ${te('g_how3')}</li></ol></div>`;
     $('#importBtn').onclick = importModal;
   }
 
   function vGameNew(pa, pb) {
-    setTitle('Новая игра', '#/game');
+    setTitle(t('g_new'), '#/game');
     const set = Store.d.gset;
     const A = byId(pa), B = byId(pb);
     let mode = set.mode, n = set.n, cats = set.cats.length ? set.cats.slice() : GM.CAT_IDS.slice();
     const names = people().map(p => p.name).filter((v, i, a) => a.indexOf(v) === i);
     view().innerHTML = `<div class="card">
-        <label class="lbl" for="gA">Первый игрок</label><input class="input" id="gA" maxlength="30" placeholder="Например, Аня" value="${esc(A ? A.name : '')}" autocomplete="off">
-        <label class="lbl" for="gB">Партнёр</label><input class="input" id="gB" maxlength="30" placeholder="Например, Борис" value="${esc(B ? B.name : '')}" autocomplete="off">
+        <label class="lbl" for="gA">${te('g_first')}</label><input class="input" id="gA" maxlength="30" placeholder="${te('name_ph')}" value="${esc(A ? A.name : '')}" autocomplete="off">
+        <label class="lbl" for="gB">${te('g_partner')}</label><input class="input" id="gB" maxlength="30" placeholder="${te('g_partner_ph')}" value="${esc(B ? B.name : '')}" autocomplete="off">
         ${names.length ? `<div class="chips pick-names">${names.map(nm => `<button class="tchip" data-nm="${esc(nm)}">${esc(nm)}</button>`).join('')}</div>` : ''}
       </div>
       <div class="card">
-        <div class="setting"><span class="label">Как играем</span>${seg('gmode', [['local', 'На одном устройстве'], ['invite', 'По ссылке']], mode)}</div>
-        <div class="setting"><span class="label">Вопросов</span>${seg('gn', [[10, '10'], [20, '20'], [30, '30']], n)}</div>
-        <div class="lbl">Темы</div><div class="chips" id="gCats"></div>
+        <div class="setting"><span class="label">${te('g_mode')}</span>${seg('gmode', [['local', t('g_local')], ['invite', t('g_invite')]], mode)}</div>
+        <div class="setting"><span class="label">${te('g_count')}</span>${seg('gn', [[10, '10'], [20, '20'], [30, '30']], n)}</div>
+        <div class="lbl">${te('g_topics')}</div><div class="chips" id="gCats"></div>
       </div>
-      <button class="btn block" id="gStart">Начать</button>`;
+      <button class="btn block" id="gStart">${te('start')}</button>`;
     const drawCats = () => {
-      $('#gCats').innerHTML = `<button class="tchip${cats.length === GM.CAT_IDS.length ? ' on' : ''}" data-all="1">Все темы</button>` +
+      $('#gCats').innerHTML = `<button class="tchip${cats.length === GM.CAT_IDS.length ? ' on' : ''}" data-all="1">${te('g_all_topics')}</button>` +
         GD.cats.map(c => `<button class="tchip${cats.includes(c.id) ? ' on' : ''}" data-cat="${c.id}">${esc(c.name)}</button>`).join('');
     };
     drawCats();
@@ -788,7 +792,7 @@
     if (pickNames) pickNames.onclick = e => {
       const b = e.target.closest('[data-nm]'); if (!b) return;
       const a = $('#gA'), bb = $('#gB');
-      if (!a.value.trim()) a.value = b.dataset.nm; else if (!bb.value.trim() && a.value.trim() !== b.dataset.nm) bb.value = b.dataset.nm; else bb.value = b.dataset.nm;
+      if (!a.value.trim()) a.value = b.dataset.nm; else bb.value = b.dataset.nm;
     };
     $$('[data-seg="gmode"], [data-seg="gn"]').forEach(sg => sg.onclick = e => {
       const b = e.target.closest('button'); if (!b) return;
@@ -797,10 +801,10 @@
     });
     $('#gStart').onclick = () => {
       const a = $('#gA').value.trim(), b = $('#gB').value.trim();
-      if (!a) { $('#gA').focus(); toast('Введите имя первого игрока'); return; }
-      if (!b) { $('#gB').focus(); toast('Введите имя партнёра'); return; }
-      if (a === b) { toast('Имена должны различаться'); return; }
-      if (!cats.length) { toast('Выберите хотя бы одну тему'); return; }
+      if (!a) { $('#gA').focus(); toast(t('g_need_first')); return; }
+      if (!b) { $('#gB').focus(); toast(t('g_need_partner')); return; }
+      if (a === b) { toast(t('g_names_differ')); return; }
+      if (!cats.length) { toast(t('g_need_topic')); return; }
       Store.d.gset = { mode, n, cats: cats.length === GM.CAT_IDS.length ? [] : cats };
       const g = newGame([a, b], n, cats, mode);
       go('#/game/play/' + g.id);
@@ -819,12 +823,12 @@
 
     function intro() {
       let text;
-      if (g.mode === 'local' && p === 1) text = `<h2>Передайте устройство: ${esc(me.name)}</h2><p>${esc(other.name)}, не подсматривайте! Ответы скрыты до конца игры.</p>`;
-      else if (g.mode === 'join') text = `<h2>${esc(me.name)}, ваша очередь</h2><p>${esc(other.name)} уже ответил(а) на эти вопросы. Отвечайте за себя и угадывайте, что выберет ${esc(other.name)}.</p>`;
-      else text = `<h2>${esc(me.name)}, начинаем</h2><p>На каждый вопрос два ответа: ваш собственный выбор и догадка — что выберет ${esc(other.name)}.${g.mode === 'local' ? ` ${esc(other.name)}, не подсматривайте!` : ' Потом отправите ссылку — партнёр ответит на те же вопросы.'}</p>`;
+      if (g.mode === 'local' && p === 1) text = `<h2>${te('g_handoff_t', { name: me.name })}</h2><p>${te('g_handoff', { name: other.name })}</p>`;
+      else if (g.mode === 'join') text = `<h2>${te('g_join_t', { name: me.name })}</h2><p>${te('g_join', { name: other.name })}</p>`;
+      else text = `<h2>${te('g_start_t', { name: me.name })}</h2><p>${te('g_start', { name: other.name })} ${g.mode === 'local' ? te('g_start_local', { name: other.name }) : te('g_start_invite')}</p>`;
       view().innerHTML = `<div class="card intro-card"><div class="duo">${gAva(g, p, 'big')}</div>${text}
-        <p class="small muted">${n} ${plural(n, 'вопрос|вопроса|вопросов')} · около ${Math.max(1, Math.round(n * 12 / 60))} мин</p>
-        <button class="btn block" id="goBtn">${g.mode === 'local' && p === 1 ? `Я — ${esc(me.name)}, начать` : 'Начать'}</button></div>`;
+        <p class="small muted">${esc(qWord(n))} · ${te('about_min', { n: Math.max(1, Math.round(n * 12 / 60)) })}</p>
+        <button class="btn block" id="goBtn">${g.mode === 'local' && p === 1 ? te('g_iam', { name: me.name }) : te('start')}</button></div>`;
       $('#goBtn').onclick = () => { g.cur.ready = true; Store.save(); render(); };
     }
     function finish() {
@@ -838,7 +842,7 @@
       Store.save();
       if (g.cur.q >= n) {
         const firstGap = me.ans.findIndex(x => x[0] < 0 || x[1] < 0);
-        if (firstGap >= 0) { g.cur.q = firstGap; toast('Ответьте на все вопросы'); render(); return; }
+        if (firstGap >= 0) { g.cur.q = firstGap; toast(t('g_answer_all')); render(); return; }
         return finish();
       }
       render();
@@ -848,15 +852,15 @@
       const qi = clamp(g.cur.q, 0, n - 1), id = g.ids[qi], q = GD.q[id], a = me.ans[qi];
       const dn = me.ans.filter(x => x[0] >= 0 && x[1] >= 0).length;
       setExtra(`<span class="counter">${dn}/${n}</span>`);
-      const btns = (k, sel) => q.slice(2).map((t, i) => `<button data-k="${k}" data-v="${i}" class="${sel === i ? 'on' : ''}"><span class="ak">${i + 1}</span>${esc(t)}</button>`).join('');
+      const btns = (k, sel) => q.slice(2).map((x, i) => `<button data-k="${k}" data-v="${i}" class="${sel === i ? 'on' : ''}"><span class="ak">${i + 1}</span>${esc(x)}</button>`).join('');
       view().innerHTML = `<div class="progress"><i style="width:${dn / n * 100}%"></i></div>
-        <div class="q-wrap"><div class="q-meta"><span>${esc(CAT_NAME[q[0]])}</span><span>${qi + 1} из ${n}</span></div>
-        <div class="card q-card g-card"><div class="q-prompt">${esc(me.name)}, ваш выбор</div><div class="q-text">${esc(q[1])}</div></div>
+        <div class="q-wrap"><div class="q-meta"><span>${esc(catName(q[0]))}</span><span>${te('of', { a: qi + 1, b: n })}</span></div>
+        <div class="card q-card g-card"><div class="q-prompt">${te('g_your_choice', { name: me.name })}</div><div class="q-text">${esc(q[1])}</div></div>
         <div class="ans gopts">${btns(0, a[0])}</div>
-        <div class="g-sub">${gAva(g, o)}<span>А что выберет <b>${esc(other.name)}</b>?</span></div>
+        <div class="g-sub">${gAva(g, o)}<span>${th('g_guess', { name: `<b>${esc(other.name)}</b>` })}</span></div>
         <div class="ans gopts guess">${btns(1, a[1])}</div>
-        <div class="q-nav"><button class="btn ghost" id="prevBtn"${qi ? '' : ' disabled'}>${icon('back')}Назад</button><span class="spacer"></span>
-          <button class="btn ghost" id="nextBtn"${a[0] >= 0 && a[1] >= 0 ? '' : ' disabled'}>${qi === n - 1 ? 'Готово' : 'Далее'}</button></div></div>`;
+        <div class="q-nav"><button class="btn ghost" id="prevBtn"${qi ? '' : ' disabled'}>${icon('back')}${te('back')}</button><span class="spacer"></span>
+          <button class="btn ghost" id="nextBtn"${a[0] >= 0 && a[1] >= 0 ? '' : ' disabled'}>${te(qi === n - 1 ? 'done' : 'next')}</button></div></div>`;
       $$('.gopts').forEach(box => box.onclick = e => { const b = e.target.closest('button'); if (b) choose(+b.dataset.k, +b.dataset.v); });
       $('#prevBtn').onclick = () => move(-1);
       $('#nextBtn').onclick = () => move(1);
@@ -886,14 +890,14 @@
   }
 
   function gShare(g, title) {
-    const link = gameLink(g), code = GM.encode(g), text = `Игра: ${code}`;
+    const link = gameLink(g), code = GM.encode(g), text = `${t('g_code_prefix')}: ${code}`;
     openModal(`<h2>${esc(title)}</h2>
-      <p class="small muted">${link ? 'Отправьте ссылку' : 'Отправьте код'} партнёру${link ? '' : ': в приложении — «Игра → Открыть ссылку или код игры»'}. Ответы зашифрованы в ссылке, сервер не нужен.</p>
-      ${link ? `<label class="lbl">Ссылка</label><div class="copy"><input class="input" readonly value="${esc(link)}"><button class="btn secondary" data-copy="${esc(link)}">Копировать</button></div>` : ''}
-      <label class="lbl">Код</label><div class="copy"><textarea class="input code-ta" readonly rows="3">${esc(text)}</textarea><button class="btn secondary" data-copy="${esc(text)}">Копировать</button></div>
-      ${navigator.share ? `<button class="btn block" id="nativeShare" style="margin-top:12px">${icon('share')}Отправить…</button>` : ''}`);
+      <p class="small muted">${te(link ? 'g_share_hint_link' : 'g_share_hint_code')}</p>
+      ${link ? `<label class="lbl">${te('link')}</label><div class="copy"><input class="input" readonly value="${esc(link)}"><button class="btn secondary" data-copy="${esc(link)}">${te('copy')}</button></div>` : ''}
+      <label class="lbl">${te('code')}</label><div class="copy"><textarea class="input code-ta" readonly rows="3">${esc(text)}</textarea><button class="btn secondary" data-copy="${esc(text)}">${te('copy')}</button></div>
+      ${navigator.share ? `<button class="btn block" id="nativeShare" style="margin-top:12px">${icon('share')}${te('send')}</button>` : ''}`);
     const ns = $('#nativeShare');
-    if (ns) ns.onclick = () => navigator.share(link ? { title: 'Кто лучше знает партнёра?', text: gDone(g) ? 'Результат нашей игры' : 'Угадай мой выбор! Кто лучше знает друг друга?', url: link } : { text }).catch(() => { /* cancelled */ });
+    if (ns) ns.onclick = () => navigator.share(link ? { title: t('game_title'), text: t(gDone(g) ? 'g_share_res' : 'g_share_inv'), url: link } : { text }).catch(() => { /* cancelled */ });
   }
 
   function vGameRes(gid) {
@@ -901,38 +905,38 @@
     if (!g) return go('#/game');
     if (gTurn(g) != null) return go('#/game/play/' + g.id);
     const [A, B] = g.players;
-    setTitle(`${A.name} и ${B.name}`, '#/game');
+    setTitle(t('g_pair', { a: A.name, b: B.name }), '#/game');
     if (!gDone(g)) {
       const wait = g.me.includes(0) ? B : A;
       view().innerHTML = `<div class="card intro-card"><div class="duo">${gAva(g, 0, 'big')}<span class="amp">+</span>${gAva(g, 1, 'big')}</div>
-        <h2>Ждём ответов: ${esc(wait.name)}</h2>
-        <p>Отправьте приглашение. Когда партнёр ответит, он пришлёт ссылку с результатом — откройте её, и здесь появится итог.</p>
-        <button class="btn block" id="shareBtn">${icon('share')}Отправить приглашение</button>
-        <button class="btn ghost block" id="pasteBtn">${icon('link')}Вставить ответ партнёра</button></div>`;
-      $('#shareBtn').onclick = () => gShare(g, 'Пригласить в игру');
+        <h2>${te('g_wait_t', { name: wait.name })}</h2>
+        <p>${te('g_wait')}</p>
+        <button class="btn block" id="shareBtn">${icon('share')}${te('g_send_inv')}</button>
+        <button class="btn ghost block" id="pasteBtn">${icon('link')}${te('g_paste')}</button></div>`;
+      $('#shareBtn').onclick = () => gShare(g, t('g_invite_title'));
       $('#pasteBtn').onclick = importModal;
       return;
     }
     const s = GM.score(g), filter = Store.d.gfilter || 'all';
-    const verdict = s.winner < 0 ? 'Ничья — вы знаете друг друга одинаково хорошо' : `Лучше знает партнёра: ${g.players[s.winner].name}`;
+    const verdict = s.winner < 0 ? t('g_draw') : t('g_winner', { name: g.players[s.winner].name });
     const opt = (id, i) => esc(GD.q[id][2 + i]);
-    const row = (x, k) => `<div class="gr">${gAva(g, k)}<span>выбор: <b>${opt(x.id, x.own[k])}</b> · догадка: ${opt(x.id, x.guess[k])}
+    const row = (x, k) => `<div class="gr">${gAva(g, k)}<span>${th('g_choice', { x: `<b>${opt(x.id, x.own[k])}</b>` })} · ${th('g_guess_l', { x: opt(x.id, x.guess[k]) })}
       <span class="${x.ok[k] ? 'pass' : 'fail'}">${x.ok[k] ? '✓' : '✗'}</span></span></div>`;
     const shown = s.items.filter(x => filter === 'miss' ? !(x.ok[0] && x.ok[1]) : filter === 'eq' ? x.eq : true);
-    view().innerHTML = `<div class="card pair-head"><div class="rings">${ring(s.kp[0], `${A.name} угадывает партнёра`, gColor(g, 0))}${ring(s.kp[1], `${B.name} угадывает партнёра`, gColor(g, 1))}</div>
-        <p class="center"><b>${icon('trophy', 'inline-ico')}${esc(verdict)}</b><br><span class="muted">${esc(GM.level(Math.max(s.kp[0], s.kp[1])))} · вкусы совпали в ${s.same} из ${s.n} (${s.sp}%)</span></p>
-        <p class="center small muted">${esc(A.name)}: ${s.know[0]} из ${s.n} угадано · ${esc(B.name)}: ${s.know[1]} из ${s.n}</p></div>
-      <div class="row toolbar"><button class="btn" id="againBtn">${icon('game')}Реванш — новые вопросы</button><button class="btn secondary" id="shareBtn">${icon('share')}${g.mode === 'join' ? 'Отправить результат партнёру' : 'Поделиться'}</button></div>
-      ${g.mode === 'join' ? `<div class="card done-card warn">${icon('share')}<div>Отправьте результат обратно — тогда ${esc(A.name)} тоже увидит итог.</div></div>` : ''}
-      <section class="card"><h3 class="card-h">По темам</h3><div class="tbl"><table class="cmp-t"><tr><th>Тема</th><th>${gAva(g, 0)} угадано</th><th>${gAva(g, 1)} угадано</th><th>Совпали</th></tr>
-        ${s.cats.map(c => `<tr><td>${esc(CAT_NAME[c.id])}</td><td>${c.k0}/${c.n}</td><td>${c.k1}/${c.n}</td><td>${c.eq}/${c.n}</td></tr>`).join('')}</table></div></section>
-      ${s.talk.length ? `<section class="card"><h3 class="card-h">О чём поговорить</h3><p class="small muted">Здесь не угадал никто — самое интересное, чтобы узнать друг друга лучше.</p>
+    view().innerHTML = `<div class="card pair-head"><div class="rings">${ring(s.kp[0], t('g_guesses', { name: A.name }), gColor(g, 0))}${ring(s.kp[1], t('g_guesses', { name: B.name }), gColor(g, 1))}</div>
+        <p class="center"><b>${icon('trophy', 'inline-ico')}${esc(verdict)}</b><br><span class="muted">${esc(GM.level(Math.max(s.kp[0], s.kp[1])))} · ${te('g_same', { a: s.same, b: s.n, p: s.sp })}</span></p>
+        <p class="center small muted">${te('g_score', { name: A.name, a: s.know[0], b: s.n })} · ${te('g_score', { name: B.name, a: s.know[1], b: s.n })}</p></div>
+      <div class="row toolbar"><button class="btn" id="againBtn">${icon('game')}${te('g_rematch')}</button><button class="btn secondary" id="shareBtn">${icon('share')}${te(g.mode === 'join' ? 'g_send_res' : 'share')}</button></div>
+      ${g.mode === 'join' ? `<div class="card done-card warn">${icon('share')}<div>${te('g_send_back', { name: A.name })}</div></div>` : ''}
+      <section class="card"><h3 class="card-h">${te('g_by_topic')}</h3><div class="tbl"><table class="gt"><tr><th>${te('g_topic')}</th><th>${gAva(g, 0)} ${te('g_guessed')}</th><th>${gAva(g, 1)} ${te('g_guessed')}</th><th>${te('g_matched')}</th></tr>
+        ${s.cats.map(c => `<tr><td>${esc(catName(c.id))}</td><td>${c.k0}/${c.n}</td><td>${c.k1}/${c.n}</td><td>${c.eq}/${c.n}</td></tr>`).join('')}</table></div></section>
+      ${s.talk.length ? `<section class="card"><h3 class="card-h">${te('g_talk')}</h3><p class="small muted">${te('g_talk_hint')}</p>
         <ul class="ins tip">${s.talk.slice(0, 6).map(x => `<li>${icon('bulb')}<span><b>${esc(GD.q[x.id][1])}</b><br>${esc(A.name)}: ${opt(x.id, x.own[0])} · ${esc(B.name)}: ${opt(x.id, x.own[1])}</span></li>`).join('')}</ul></section>` : ''}
-      <section class="card"><div class="row"><h3 class="card-h" style="flex:1;margin:0">Все ответы</h3>${seg('gfilter', [['all', 'Все'], ['miss', 'Промахи'], ['eq', 'Совпали']], filter)}</div>
-        <div class="glist">${shown.map(x => `<div class="gi"><div class="gq"><span class="muted small">${esc(CAT_NAME[x.cat])}</span><b>${esc(GD.q[x.id][1])}</b>${x.eq ? '<span class="badge ok">совпали</span>' : ''}</div>${row(x, 0)}${row(x, 1)}</div>`).join('') || '<p class="muted">Таких ответов нет.</p>'}</div></section>
-      <div class="row"><button class="btn danger" id="delBtn">Удалить игру</button></div>`;
+      <section class="card"><div class="row"><h3 class="card-h" style="flex:1;margin:0">${te('g_all_answers')}</h3>${seg('gfilter', [['all', t('g_f_all')], ['miss', t('g_f_miss')], ['eq', t('g_f_eq')]], filter)}</div>
+        <div class="glist">${shown.map(x => `<div class="gi"><div class="gq"><span class="muted small">${esc(catName(x.cat))}</span><b>${esc(GD.q[x.id][1])}</b>${x.eq ? `<span class="badge ok">${te('g_eq_badge')}</span>` : ''}</div>${row(x, 0)}${row(x, 1)}</div>`).join('') || `<p class="muted">${te('g_none')}</p>`}</div></section>
+      <div class="row"><button class="btn danger" id="delBtn">${te('g_delete')}</button></div>`;
     $('[data-seg="gfilter"]').onclick = e => { const b = e.target.closest('button'); if (!b) return; Store.d.gfilter = b.dataset.v; Store.save(); route(); };
-    $('#shareBtn').onclick = () => gShare(g, g.mode === 'join' ? 'Отправить результат' : 'Поделиться результатом');
+    $('#shareBtn').onclick = () => gShare(g, t(g.mode === 'join' ? 'g_send_result' : 'g_share_result'));
     $('#againBtn').onclick = () => {
       const mode = g.mode === 'local' ? 'local' : 'invite';
       const names = g.me.includes(0) || mode === 'local' ? [A.name, B.name] : [B.name, A.name];
@@ -940,17 +944,17 @@
       go('#/game/play/' + ng.id);
     };
     $('#delBtn').onclick = () => {
-      if (!confirm('Удалить эту игру?')) return;
+      if (!confirm(t('g_delete_confirm'))) return;
       Store.d.games = games().filter(x => x !== g); Store.save(); go('#/game');
     };
   }
 
   // opened from a link or a pasted code: an invitation (partner hasn't answered) or a finished game
   function vGameOpen(code) {
-    setTitle('Игра', '#/game');
+    setTitle(t('nav_game'), '#/game');
     const d = GM.decode(code);
     if (!d || !GM.complete(d.players[0].ans)) {
-      view().innerHTML = `<div class="card empty">Ссылка на игру повреждена или создана более новой версией приложения. Попросите отправить её ещё раз.<p><a class="btn" href="#/game">К играм</a></p></div>`;
+      view().innerHTML = `<div class="card empty">${te('g_open_bad')}<p><a class="btn" href="#/game">${te('g_to_games')}</a></p></div>`;
       return;
     }
     const local = games().find(g => g.ids.join() === d.ids.join() && sameAns(g.players[0].ans, d.players[0].ans));
@@ -965,13 +969,13 @@
     if (local) { history.replaceState(null, '', (gTurn(local) != null ? '#/game/play/' : '#/game/res/') + local.id); return route(); }
     const [A, B] = d.players;
     view().innerHTML = `<div class="card intro-card"><div class="duo"><span class="ava big" style="background:${COLORS[0]}">${esc((A.name[0] || '?').toUpperCase())}</span></div>
-      <h2>${esc(A.name)} приглашает в игру</h2><p>«Кто лучше знает партнёра?» — ${d.ids.length} ${plural(d.ids.length, 'вопрос|вопроса|вопросов')} о жизни. Отвечайте за себя и угадывайте, что выберет ${esc(A.name)}. Ответы партнёра откроются в конце.</p>
-      <label class="lbl" for="gMe" style="text-align:left">Ваше имя</label><input class="input" id="gMe" maxlength="30" value="${esc(B.name)}">
-      <button class="btn block" id="joinBtn" style="margin-top:12px">Играть</button></div>`;
+      <h2>${te('g_invites', { name: A.name })}</h2><p>${te('g_invite_text', { title: t('game_title'), q: qWord(d.ids.length), name: A.name })}</p>
+      <label class="lbl" for="gMe" style="text-align:left">${te('g_your_name')}</label><input class="input" id="gMe" maxlength="30" value="${esc(B.name)}">
+      <button class="btn block" id="joinBtn" style="margin-top:12px">${te('g_play')}</button></div>`;
     $('#joinBtn').onclick = () => {
       const nm = $('#gMe').value.trim();
-      if (!nm) { $('#gMe').focus(); toast('Введите имя'); return; }
-      if (nm === A.name) { toast('Имена должны различаться'); return; }
+      if (!nm) { $('#gMe').focus(); toast(t('enter_name')); return; }
+      if (nm === A.name) { toast(t('g_names_differ')); return; }
       const g = { id: uid(), created: Date.now(), mode: 'join', me: [1], cats: [], ids: d.ids,
         players: [A, { name: nm, ans: blankAns(d.ids.length) }], cur: { p: 1, q: 0, ready: true } };
       saveGame(g);
@@ -981,59 +985,64 @@
   }
 
   function gameCardForPair(a, b) {
-    const done = games().filter(g => gDone(g) && samePair(g, a.name, b.name));
-    const last = done[0];
+    const list = games().filter(g => gDone(g) && samePair(g, a.name, b.name));
+    const last = list[0];
     let body;
     if (last) {
-      const s = GM.score(last), w = s.winner < 0 ? 'ничья' : `лучше знает партнёра: ${last.players[s.winner].name}`;
-      body = `<p>Последняя игра: <b>${esc(last.players[0].name)} ${s.know[0]} : ${s.know[1]} ${esc(last.players[1].name)}</b> — ${esc(w)}; вкусы совпали на ${s.sp}%.${done.length > 1 ? ` Всего игр: ${done.length}.` : ''}</p>
-        <div class="row"><a class="btn secondary" href="#/game/res/${last.id}">Результат</a><a class="btn" href="#/game/new/${a.id}/${b.id}">${icon('game')}Сыграть ещё</a></div>`;
-    } else body = `<p>Проверьте на практике: ${GD.q.length} вопросов о жизни — каждый отвечает за себя и угадывает выбор партнёра.</p><a class="btn" href="#/game/new/${a.id}/${b.id}">${icon('game')}Сыграть</a>`;
-    return `<section class="card"><h3 class="card-h">Кто лучше знает друг друга</h3>${body}</section>`;
+      const s = GM.score(last), w = s.winner < 0 ? t('g_card_draw') : t('g_card_win', { name: last.players[s.winner].name });
+      body = `<p>${te('g_last')} <b>${esc(last.players[0].name)} ${s.know[0]} : ${s.know[1]} ${esc(last.players[1].name)}</b> — ${esc(w)}; ${te('g_card_same', { p: s.sp })}${list.length > 1 ? ' ' + te('g_total', { n: list.length }) : ''}</p>
+        <div class="row"><a class="btn secondary" href="#/game/res/${last.id}">${te('g_result')}</a><a class="btn" href="#/game/new/${a.id}/${b.id}">${icon('game')}${te('g_again')}</a></div>`;
+    } else body = `<p>${te('g_try', { n: GD.q.length })}</p><a class="btn" href="#/game/new/${a.id}/${b.id}">${icon('game')}${te('g_play_btn')}</a>`;
+    return `<section class="card"><h3 class="card-h">${te('g_card_t')}</h3>${body}</section>`;
   }
 
   // ───────── theory ─────────
-  const EV = { 3: ['сильная научная база', 'ok'], 2: ['умеренная научная база', ''], 1: ['слабая научная база', 'warn'] };
+  const EV_CLS = { 3: 'ok', 2: '', 1: 'warn' };
+  const evBadge = ev => `<span class="badge ${EV_CLS[ev]}">${te('ev' + ev)}</span>`;
   function vTheory(id) {
     if (id) {
-      const t = D.theory.find(x => x.id === id);
-      if (!t) return go('#/theory');
-      setTitle(t.title, '#/theory');
-      view().innerHTML = `<section class="card"><h2>${esc(t.title)}</h2><p><span class="badge ${EV[t.ev][1]}">${EV[t.ev][0]}</span></p>
-        ${t.text.map(s => `<p>${esc(s)}</p>`).join('')}<p class="small"><b>В приложении:</b> ${esc(t.used)}.</p>
-        <h3>Книги и работы</h3><ul class="books">${t.books.map(b => `<li>${esc(b)}</li>`).join('')}</ul></section>`;
+      const x = D.theory.find(y => y.id === id);
+      if (!x) return go('#/theory');
+      setTitle(x.title, '#/theory');
+      view().innerHTML = `<section class="card"><h2>${esc(x.title)}</h2><p>${evBadge(x.ev)}</p>
+        ${x.text.map(s => `<p>${esc(s)}</p>`).join('')}<p class="small"><b>${te('in_app')}</b> ${esc(x.used)}</p>
+        <h3>${te('books')}</h3><ul class="books">${x.books.map(b => `<li>${esc(b)}</li>`).join('')}</ul></section>`;
       return;
     }
-    setTitle('Теория');
-    view().innerHTML = `<p class="muted">На чём построен тест: модели психологии личности, что о них говорят исследования и какие книги почитать.</p>
-      <div class="list">${D.theory.map(t => `<a class="list-item" href="#/theory/${t.id}"><span class="li-main"><span class="li-title">${esc(t.title)}</span>
-        <span class="li-sub"><span class="badge ${EV[t.ev][1]}">${EV[t.ev][0]}</span> ${esc(t.used)}</span></span>${icon('chev', 'chev')}</a>`).join('')}</div>`;
+    setTitle(t('nav_theory'));
+    view().innerHTML = `<p class="muted">${te('theory_intro')}</p>
+      <div class="list">${D.theory.map(x => `<a class="list-item" href="#/theory/${x.id}"><span class="li-main"><span class="li-title">${esc(x.title)}</span>
+        <span class="li-sub">${evBadge(x.ev)} ${esc(x.used)}</span></span>${icon('chev', 'chev')}</a>`).join('')}</div>`;
   }
 
   // ───────── settings ─────────
+  const SITE = 'https://iioverlordii.github.io/The-connection-between-us/';
+  const RELEASE = 'https://github.com/IIOverlordII/The-connection-between-us/releases/latest';
   let installEvt = null;
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; });
   function vSettings() {
-    setTitle('Настройки');
-    const dn = done();
+    setTitle(t('nav_settings'));
+    const dn = done(), curLang = (I.LANGS.find(l => l[0] === I.lang()) || [])[1];
     view().innerHTML = `<div class="card">
-        <div class="setting"><span class="label">Тема</span>${seg('theme', [['auto', 'Авто'], ['light', 'Светлая'], ['dark', 'Тёмная']], Store.d.theme)}</div>
-        <div class="setting"><span class="label">Размер текста</span>${seg('fs', [[15, 'A−'], [16, 'A'], [18, 'A+'], [20, 'A++']], Store.d.fs)}</div></div>
-      <div class="card"><h3 class="card-h">Данные</h3><p class="small">Все ответы хранятся только на этом устройстве. Чтобы перенести участников на другое устройство, скопируйте их коды и вставьте там через «Добавить по коду».</p>
-        <div class="row"><button class="btn secondary" id="expBtn"${dn.length ? '' : ' disabled'}>Коды всех участников</button><button class="btn danger" id="wipeBtn"${people().length ? '' : ' disabled'}>Удалить всех</button></div></div>
-      <div class="card"><h3 class="card-h">Установка</h3><p class="small">Сайт: <a href="https://iioverlordii.github.io/The-connection-between-us/" target="_blank" rel="noopener">iioverlordii.github.io/The-connection-between-us/</a></p>
-        <p class="small">iPhone/iPad: откройте сайт в Safari → «Поделиться» → «На экран „Домой“». После первого запуска работает без интернета.</p>
-        <p class="small">Android: Chrome → меню → «Установить приложение». Windows: <a href="https://github.com/IIOverlordII/The-connection-between-us/releases/latest" target="_blank" rel="noopener">Psychoprofile.exe</a> или Edge/Chrome → меню → «Приложения» → «Установить».</p>
-        <button class="btn" id="installBtn"${installEvt ? '' : ' hidden'}>Установить приложение</button></div>
-      <div class="card"><h3 class="card-h">О приложении</h3><p class="small">${E.N} вопросов в ${E.MODS.length} блоках теста и ${window.GAME.q.length} вопросов в игре «Кто лучше знает партнёра». Вопросы о чертах личности адаптированы из открытой базы International Personality Item Pool (общественное достояние), остальные составлены для этого приложения по описаниям научных моделей (см. «Теория»).</p>
-        <p class="small">Результаты — самоописание, а не диагноз. Если вас беспокоит эмоциональное состояние, обратитесь к психологу или психотерапевту.</p></div>`;
+        <div class="setting"><span class="label">${te('language')}</span><button class="btn secondary" id="langPick">${icon('globe')}${esc(curLang)}</button></div>
+        <div class="setting"><span class="label">${te('theme')}</span>${seg('theme', [['auto', t('theme_auto')], ['light', t('theme_light')], ['dark', t('theme_dark')]], Store.d.theme)}</div>
+        <div class="setting"><span class="label">${te('font')}</span>${seg('fs', [[15, 'A−'], [16, 'A'], [18, 'A+'], [20, 'A++']], Store.d.fs)}</div></div>
+      <div class="card"><h3 class="card-h">${te('data')}</h3><p class="small">${te('data_text')}</p>
+        <div class="row"><button class="btn secondary" id="expBtn"${dn.length ? '' : ' disabled'}>${te('all_codes_btn')}</button><button class="btn danger" id="wipeBtn"${people().length ? '' : ' disabled'}>${te('delete_all')}</button></div></div>
+      <div class="card"><h3 class="card-h">${te('install')}</h3><p class="small">${te('site')} <a href="${SITE}" target="_blank" rel="noopener">${esc(SITE.replace('https://', ''))}</a></p>
+        <p class="small">${te('inst_ios')}</p><p class="small">${te('inst_android')}</p>
+        <p class="small">${th('inst_windows', { link: `<a href="${RELEASE}" target="_blank" rel="noopener">BetweenUs.exe</a>` })}</p>
+        <button class="btn" id="installBtn"${installEvt ? '' : ' hidden'}>${te('install_btn')}</button></div>
+      <div class="card"><h3 class="card-h">${te('about')}</h3><p class="small">${te('about_text', { n: E.N, m: E.MODS.length, g: window.GAME.q.length, game: t('game_title') })}</p>
+        <p class="small">${te('about_disclaimer')}</p></div>`;
     $$('[data-seg]').forEach(sg => sg.onclick = e => {
       const b = e.target.closest('button'); if (!b) return;
       const k = sg.dataset.seg;
       Store.d[k] = k === 'fs' ? +b.dataset.v : b.dataset.v; Store.save(); applyPrefs(); route();
     });
+    $('#langPick').onclick = langModal;
     $('#expBtn').onclick = () => shareModal(dn);
-    $('#wipeBtn').onclick = () => { if (confirm('Удалить всех участников и все ответы?')) { Store.d.people = []; Store.d.sel = []; cache.clear(); Store.save(); route(); } };
+    $('#wipeBtn').onclick = () => { if (confirm(t('delete_all_confirm'))) { Store.d.people = []; Store.d.sel = []; cache.clear(); Store.save(); route(); } };
     const ib = $('#installBtn');
     if (ib) ib.onclick = () => { if (!installEvt) return; installEvt.prompt(); installEvt = null; ib.hidden = true; };
   }
@@ -1061,9 +1070,13 @@
     }
     $('#view').focus({ preventScroll: true });
   }
-  window.addEventListener('hashchange', () => { route(); window.scrollTo(0, 0); });
+
   applyPrefs();
-  route();
+  I.init(Store.d.lang, VER).then(() => {
+    $('#langBtn').onclick = langModal;
+    window.addEventListener('hashchange', () => { route(); window.scrollTo(0, 0); });
+    route();
+  });
 
   // offline cache on https; locally only with ?sw=1 so it does not get in the way of development
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.search.includes('sw=1'))) {

@@ -1,7 +1,7 @@
-# Builds "Психопрофиль.exe" on a Windows runner with the same script used locally.
+# Builds "Between Us.exe" on a Windows runner with the same script used locally.
 # Every push: the .exe is attached to the run as an artifact. Push to main: also published as the latest release,
-# so .../releases/latest/download/Psychoprofile.exe always points to the newest build.
-name: Психопрофиль.exe
+# so .../releases/latest/download/BetweenUs.exe always points to the newest build.
+name: Between Us.exe
 
 on:
   push:
@@ -31,7 +31,7 @@ jobs:
           node-version: 22
 
       - name: Тесты
-        run: node --test test/engine.test.js test/game.test.js
+        run: node --test test/engine.test.js test/game.test.js test/i18n.test.js
 
       - name: Сборка .exe (desktop\build_exe.ps1)
         shell: pwsh
@@ -43,16 +43,16 @@ jobs:
           $exe = Get-ChildItem dist\*.exe | Select-Object -First 1
           if (-not $exe) { throw 'exe не найден' }
           "{0}  {1:N1} MB" -f $exe.Name, ($exe.Length / 1MB)
-          Copy-Item $exe.FullName Psychoprofile.exe
+          Copy-Item $exe.FullName BetweenUs.exe
 
       - name: Сохранить .exe
         uses: actions/upload-artifact@v4
         with:
-          name: Psychoprofile-windows
-          path: Psychoprofile.exe
+          name: BetweenUs-windows
+          path: BetweenUs.exe
           retention-days: 30
 
-      # GitHub replaces non-ASCII characters in asset names, so the file is uploaded as Psychoprofile.exe
+      # asset names must be ASCII without spaces: the file is uploaded as BetweenUs.exe
       - name: Выложить в релиз
         if: github.ref == 'refs/heads/main'
         shell: bash
@@ -60,7 +60,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete windows-latest --cleanup-tag --yes 2>/dev/null || true
-          gh release create windows-latest "Psychoprofile.exe#Психопрофиль для Windows" \
+          gh release create windows-latest "BetweenUs.exe#Between Us for Windows" \
             --target "$GITHUB_SHA" --latest \
-            --title "Психопрофиль для Windows" \
-            --notes "Последняя сборка из main (${GITHUB_SHA::7}). Скачайте Psychoprofile.exe и запустите — установка и интернет не нужны. Если Windows покажет «Система Windows защитила ваш компьютер», нажмите «Подробнее» → «Выполнить в любом случае»: файл не подписан сертификатом."
+            --title "Between Us for Windows" \
+            --notes "Latest build from main (${GITHUB_SHA::7}). Download BetweenUs.exe and run it — no installation or internet needed. If Windows shows \"Windows protected your PC\", click \"More info\" → \"Run anyway\": the file is not code-signed."
