@@ -50,6 +50,8 @@ else:
 
 # ───────────── офлайн-кэш ─────────────
 files = sorted(str(p.relative_to(APP)).replace('\\', '/') for p in APP.rglob('*') if p.is_file() and p.name != 'sw.js')
+# language bundles are cached lazily by the service worker; they still count towards the version hash
+precache = [f for f in files if not f.startswith('i18n/')]
 h = hashlib.sha1()
 for f in files:
     if f != 'index.html':
@@ -60,7 +62,7 @@ text = index.read_text(encoding='utf-8')
 text = re.sub(r'((?:src|href)="(?:css|js)/[^"?]+)(?:\?v=[^"]*)?"', rf'\1?v={digest}"', text)
 index.write_text(text, encoding='utf-8', newline='\n')
 sw = (ROOT / 'tools' / 'sw.template.js').read_text(encoding='utf-8')
-sw = sw.replace('__VERSION__', digest).replace('__FILES__', json.dumps(['./'] + files, ensure_ascii=False))
+sw = sw.replace('__VERSION__', digest).replace('__FILES__', json.dumps(['./'] + precache, ensure_ascii=False))
 (APP / 'sw.js').write_text(sw, encoding='utf-8', newline='\n')
 print(f'sw: {len(files)} files, version {digest}')
 

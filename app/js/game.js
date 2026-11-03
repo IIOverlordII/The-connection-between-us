@@ -1,4 +1,4 @@
-// «Кто лучше знает партнёра»: question selection, share codes and scoring. Pure functions, no DOM.
+// Game «who knows the partner better»: question selection, share codes and scoring. Pure functions, no DOM.
 (function (root) {
   'use strict';
   const G = root.GAME, E = root.Engine;
