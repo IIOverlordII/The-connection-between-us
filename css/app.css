@@ -237,6 +237,24 @@ textarea.input { resize: vertical; font-size: .9em; }
 .ak { width: 26px; height: 26px; border-radius: 8px; background: var(--surface-2); display: inline-flex; align-items: center; justify-content: center; font-size: .82em; color: var(--muted); flex: none; }
 .ans button.on .ak { background: var(--primary); color: #fff; }
 .q-nav { display: flex; align-items: center; margin-top: 10px; }
+/* 7-point scale: a compact list on phones, one row of options on wider screens */
+.ans.scale7 button { padding: 10px 14px; }
+@media (min-width: 640px) {
+  .ans.scale7 { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .ans.scale7 button { flex-direction: column; justify-content: flex-start; gap: 6px; padding: 10px 4px; text-align: center; font-size: .82em; line-height: 1.2; hyphens: auto; }
+}
+
+/* who takes the test */
+.names { display: flex; flex-direction: column; gap: 8px; margin: 12px 0 6px; }
+.name-row { display: flex; gap: 10px; align-items: center; }
+.name-row .input { flex: 1; min-width: 0; }
+.name-row .ava { flex: none; }
+.icon-btn { padding: 8px 12px; font-size: 1.3em; line-height: 1; color: var(--muted); }
+.test-info { display: flex; gap: 12px; align-items: flex-start; }
+.test-info > svg { width: 22px; height: 22px; flex: none; margin-top: 2px; fill: none; stroke: var(--ok); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.next-saved { display: inline-flex; gap: 6px; align-items: center; color: var(--ok); font-weight: 650; margin: 0 0 12px; }
+.next-saved svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.intro-card .duo { display: flex; justify-content: center; margin-bottom: 10px; }
 
 /* ---------- report ---------- */
 .toolbar { margin-bottom: 14px; }
@@ -300,6 +318,23 @@ textarea.input { resize: vertical; font-size: .9em; }
 .legend span { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
 .legend i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
 details summary { cursor: pointer; color: var(--primary); font-weight: 650; margin: 10px 0 4px; font-size: .92em; }
+/* collapsible report sections */
+details.fold { padding: 0; }
+details.fold > summary { list-style: none; display: flex; align-items: center; gap: 10px; padding: 14px 16px; margin: 0; color: var(--text); font-size: 1em; font-weight: 400; }
+details.fold > summary::-webkit-details-marker { display: none; }
+details.fold > summary:hover .card-h { color: var(--primary); }
+.fold-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.fold-t .card-h { margin: 0; font-weight: 700; }
+.fold-sub { font-size: .88em; color: var(--muted); }
+.fold-sub b { color: var(--text); }
+.fold-ic { width: 20px; height: 20px; flex: none; fill: none; stroke: var(--muted); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; transform: rotate(90deg); transition: transform .15s; }
+details.fold[open] > summary .fold-ic { transform: rotate(-90deg); }
+.fold-b { padding: 0 16px 16px; }
+.main-card .card-h { display: flex; align-items: center; gap: 8px; }
+.main-card .card-h svg { width: 20px; height: 20px; flex: none; fill: none; stroke: var(--warn); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.sum { margin: 0; padding-left: 1.1em; display: flex; flex-direction: column; gap: 7px; }
+.sum b { font-weight: 700; }
+.scale-line { color: var(--muted); margin: 6px 0 0; }
 
 /* pair / group */
 .ctx-row { margin-bottom: 14px; }
@@ -384,7 +419,19 @@ table.heat td.self .ava { opacity: .35; }
 .gq .badge { align-self: flex-start; margin-top: 2px; }
 .gr { display: flex; gap: 8px; align-items: center; font-size: .9em; margin-top: 4px; }
 .gr .ava { width: 24px; height: 24px; font-size: .75em; }
-.gr .pass, .gr .fail { font-weight: 800; margin-left: 4px; }
+.gr { align-items: flex-start; }
+.gr-main { display: flex; flex-direction: column; min-width: 0; }
+.gr-guess { font-size: .88em; color: var(--muted); }
+.gr .pass, .gr .fail { font-weight: 800; margin-left: 2px; }
+/* answers side by side */
+.alist { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.ai { padding: 10px 12px; border-radius: 12px; background: var(--surface-2); }
+.aq { display: flex; flex-direction: column; gap: 2px; margin-bottom: 8px; }
+.ascale { background: var(--surface); margin: 4px 4px 8px; }
+.aw { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: .88em; }
+.aw span { display: inline-flex; align-items: center; gap: 6px; }
+.aw .ava { width: 22px; height: 22px; font-size: .72em; }
+.fold-b .seg { margin-top: 4px; }
 .pass { color: var(--ok); }
 .fail { color: var(--bad); }
 .q-card.g-card { min-height: 0; padding: 16px 18px; }
