@@ -49,7 +49,12 @@
       let saved = {};
       try { saved = JSON.parse(localStorage.getItem(this.key) || '{}') || {}; } catch (e) { saved = {}; }
       this.d = Object.assign({ theme: 'auto', fs: 16, lang: '', ctx: 'love', people: [], sel: [], mode: 'compat', games: [], gset: { mode: 'local', n: 20, cats: [] }, gfilter: 'all' }, saved);
-      this.d.people.forEach(p => { if (!p.ans || p.ans.length !== E.N) p.ans = ((p.ans || '') + E.blank()).slice(0, E.N); });
+      this.d.people.forEach(p => {
+        if (!p.ans || p.ans.length !== E.N) p.ans = ((p.ans || '') + E.blank()).slice(0, E.N);
+        // k = answer scale: profiles from before the 7-point scale keep k = 5; an unfinished old test continues on 7 points
+        if (p.k !== 7) p.k = 5;
+        if (p.k === 5 && p.todo.length) { p.ans = E.to7(p.ans); p.k = 7; }
+      });
     },
     save() { try { localStorage.setItem(this.key, JSON.stringify(this.d)); } catch (e) { /* private mode or quota */ } }
   };
@@ -65,19 +70,19 @@
   // profile cache keyed by answers + modules
   const cache = new Map();
   function prof(p) {
-    const key = p.mods.join() + '|' + p.ans;
+    const key = p.mods.join() + '|' + p.k + '|' + p.ans;
     let c = cache.get(p.id);
-    if (!c || c.key !== key) { c = { key, P: E.profile(p.ans, p.mods) }; cache.set(p.id, c); }
+    if (!c || c.key !== key) { c = { key, P: E.profile(p.ans, p.mods, p.k) }; cache.set(p.id, c); }
     return c.P;
   }
   const ent = p => ({ name: p.name, P: prof(p) });
 
-  function addPerson(name, mods, ans, imported) {
+  function addPerson(name, mods, ans, imported, k = 7) {
     const used = people().map(p => p.color);
     let c = 0;
     while (used.includes(c) && c < COLORS.length) c++;
     const p = { id: uid(), name: name.trim() || t('no_name'), color: c % COLORS.length, created: Date.now(),
-      mods: imported ? mods : [], todo: imported ? [] : mods, ans: ans || E.blank(), pos: 0, done: imported ? Date.now() : 0, imported: !!imported };
+      mods: imported ? mods : [], todo: imported ? [] : mods, ans: ans || E.blank(), k, pos: 0, done: imported ? Date.now() : 0, imported: !!imported };
     people().push(p); Store.save();
     return p;
   }
@@ -88,7 +93,7 @@
   const LEGAL = [['pricing.html', 'legal_pricing'], ['terms.html', 'legal_terms'], ['refund.html', 'legal_refund'], ['privacy.html', 'legal_privacy']];
   const legalLinks = (cls = '') => `<p class="legal-links ${cls}">${LEGAL.map(([h, l]) => `<a href="${h}">${te(l)}</a>`).join(' · ')}</p>`;
   function renderNav(root) {
-    const map = { '': '#/', p: '#/', take: '#/', new: '#/', import: '#/', compare: '#/compare', pair: '#/compare', group: '#/compare', game: '#/game', g: '#/game', theory: '#/theory', settings: '#/settings', buy: '#/settings' };
+    const map = { '': '#/', p: '#/', take: '#/', next: '#/', new: '#/', import: '#/', compare: '#/compare', pair: '#/compare', group: '#/compare', game: '#/game', g: '#/game', theory: '#/theory', settings: '#/settings', buy: '#/settings' };
     const cur = map[root] || '#/';
     $('#sidebar').innerHTML = `<div class="side-brand"><img src="icons/icon.svg" alt="">${te('app')}</div>` +
       NAV.map(([h, l, ic]) => `<a class="side-link${cur === h ? ' active' : ''}" href="${h}">${icon(ic)}${te(l)}</a>`).join('') +
@@ -311,7 +316,7 @@
     view().innerHTML = `
       <div class="hero"><h2>${te('tagline')}</h2>
         <p>${te('home_sub')}</p>
-        <div class="hero-actions"><a class="btn light" href="#/new">${icon('plus')}${te('new_person')}</a>
+        <div class="hero-actions"><a class="btn light" href="#/new">${icon('plus')}${te('start_test')}</a>
         ${dn.length >= 2 ? `<a class="btn ghost-light" href="${compareHref(dn.map(p => p.id))}">${icon('heart')}${te('compare_all')}</a>` : ''}
         <a class="btn ghost-light" href="#/game">${icon('game')}${te('game_title')}</a></div></div>
       ${ps.length ? `<h3>${te('participants')}</h3><div class="list">${ps.map(personRow).join('')}</div>` : ''}
@@ -324,46 +329,71 @@
   }
   const compareHref = ids => ids.length === 2 ? `#/pair/${ids[0]}/${ids[1]}` : `#/group/${ids.join(',')}`;
 
-  // ───────── new participant ─────────
-  const PRESETS = { full: E.MODS.slice(), quick: ['char', 'att'] };
+  // ───────── who takes the test ─────────
+  // One or several names at once; everyone takes the full test in turn on this device,
+  // and after the last one the comparison opens. Store.d.queue = still to go, Store.d.batch = the whole round.
+  const queue = () => (Store.d.queue || []).filter(id => { const p = byId(id); return p && p.todo.length; });
   function vNew() {
-    setTitle(t('new_person'), '#/');
-    let mods = PRESETS.full.slice(), preset = 'full', col = people().length % COLORS.length;
-    function draw() {
-      const n = mods.reduce((s, m) => s + E.modCount[m], 0);
-      $('#modsBox').innerHTML = D.modules.map(m => `<label class="chk${m.req ? ' req' : ''}"><input type="checkbox" value="${m.id}"${mods.includes(m.id) ? ' checked' : ''}${m.req ? ' disabled' : ''}>
-        <span><b>${esc(m.name)}</b> <span class="muted small">· ${esc(qWord(E.modCount[m.id]))}</span><br><span class="small muted">${esc(m.sub)}</span></span></label>`).join('');
-      $('#est').textContent = `${qWord(n)} · ${minutes(n)}`;
-      $$('[data-seg="preset"] button').forEach(b => b.classList.toggle('on', b.dataset.v === preset));
+    setTitle(t('who_takes'), '#/');
+    const N = E.N;
+    view().innerHTML = `<div class="card"><h2 class="card-h" style="margin-top:0">${te('who_takes')}</h2><p class="small muted">${te('who_hint')}</p>
+        <div id="names" class="names"></div>
+        <button class="btn ghost" id="addRow">${icon('plus')}${te('add_person_row')}</button></div>
+      <div class="card test-info">${icon('check')}<div><b>${te('test_info', { q: qWord(N), t: minutes(N) })}</b><br><span class="small muted">${te('honest_note')}</span></div></div>
+      <button class="btn block" id="startBtn">${te('start_test')}</button>`;
+    const box = $('#names');
+    const used = people().map(p => p.color);
+    const freeColor = k => { const free = COLORS.map((_, i) => i).filter(i => !used.includes(i)); return free.length ? free[k % free.length] : (people().length + k) % COLORS.length; };
+    function row(val = '') {
+      const k = box.children.length, d = document.createElement('div');
+      d.className = 'name-row';
+      d.innerHTML = `<span class="ava" style="background:${COLORS[freeColor(k)]}">${k + 1}</span>
+        <input class="input" maxlength="40" placeholder="${te(k ? 'name_ph2' : 'name_ph')}" autocomplete="off" value="${esc(val)}">
+        <button class="btn ghost icon-btn" data-rm aria-label="${te('remove')}">×</button>`;
+      box.appendChild(d);
+      renumber();
+      return $('input', d);
     }
-    view().innerHTML = `<div class="card">
-        <label class="lbl" for="nm">${te('name')}</label><input class="input" id="nm" maxlength="40" placeholder="${te('name_ph')}" autocomplete="off">
-        <label class="lbl">${te('color')}</label><div class="swatches">${COLORS.map((c, i) => `<button class="sw${i === col ? ' on' : ''}" data-c="${i}" style="background:${c}" aria-label="${te('color_n', { n: i + 1 })}"></button>`).join('')}</div>
-      </div>
-      <div class="card"><div class="row"><b style="flex:1">${te('what_take')}</b>${seg('preset', [['full', t('preset_full')], ['quick', t('preset_quick')], ['custom', t('preset_custom')]], preset)}</div>
-        <div id="modsBox" class="mods"></div><p class="muted small" id="est"></p></div>
-      <button class="btn block" id="startBtn">${te('start_test')}</button>
-      <p class="small muted center" style="margin-top:10px">${te('honest_note')}</p>`;
-    draw();
-    $('#nm').focus();
-    $('[data-seg="preset"]').onclick = e => {
-      const b = e.target.closest('button'); if (!b) return;
-      preset = b.dataset.v;
-      if (PRESETS[preset]) mods = PRESETS[preset].slice();
-      draw();
+    function renumber() {
+      $$('.name-row', box).forEach((r, i) => { $('.ava', r).textContent = i + 1; $('.ava', r).style.background = COLORS[freeColor(i)]; $('[data-rm]', r).hidden = box.children.length < 2; });
+    }
+    row().focus(); row();
+    $('#addRow').onclick = () => row().focus();
+    box.onclick = e => { const b = e.target.closest('[data-rm]'); if (b) { b.parentNode.remove(); renumber(); } };
+    box.onkeydown = e => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      const rows = $$('input', box), i = rows.indexOf(e.target);
+      if (i < rows.length - 1) rows[i + 1].focus();
+      else if (e.target.value.trim()) row().focus();
+      else start();
     };
-    $('#modsBox').onchange = () => { mods = ['char'].concat($$('#modsBox input:checked').map(i => i.value).filter(v => v !== 'char')); preset = 'custom'; draw(); };
-    $('.swatches').onclick = e => { const b = e.target.closest('.sw'); if (!b) return; col = +b.dataset.c; $$('.sw').forEach(x => x.classList.toggle('on', x === b)); };
-    const start = () => {
-      const name = $('#nm').value.trim();
-      if (!name) { $('#nm').focus(); toast(t('enter_name')); return; }
-      const ordered = E.MODS.filter(m => mods.includes(m));
-      const p = addPerson(name, ordered, null, false);
-      p.color = col; Store.save();
-      go('#/take/' + p.id);
-    };
+    function start() {
+      const names = $$('input', box).map(i => i.value.trim()).filter(Boolean);
+      if (!names.length) { $('input', box).focus(); toast(t('enter_name')); return; }
+      if (new Set(names.map(n => n.toLowerCase())).size < names.length) { toast(t('g_names_differ')); return; }
+      const ids = names.map((nm, k) => { const p = addPerson(nm, E.MODS.slice(), null, false); p.color = freeColor(k); return p.id; });
+      Store.d.queue = ids.slice(); Store.d.batch = ids.slice(); Store.save();
+      go('#/take/' + ids[0]);
+    }
     $('#startBtn').onclick = start;
-    $('#nm').onkeydown = e => { if (e.key === 'Enter') start(); };
+  }
+
+  // handoff between two people of the same round
+  function vNext(id, prevId) {
+    const p = byId(id), prev = byId(prevId);
+    if (!p || !p.todo.length) return go('#/');
+    setTitle(p.name, '#/');
+    const left = queue().length;
+    view().innerHTML = `<div class="card intro-card">
+        ${prev ? `<p class="next-saved">${icon('check')}${te('next_saved', { name: prev.name })}</p>` : ''}
+        <div class="duo">${ava(p, 'big')}</div>
+        <h2>${te('next_t', { name: p.name })}</h2><p>${te('next_hint', { name: p.name })}</p>
+        ${left > 1 ? `<p class="small muted">${te('next_left', { n: left })}</p>` : ''}
+        <button class="btn block" id="goBtn">${te('next_go', { name: p.name })}</button>
+        ${prev ? `<a class="btn ghost block" href="#/p/${prev.id}">${te('next_peek', { name: prev.name })}</a>` : ''}</div>`;
+    $('#goBtn').onclick = () => go('#/take/' + p.id);
+    keyHandler = e => { if (e.key === 'Enter') { e.preventDefault(); go('#/take/' + p.id); } };
   }
 
   // ───────── questionnaire runner ─────────
@@ -381,8 +411,15 @@
     function finish() {
       p.mods = E.MODS.filter(m => p.mods.includes(m) || p.todo.includes(m));
       p.todo = []; p.pos = 0; p.done = Date.now();
-      Store.save();
       keyHandler = null;
+      // someone outside the current round finishing an old test leaves the round alone
+      if (!(Store.d.queue || []).includes(p.id)) { Store.save(); return go(`#/p/${p.id}/new`); }
+      const next = queue()[0];
+      if (next) { Store.save(); return go(`#/next/${next}/${p.id}`); }
+      const batch = (Store.d.batch || []).filter(x => { const q = byId(x); return q && q.mods.length; });
+      delete Store.d.queue; delete Store.d.batch;
+      Store.save();
+      if (batch.length >= 2) { go(compareHref(batch)); toast(t('all_done')); return; }
       go(`#/p/${p.id}/new`);
     }
     function move(d) { p.pos = clamp(p.pos + d, 0, seq.length); Store.save(); render(); }
@@ -400,7 +437,7 @@
           <p class="small muted">${esc(qWord(cnt))} · ${esc(minutes(cnt))}</p>
           <button class="btn block" id="goBtn">${te(dn ? 'continue' : 'start')}</button>
           ${p.pos ? `<button class="btn ghost block" id="prevBtn">${icon('back')}${te('back')}</button>` : ''}</div>
-          <p class="small muted center">${th('keys_hint', { k1: '<kbd>1</kbd>', k5: '<kbd>5</kbd>', left: '<kbd>←</kbd>' })}</p>`;
+          <p class="small muted center">${th('keys_hint', { k1: '<kbd>1</kbd>', k5: `<kbd>${D.answers.length}</kbd>`, left: '<kbd>←</kbd>' })}</p>`;
         $('#goBtn').onclick = () => move(1);
         if ($('#prevBtn')) $('#prevBtn').onclick = () => move(-1);
         return;
@@ -408,7 +445,7 @@
       const it = D.items[st.i], m = D.modules.find(x => x.id === st.mod), cur = p.ans.charCodeAt(st.i) - 48;
       view().innerHTML = `${prog}<div class="q-wrap"><div class="q-meta"><span>${esc(m.name)}</span><span>${te('of', { a: dn + 1, b: total })}</span></div>
         <div class="card q-card"><div class="q-prompt">${esc(m.prompt)}</div><div class="q-text">${esc(it[2])}</div></div>
-        <div class="ans">${D.answers.map((a, i) => `<button data-v="${i + 1}" class="${cur === i + 1 ? 'on' : ''}"><span class="ak">${i + 1}</span>${esc(a)}</button>`).join('')}</div>
+        <div class="ans${D.answers.length === 7 ? ' scale7' : ''}">${D.answers.map((a, i) => `<button data-v="${i + 1}" class="${cur === i + 1 ? 'on' : ''}"><span class="ak">${i + 1}</span>${esc(a)}</button>`).join('')}</div>
         <div class="q-nav"><button class="btn ghost" id="prevBtn">${icon('back')}${te('back')}</button><span class="spacer"></span>
           <button class="btn ghost" id="skipBtn">${te(cur >= 1 ? 'next' : 'skip')}</button></div></div>`;
       $('.ans').onclick = e => { const b = e.target.closest('button'); if (b) answer(+b.dataset.v); };
@@ -425,7 +462,7 @@
     }
     keyHandler = e => {
       const st = seq[p.pos];
-      if (st && st.i != null && e.key >= '1' && e.key <= '5') { e.preventDefault(); answer(+e.key); }
+      if (st && st.i != null && e.key >= '1' && e.key <= String(D.answers.length)) { e.preventDefault(); answer(+e.key); }
       else if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); move(-1); }
       else if (e.key === 'ArrowRight' || e.key === 'Enter') { e.preventDefault(); move(1); }
     };
@@ -435,7 +472,27 @@
   // ───────── personal report ─────────
   const DOM_ORDER = ['O', 'C', 'E', 'A', 'N'];
   const domText = (k, pct) => { const d = D.domains[k]; return pct >= 65 ? d.hi : pct <= 35 ? d.lo : d.mid; };
-  const card = (title, body, id) => `<section class="card"${id ? ` id="${id}"` : ''}><h3 class="card-h">${esc(title)}</h3>${body}</section>`;
+  // collapsible report section: the title and the result stay visible, the details open on tap
+  const fold = (title, head, body, open) => `<details class="card fold"${open ? ' open' : ''}><summary><span class="fold-t"><span class="card-h">${esc(title)}</span>${head ? `<span class="fold-sub">${head}</span>` : ''}</span>${icon('chev', 'fold-ic')}</summary><div class="fold-b">${body}</div></details>`;
+  const firstSentence = s => { const m = String(s).match(/^.*?[.!?…。](?=\s|$)/); return m ? m[0] : String(s); };
+  // "Main points": the few most telling results in plain words, before the detailed sections
+  function secMain(P) {
+    const li = (label, text) => `<li><b>${esc(label)}</b> ${esc(text)}</li>`, rows = [];
+    const strong = DOM_ORDER.map(k => ({ k, v: P.dom[k].pct })).filter(x => Math.abs(x.v - 50) >= 15)
+      .sort((x, y) => Math.abs(y.v - 50) - Math.abs(x.v - 50)).slice(0, 3);
+    strong.forEach(x => rows.push(li(t('sum_lvl', { name: D.domains[x.k].name, level: level(x.v) }), domText(x.k, x.v))));
+    if (!strong.length) rows.push(`<li>${te('sum_balanced')}</li>`);
+    const T = D.temperaments[P.temp.id];
+    rows.push(li(t('sum_temp', { x: T.name }), firstSentence(T.d)));
+    if (P.att) { const A = D.attach[P.att.id]; rows.push(li(t('sum_att', { x: A.name }), firstSentence(A.d))); }
+    if (P.val) rows.push(li(t('sum_val'), P.val.top.map(k => S[k].name).join(D.eng.sep) + '.'));
+    if (P.conf) { const c = S[P.conf.top[0]]; rows.push(li(t('sum_conf'), `${c.name} — ${c.desc}.`)); }
+    if (P.care) rows.push(li(t('care_please'), S[P.care.rank[0]].how + '.'));
+    const R = D.roles[P.roles[0].id];
+    rows.push(li(t('sum_role'), `${R.name} — ${R.d}.`));
+    return `<section class="card main-card"><h3 class="card-h">${icon('bulb')}${te('sum_title')}</h3><ul class="sum">${rows.join('')}</ul>
+      <p class="note">${te('sum_read')}</p></section>`;
+  }
   const more = href => `<a href="${href}">${te('more')}</a>`;
 
   function secSummary(p, P) {
@@ -460,13 +517,14 @@
     const h = P.pct.hon;
     const hon = `<div class="dom"><div class="dom-h"><b>${esc(S.hon.name)}</b><span class="muted small">${te('hon_alt')}</span><span class="lvl">${esc(level(h))}</span></div>
       ${bar('', h, col)}<p class="small">${esc(h >= 50 ? S.hon.hi : S.hon.lo)}</p></div>`;
-    return card(t('big5_title'), blocks + hon + `<p class="note">${te('scale_note')}</p>`);
+    const head = DOM_ORDER.map(k => `${esc(D.domains[k].name)} <b>${r0(P.dom[k].pct)}</b>`).join(' · ');
+    return fold(t('big5_title'), head, blocks + hon + `<p class="note">${te('scale_note')}</p>`);
   }
   function secType(P) {
     const T = D.types[P.type.code], L = P.type.letters;
     const weak = L.map((x, i) => ({ x, i })).filter(o => o.x.p < 58);
     const alts = weak.map(o => { const c = P.type.code.split(''); c[o.i] = o.x.o; return c.join(''); });
-    return card(t('type_title'), `<div class="tcode">${L.map(x => `<div class="tl"><b>${x.l}</b><small>${r0(x.p)}%</small></div>`).join('')}</div>
+    return fold(t('type_title'), `<b>${esc(P.type.code)}</b> ${esc(T.name)}`, `<div class="tcode">${L.map(x => `<div class="tl"><b>${x.l}</b><small>${r0(x.p)}%</small></div>`).join('')}</div>
       <h3 class="sub-h">${esc(T.name)}</h3><p class="muted">${esc(T.tag)}</p><p>${esc(T.d)}</p>
       <div class="pm"><div><h4>${te('strengths')}</h4><ul>${T.plus.map(s => `<li>${esc(s)}</li>`).join('')}</ul></div>
       <div><h4>${te('growth')}</h4><ul>${T.minus.map(s => `<li>${esc(s)}</li>`).join('')}</ul></div></div>
@@ -476,7 +534,7 @@
   }
   function secTemp(P, p) {
     const T = D.temperaments[P.temp.id], A = D.temperaments[P.temp.alt];
-    return card(t('temp_title'), `<div class="split">${tempMap([Object.assign(tempPt(P), { c: color(p), t: p.name })])}<div>
+    return fold(t('temp_title'), esc(T.name), `<div class="split">${tempMap([Object.assign(tempPt(P), { c: color(p), t: p.name })])}<div>
       <h3 class="sub-h">${esc(T.name)} <span class="muted small">· ${esc(T.axis)}</span></h3><p>${esc(T.d)}</p><p class="small">${esc(T.stress)}</p>
       <p class="small muted">${te(P.temp.mixed ? 'temp_mixed' : 'temp_second', { x: A.name })}</p>
       </div></div><p class="note">${te('temp_note')} ${more('#/theory/temp')}</p>`);
@@ -484,7 +542,7 @@
   function secAtt(P, p) {
     if (!P.att) return '';
     const A = D.attach[P.att.id];
-    return card(t('att_title'), `<div class="split">${attMap([{ x: P.att.avo, y: P.att.anx, c: color(p), t: p.name }])}<div>
+    return fold(t('att_title'), te('att_style', { x: A.name }), `<div class="split">${attMap([{ x: P.att.avo, y: P.att.anx, c: color(p), t: p.name }])}<div>
       <h3 class="sub-h">${te('att_style', { x: A.name })}</h3><p>${esc(A.d)}</p><p class="small tip">${icon('bulb')}<span>${esc(A.tip)}</span></p>
       ${bar(S.anx.name, P.s.anx, 'var(--primary)')}${bar(S.avo.name, P.s.avo, 'var(--primary)')}</div></div>
       <p class="note">${te('att_note')} ${more('#/theory/attach')}</p>`);
@@ -494,7 +552,7 @@
     const c = P.val.c, ho = P.val.ho;
     const oc = (ho.open || 0) - (ho.cons || 0), st = (ho.self || 0) - (ho.trans || 0);
     const t1 = t(oc > 10 ? 'val_oc_hi' : oc < -10 ? 'val_oc_lo' : 'val_oc_mid'), t2 = t(st > 10 ? 'val_st_hi' : st < -10 ? 'val_st_lo' : 'val_st_mid');
-    return card(t('val_title'), `<div class="split">${radar([{ c, col: color(p) }])}<div>
+    return fold(t('val_title'), esc(P.val.top.map(k => S[k].name).join(D.eng.sep)), `<div class="split">${radar([{ c, col: color(p) }])}<div>
       <h4>${te('val_top')}</h4><ol class="tops">${P.val.top.map(k => `<li><b>${esc(S[k].name)}</b> — ${esc(S[k].desc)}</li>`).join('')}</ol>
       <p>${esc(t1)} ${esc(t2)}</p></div></div>
       <p class="note">${te('val_note')} ${more('#/theory/values')}</p>`);
@@ -502,14 +560,14 @@
   function secMor(P) {
     if (!P.mor) return '';
     const ids = E.modScales.mor, m = P.mor;
-    return card(t('mor_title'), ids.map(k => bar(S[k].name, P.pct[k], 'var(--primary)', S[k].desc)).join('') +
+    return fold(t('mor_title'), te(m.bind >= m.ind - 10 ? 'mor_bind_s' : 'mor_ind_s'), ids.map(k => bar(S[k].name, P.pct[k], 'var(--primary)', S[k].desc)).join('') +
       `<p>${te(m.bind >= m.ind - 10 ? 'mor_bind' : 'mor_ind')}</p><p class="note"><a href="#/theory/moral">${te('mor_link')}</a></p>`);
   }
   function secMind(P) {
     if (!P.mind) return '';
     const T = D.thinking[P.mind.think], ids = ['ana', 'intu', 'clo', 'grow', 'sens', 'morn'];
     const ext = ids.filter(k => P.pct[k] >= 65 || P.pct[k] <= 35).map(k => `<li>${esc(P.pct[k] >= 65 ? S[k].hi : S[k].lo)}</li>`).join('');
-    return card(t('mind_title'), `<h3 class="sub-h">${esc(T.name)}</h3><p>${esc(T.d)}</p>
+    return fold(t('mind_title'), esc(T.name) + (P.mind.chrono ? ' · ' + esc(D.chrono[P.mind.chrono].name) : ''), `<h3 class="sub-h">${esc(T.name)}</h3><p>${esc(T.d)}</p>
       ${ids.map(k => bar(S[k].name, P.pct[k], 'var(--primary)')).join('')}
       ${ext ? `<ul class="small tight">${ext}</ul>` : ''}
       ${P.mind.chrono ? `<p><b>${te('chrono_label')}</b> ${esc(D.chrono[P.mind.chrono].full)}</p>` : ''}
@@ -518,7 +576,7 @@
   function secConf(P) {
     if (!P.conf) return '';
     const top = P.conf.top[0], second = P.conf.top[1], cls = { low: 'ok', mid: 'warn', high: 'bad' }[P.conf.risk];
-    return card(t('conf_title'), `<h3 class="sub-h">${te('conf_lead', { x: S[top].name })}</h3><p>${esc(S[top].hi)}</p>
+    return fold(t('conf_title'), esc(S[top].name), `<h3 class="sub-h">${te('conf_lead', { x: S[top].name })}</h3><p>${esc(S[top].hi)}</p>
       <p class="small muted">${te('conf_second', { x: S[second].name })}</p>
       ${['col', 'cpr', 'acc', 'avd', 'cmp'].map(k => bar(S[k].name, P.pct[k], 'var(--primary)', S[k].desc)).join('')}
       <div class="risk ${cls}"><b>${te('risk_' + P.conf.risk)}</b> ${te(P.conf.risk === 'low' ? 'risk_ok_text' : 'risk_bad_text')}</div>
@@ -527,12 +585,12 @@
   function secCare(P) {
     if (!P.care) return '';
     const r = P.care.rank;
-    return card(t('care_title'), r.map(k => bar(S[k].name, P.s[k], 'var(--primary)')).join('') +
+    return fold(t('care_title'), esc(S[r[0]].name), r.map(k => bar(S[k].name, P.s[k], 'var(--primary)')).join('') +
       `<p><b>${te('care_please')}</b> ${te('care_line', { a: S[r[0]].how, b: S[r[1]].how })}</p><p class="note">${te('care_note')} ${more('#/theory/care')}</p>`);
   }
   function secRoles(P) {
     const [a, b] = P.roles;
-    return card(t('roles_title'), `<p>${th('roles_line', { a: `<b>${esc(D.roles[a.id].name)}</b>`, ad: esc(D.roles[a.id].d), b: `<b>${esc(D.roles[b.id].name)}</b>`, bd: esc(D.roles[b.id].d) })}</p>
+    return fold(t('roles_title'), esc(D.roles[a.id].name), `<p>${th('roles_line', { a: `<b>${esc(D.roles[a.id].name)}</b>`, ad: esc(D.roles[a.id].d), b: `<b>${esc(D.roles[b.id].name)}</b>`, bd: esc(D.roles[b.id].d) })}</p>
       ${P.roles.map(x => bar(D.roles[x.id].name, x.v, 'var(--primary)')).join('')}
       <p class="note">${te('roles_note')}</p>`);
   }
@@ -544,28 +602,33 @@
     const P = prof(p);
     const missing = E.MODS.filter(m => !p.mods.includes(m));
     const others = done().filter(x => x.id !== p.id);
+    const nq = (Store.d.queue || []).includes(p.id) && byId(queue()[0]); // the round is not over yet
     view().innerHTML = `
-      ${flag === 'new' ? `<div class="card done-card">${icon('check')}<div><b>${te('done_title')}</b> ${te('done_saved')}${others.length ? ' ' + te('done_can_compare') : ''}
+      ${nq ? `<div class="card done-card">${icon('users')}<div><b>${te('next_t', { name: nq.name })}</b>
+        <div class="row" style="margin-top:8px"><a class="btn" href="#/next/${nq.id}/${p.id}">${te('next_pass')}</a></div></div></div>` : ''}
+      ${flag === 'new' && !nq ? `<div class="card done-card">${icon('check')}<div><b>${te('done_title')}</b> ${te('done_saved')}${others.length ? ' ' + te('done_can_compare') : ''}
         <div class="row" style="margin-top:8px"><a class="btn" href="#/new">${te('next_person')}</a>${others.length ? `<a class="btn secondary" href="${compareHref([p.id].concat(others.map(o => o.id)))}">${te('compare')}</a>` : ''}</div></div></div>` : ''}
       ${p.todo.length ? `<div class="card done-card warn">${icon('warn')}<div>${te('unfinished')} <a href="#/take/${p.id}">${te('continue_test')}</a></div></div>` : ''}
       ${secSummary(p, P)}
+      ${secMain(P)}
       <div class="row toolbar"><button class="btn secondary" id="shareBtn">${icon('share')}${te('share')}</button>
         ${others.length ? `<button class="btn secondary" id="cmpBtn">${icon('heart')}${te('compare_with')}</button>` : ''}</div>
-      ${secBig5(P)}${secType(P)}${secTemp(P, p)}${secAtt(P, p)}${secVal(P, p)}${secMor(P)}${secMind(P)}${secConf(P)}${secCare(P)}${secRoles(P)}
+      ${secBig5(P)}${secType(P)}${secTemp(P, p)}${secAtt(P, p)}${secVal(P, p)}${secMor(P)}${secMind(P)}${secConf(P)}${secCare(P)}${secRoles(P)}${answersFold([p])}
       <section class="card"><h3 class="card-h">${te('manage')}</h3>
         ${missing.length && !p.todo.length ? `<p>${te('missing_blocks', { list: missing.map(m => quote(modName(m))).join(D.eng.sep) })}</p>
           <p><button class="btn" id="moreBtn">${te('take_missing', { q: qWord(missing.reduce((s, m) => s + E.modCount[m], 0)) })}</button></p>` : ''}
         <div class="row"><button class="btn secondary" id="renBtn">${te('rename')}</button><button class="btn secondary" id="retakeBtn">${te('retake')}</button><button class="btn danger" id="delBtn">${te('delete')}</button></div>
         <p class="note">${te('report_note')}</p></section>`;
     $('#shareBtn').onclick = () => shareModal([p]);
+    bindAnswers([p]);
     if ($('#cmpBtn')) $('#cmpBtn').onclick = () => openModal(`<h2>${te('compare_x_with', { name: p.name })}</h2><div class="list">${others.map(o =>
       `<a class="list-item" href="#/pair/${p.id}/${o.id}" data-close>${ava(o)}<span class="li-main"><span class="li-title">${esc(o.name)}</span></span>${icon('chev', 'chev')}</a>`).join('')}</div>
       ${others.length > 1 ? `<p style="margin-top:12px"><a class="btn block" data-close href="${compareHref([p.id].concat(others.map(o => o.id)))}">${te('compare_with_all')}</a></p>` : ''}`);
-    if ($('#moreBtn')) $('#moreBtn').onclick = () => { p.todo = missing; p.pos = 0; Store.save(); go('#/take/' + p.id); };
+    if ($('#moreBtn')) $('#moreBtn').onclick = () => { if (p.k === 5) { p.ans = E.to7(p.ans); p.k = 7; } p.todo = missing; p.pos = 0; Store.save(); go('#/take/' + p.id); };
     $('#renBtn').onclick = () => { const n = prompt(t('new_name'), p.name); if (n && n.trim()) { p.name = n.trim().slice(0, 40); Store.save(); route(); } };
     $('#retakeBtn').onclick = () => {
       if (!confirm(t('retake_confirm', { name: p.name }))) return;
-      p.todo = p.mods.slice(); p.mods = []; p.ans = E.blank(); p.pos = 0; p.imported = false; Store.save(); go('#/take/' + p.id);
+      p.todo = p.mods.slice(); p.mods = []; p.ans = E.blank(); p.k = 7; p.pos = 0; p.imported = false; Store.save(); go('#/take/' + p.id);
     };
     $('#delBtn').onclick = () => {
       if (!confirm(t('delete_confirm', { name: p.name }))) return;
@@ -575,14 +638,59 @@
     };
   }
 
+  // ───────── answers side by side ─────────
+  // answer of person p to item i on the 7-point labels (1..7, 0 = skipped); old 5-point answers map onto the same labels
+  const ans7 = (p, i) => { const c = p.ans[i]; return c === '0' ? 0 : +(p.k === 5 ? E.to7(c) : c); };
+  const AFILTERS = [['diff', 'ans_f_diff'], ['same', 'ans_f_same'], ['all', 'g_f_all']];
+  function answerRows(list) {
+    return D.items.map(([s, , text], i) => {
+      const mod = S[s].mod;
+      if (!list.every(p => p.mods.includes(mod))) return null;
+      const v = list.map(p => ans7(p, i)), got = v.filter(x => x > 0);
+      const spread = got.length === list.length && got.length > 1 ? Math.max(...got) - Math.min(...got) : -1;
+      return { i, mod, text, v, spread };
+    }).filter(Boolean);
+  }
+  function answersFold(list) {
+    const rows = answerRows(list), one = list.length === 1;
+    const head = one ? te('ans_done', { a: rows.filter(r => r.v[0]).length, b: rows.length })
+      : te('ans_sub', { same: rows.filter(r => r.spread >= 0 && r.spread <= 1).length, diff: rows.filter(r => r.spread >= 3).length });
+    const f = Store.d.afilter || 'diff';
+    return fold(t(one ? 'ans_mine' : 'ans_title'), head, `<p class="small muted">${te('ans_hint', { lo: D.answers[0], hi: D.answers[D.answers.length - 1] })}</p>
+      ${one ? '' : `${legend(list)}${seg('afilter', AFILTERS.map(([v, k]) => [v, t(k)]), f)}`}<div class="alist" id="alist"></div>`);
+  }
+  function bindAnswers(list) {
+    const box = $('#alist'); if (!box) return;
+    const rows = answerRows(list), one = list.length === 1, last = D.answers.length - 1;
+    const draw = () => {
+      const f = one ? 'all' : Store.d.afilter || 'diff';
+      const shown = f === 'diff' ? rows.filter(r => r.spread >= 3).sort((a, b) => b.spread - a.spread || a.i - b.i)
+        : f === 'same' ? rows.filter(r => r.spread >= 0 && r.spread <= 1) : rows;
+      box.innerHTML = shown.map(r => `<div class="ai"><div class="aq"><span class="muted small">${esc(modName(r.mod))}</span><b>${esc(r.text)}</b></div>
+        <div class="track multi ascale">${r.v.map((v, k) => v ? `<span class="dot" style="left:${(4 + (v - 1) / last * 92).toFixed(1)}%;background:${color(list[k])}"></span>` : '').join('')}</div>
+        <div class="aw">${r.v.map((v, k) => `<span>${one ? '' : ava(list[k]) + esc(list[k].name) + ': '}<b>${v ? esc(D.answers[v - 1]) : te('ans_skip')}</b></span>`).join('')}</div></div>`).join('')
+        || `<p class="muted">${te('g_none')}</p>`;
+    };
+    // the list is drawn when the section is opened, so a closed section costs nothing
+    const fd = box.closest('details');
+    fd.addEventListener('toggle', () => { if (fd.open && !box.childElementCount) draw(); });
+    const sg = $('[data-seg="afilter"]');
+    if (sg) sg.onclick = e => {
+      const b = e.target.closest('button'); if (!b) return;
+      Store.d.afilter = b.dataset.v; Store.save();
+      $$('button', sg).forEach(x => x.classList.toggle('on', x === b));
+      draw();
+    };
+  }
+
   // ───────── sharing / import ─────────
   const webBase = () => /^https?:$/.test(location.protocol) ? location.href.split('#')[0].split('?')[0] : '';
-  const shareLine = p => `${p.name}: ${E.encode(p.mods, p.ans)}`;
+  const shareLine = p => `${p.name}: ${E.encode(p.mods, p.ans, p.k)}`;
   function shareModal(list) {
     const base = webBase();
     const one = list.length === 1 ? list[0] : null;
     const text = list.map(shareLine).join('\n');
-    const link = one && base ? `${base}#/import/${E.encode(one.mods, one.ans)}/${encodeURIComponent(one.name)}` : '';
+    const link = one && base ? `${base}#/import/${E.encode(one.mods, one.ans, one.k)}/${encodeURIComponent(one.name)}` : '';
     openModal(`<h2>${te(one ? 'share_result' : 'share_group')}</h2>
       <p class="small muted">${te(link ? 'share_hint_link' : 'share_hint_code')}</p>
       ${link ? `<label class="lbl">${te('link')}</label><div class="copy"><input class="input" readonly value="${esc(link)}"><button class="btn secondary" data-copy="${esc(link)}">${te('copy')}</button></div>` : ''}
@@ -613,9 +721,9 @@
       const d = E.decode(code);
       if (!d || !d.mods.includes('char')) { bad++; return; }
       const nm = (name || '').trim().slice(0, 40) || t('no_name');
-      const ex = people().find(p => p.name === nm && p.ans === d.ans && p.mods.join() === d.mods.join());
+      const ex = people().find(p => p.name === nm && p.ans === d.ans && p.k === d.k && p.mods.join() === d.mods.join());
       if (ex) { dup.push(ex); return; }
-      added.push(addPerson(nm, d.mods, d.ans, true));
+      added.push(addPerson(nm, d.mods, d.ans, true, d.k));
     });
     return { added, dup, bad };
   }
@@ -648,15 +756,15 @@
     try { nm = decodeURIComponent(name || ''); } catch (e) { nm = name || ''; }
     const d = E.decode(code);
     if (!d || !d.mods.includes('char')) { view().innerHTML = `<div class="card empty">${te('link_broken')}<p><a class="btn" href="#/">${te('to_home')}</a></p></div>`; return; }
-    const ex = people().find(p => p.ans === d.ans && p.mods.join() === d.mods.join());
-    const P = E.profile(d.ans, d.mods);
+    const ex = people().find(p => p.ans === d.ans && p.k === d.k && p.mods.join() === d.mods.join());
+    const P = E.profile(d.ans, d.mods, d.k);
     view().innerHTML = `<div class="card"><h2>${te('sent_profile')}</h2>
       <p><b>${esc(P.type.code)}</b> ${esc(quote(D.types[P.type.code].name))} · ${esc(D.temperaments[P.temp.id].name)} · ${te('blocks_n', { a: d.mods.length, b: E.MODS.length })}</p>
       <label class="lbl" for="nm">${te('name')}</label><input class="input" id="nm" maxlength="40" value="${esc(nm)}">
       ${ex ? `<p class="small muted">${te('exists')} <a href="#/p/${ex.id}">${esc(ex.name)}</a></p>` : ''}
       <button class="btn block" id="addBtn" style="margin-top:12px">${te('add_to_people')}</button>
       <p class="small muted" style="margin-top:10px">${te('then_take')}</p></div>`;
-    $('#addBtn').onclick = () => { const p = addPerson($('#nm').value, d.mods, d.ans, true); history.replaceState(null, '', '#/p/' + p.id); route(); };
+    $('#addBtn').onclick = () => { const p = addPerson($('#nm').value, d.mods, d.ans, true, d.k); history.replaceState(null, '', '#/p/' + p.id); route(); };
   }
 
   // ───────── compare: picker ─────────
@@ -720,26 +828,28 @@
     view().innerHTML = `${ctxBar()}
       <div class="card pair-head"><div class="duo">${ava(a, 'big')}<span class="amp">+</span>${ava(b, 'big')}</div>
         <div class="rings">${ring(r.compat, t('ring_compat', { ctx: ctxName }), 'var(--primary)')}${ring(r.sim, t('similarity'), 'var(--accent)')}</div>
-        <p class="center">${th('compat_verdict', { label: `<b>${esc(r.label)}</b>`, ctx: esc(ctxName) })}<br><span class="small muted">${te('sim_expl')}</span></p></div>
+        <p class="center">${th('compat_verdict', { label: `<b>${esc(r.label)}</b>`, ctx: esc(ctxName) })}<br><span class="small muted">${te('sim_expl')}</span></p>
+        <p class="center small scale-line">${te('compat_scale', D.eng.labels)}</p></div>
+      ${answersFold([a, b])}
       ${full ? '' : lockCard('full_pair_t', 'full_pair_text') + gameCardForPair(a, b)}${full ? `
-      <section class="card"><h3 class="card-h">${te('parts_title')}</h3>${r.parts.map(x => `<div class="part">${bar(x.name, x.v, heatBar(x.v))}<div class="small muted part-h">${esc(x.hint)} · ${te('weight', { n: r0(x.w * 100) })}</div></div>`).join('')}
-        ${miss.length ? `<p class="note">${te('missing_both', { list: miss.map(m => quote(modName(m))).join(D.eng.sep) })}</p>` : ''}</section>
       <section class="card"><h3 class="card-h">${te('strengths')}</h3>${li(r.plus, 'plus', 'check')}</section>
       ${r.minus.length ? `<section class="card"><h3 class="card-h">${te('frictions')}</h3>${li(r.minus, 'minus', 'warn')}</section>` : ''}
       ${r.tips.length ? `<section class="card"><h3 class="card-h">${te('tips')}</h3>${li(r.tips, 'tip', 'bulb')}</section>` : ''}
       ${gameCardForPair(a, b)}
+      ${fold(t('parts_title'), te('parts_sub'), r.parts.map(x => `<div class="part">${bar(x.name, x.v, heatBar(x.v))}<div class="small muted part-h">${esc(x.hint)} · ${te('weight', { n: r0(x.w * 100) })}</div></div>`).join('') +
+        (miss.length ? `<p class="note">${te('missing_both', { list: miss.map(m => quote(modName(m))).join(D.eng.sep) })}</p>` : ''))}
       <section class="card"><h3 class="card-h">${te('brief')}</h3><div class="tbl"><table class="cmp-t"><tr><th></th><th>${ava(a)} ${esc(a.name)}</th><th>${ava(b)} ${esc(b.name)}</th></tr>
         ${rowsCmp.map(([l, f]) => `<tr><td class="muted">${te(l)}</td><td>${f(pa)}</td><td>${f(pb)}</td></tr>`).join('')}</table></div></section>
-      <section class="card"><h3 class="card-h">${te('side_by_side')}</h3>${legend([a, b])}
-        ${DOM_ORDER.map(k => dots(D.domains[k].name, [{ v: pa.dom[k].pct, c: color(a), t: a.name }, { v: pb.dom[k].pct, c: color(b), t: b.name }])).join('')}
-        ${dots(S.hon.name, [{ v: pa.pct.hon, c: color(a), t: a.name }, { v: pb.pct.hon, c: color(b), t: b.name }])}
-        <details><summary>${te('aspects10')}</summary>${E.modScales.char.filter(k => k !== 'hon').map(k => dots(S[k].name, [{ v: pa.pct[k], c: color(a), t: a.name }, { v: pb.pct[k], c: color(b), t: b.name }])).join('')}</details></section>
-      <section class="card"><h3 class="card-h">${te(both('att') ? 'temp_att' : 'temp_title')}</h3><div class="maps">
+      ${fold(t('side_by_side'), te('side_sub'), legend([a, b]) +
+        DOM_ORDER.map(k => dots(D.domains[k].name, [{ v: pa.dom[k].pct, c: color(a), t: a.name }, { v: pb.dom[k].pct, c: color(b), t: b.name }])).join('') +
+        dots(S.hon.name, [{ v: pa.pct.hon, c: color(a), t: a.name }, { v: pb.pct.hon, c: color(b), t: b.name }]) +
+        `<details><summary>${te('aspects10')}</summary>${E.modScales.char.filter(k => k !== 'hon').map(k => dots(S[k].name, [{ v: pa.pct[k], c: color(a), t: a.name }, { v: pb.pct[k], c: color(b), t: b.name }])).join('')}</details>`)}
+      ${fold(t(both('att') ? 'temp_att' : 'temp_title'), te('maps_sub'), `<div class="maps">
         ${tempMap([Object.assign(tempPt(pa), { c: color(a), t: a.name }), Object.assign(tempPt(pb), { c: color(b), t: b.name })])}
-        ${both('att') ? attMap([{ x: pa.att.avo, y: pa.att.anx, c: color(a), t: a.name }, { x: pb.att.avo, y: pb.att.anx, c: color(b), t: b.name }]) : ''}</div></section>
-      ${both('val') ? `<section class="card"><h3 class="card-h">${te('val_title')}</h3>${legend([a, b])}${radar([{ c: pa.val.c, col: color(a) }, { c: pb.val.c, col: color(b) }])}</section>` : ''}` : ''}
+        ${both('att') ? attMap([{ x: pa.att.avo, y: pa.att.anx, c: color(a), t: a.name }, { x: pb.att.avo, y: pb.att.anx, c: color(b), t: b.name }]) : ''}</div>`)}
+      ${both('val') ? fold(t('val_title'), te('vals_sub'), legend([a, b]) + radar([{ c: pa.val.c, col: color(a) }, { c: pb.val.c, col: color(b) }])) : ''}` : ''}
       <p class="note">${te('pair_note')} <a href="#/theory/compat">${te('science')}</a></p>`;
-    bindCtx();
+    bindCtx(); bindAnswers([a, b]);
   }
 
   // ───────── group report ─────────
@@ -767,6 +877,7 @@
         <div class="tbl"><table class="heat"><tr><th></th>${list.map(p => `<th>${ava(p)}</th>`).join('')}</tr>
         ${list.map((p, i) => `<tr><th class="hn">${ava(p)}<span>${esc(p.name)}</span></th>${list.map((_, j) => cell(i, j)).join('')}</tr>`).join('')}</table></div>
         <p class="note">${te('matrix_note')}</p></section>
+      ${answersFold(list)}
       ${full ? `<div class="grid hl">${hl.map(([k, p, s]) => `<a class="tile" href="#/pair/${list[p.i].id}/${list[p.j].id}"><span class="tile-main"><span class="muted small">${te(k)}</span><b>${pn(p)}</b><span class="small">${esc(s)}</span></span></a>`).join('')}</div>
       <section class="card"><h3 class="card-h">${te('portrait')}</h3>
         ${g.notes.length ? `<ul class="ins tip">${g.notes.map(x => `<li>${icon('bulb')}<span>${esc(x)}</span></li>`).join('')}</ul>` : `<p>${te('balanced')}</p>`}
@@ -781,7 +892,7 @@
       <section class="card"><h3 class="card-h">${te('members')}</h3><div class="list">${list.map(p => { const P = prof(p); return `<a class="list-item" href="#/p/${p.id}">${ava(p)}<span class="li-main"><span class="li-title">${esc(p.name)}</span>
         <span class="li-sub"><b>${P.type.code}</b> ${esc(D.types[P.type.code].name)} · ${esc(D.temperaments[P.temp.id].name)} · ${esc(D.roles[P.roles[0].id].name)}</span></span>${icon('chev', 'chev')}</a>`; }).join('')}</div></section>
       <p class="note">${te('group_note')} <a href="#/theory/compat">${te('science_compat')}</a></p>`;
-    bindCtx();
+    bindCtx(); bindAnswers(list);
     $('[data-seg="mode"]').onclick = e => { const b = e.target.closest('button'); if (!b) return; Store.d.mode = b.dataset.v; Store.save(); route(); };
   }
 
@@ -1002,8 +1113,9 @@
     const s = GM.score(g), filter = Store.d.gfilter || 'all';
     const verdict = s.winner < 0 ? t('g_draw') : t('g_winner', { name: g.players[s.winner].name });
     const opt = (id, i) => esc(GD.q[id][2 + i]);
-    const row = (x, k) => `<div class="gr">${gAva(g, k)}<span>${th('g_choice', { x: `<b>${opt(x.id, x.own[k])}</b>` })} · ${th('g_guess_l', { x: opt(x.id, x.guess[k]) })}
-      <span class="${x.ok[k] ? 'pass' : 'fail'}">${x.ok[k] ? '✓' : '✗'}</span></span></div>`;
+    // each player's own choice, and under it what the partner guessed about it
+    const row = (x, k) => { const o = 1 - k; return `<div class="gr">${gAva(g, k)}<span class="gr-main"><span><b>${esc(g.players[k].name)}:</b> ${opt(x.id, x.own[k])}</span>
+      <span class="gr-guess">${te('g_thought', { name: g.players[o].name })} ${opt(x.id, x.guess[o])} <span class="${x.ok[o] ? 'pass' : 'fail'}">${x.ok[o] ? '✓' : '✗'}</span></span></span></div>`; };
     const shown = s.items.filter(x => filter === 'miss' ? !(x.ok[0] && x.ok[1]) : filter === 'eq' ? x.eq : true);
     view().innerHTML = `<div class="card pair-head"><div class="rings">${ring(s.kp[0], t('g_guesses', { name: A.name }), gColor(g, 0))}${ring(s.kp[1], t('g_guesses', { name: B.name }), gColor(g, 1))}</div>
         <p class="center"><b>${icon('trophy', 'inline-ico')}${esc(verdict)}</b><br><span class="muted">${esc(GM.level(Math.max(s.kp[0], s.kp[1])))} · ${te('g_same', { a: s.same, b: s.n, p: s.sp })}</span></p>
@@ -1015,6 +1127,7 @@
       ${s.talk.length ? `<section class="card"><h3 class="card-h">${te('g_talk')}</h3><p class="small muted">${te('g_talk_hint')}</p>
         <ul class="ins tip">${s.talk.slice(0, 6).map(x => `<li>${icon('bulb')}<span><b>${esc(GD.q[x.id][1])}</b><br>${esc(A.name)}: ${opt(x.id, x.own[0])} · ${esc(B.name)}: ${opt(x.id, x.own[1])}</span></li>`).join('')}</ul></section>` : ''}
       <section class="card"><div class="row"><h3 class="card-h" style="flex:1;margin:0">${te('g_all_answers')}</h3>${seg('gfilter', [['all', t('g_f_all')], ['miss', t('g_f_miss')], ['eq', t('g_f_eq')]], filter)}</div>
+        <p class="small muted">${te('g_rows_hint')}</p>
         <div class="glist">${shown.map(x => `<div class="gi"><div class="gq"><span class="muted small">${esc(catName(x.cat))}</span><b>${esc(GD.q[x.id][1])}</b>${x.eq ? `<span class="badge ok">${te('g_eq_badge')}</span>` : ''}</div>${row(x, 0)}${row(x, 1)}</div>`).join('') || `<p class="muted">${te('g_none')}</p>`}</div></section>
       <div class="row"><button class="btn danger" id="delBtn">${te('g_delete')}</button></div>`;
     $('[data-seg="gfilter"]').onclick = e => { const b = e.target.closest('button'); if (!b) return; Store.d.gfilter = b.dataset.v; Store.save(); route(); };
@@ -1142,6 +1255,7 @@
       case '': case undefined: vHome(); break;
       case 'new': vNew(); break;
       case 'take': vTake(b); break;
+      case 'next': vNext(b, c); break;
       case 'p': vReport(b, c); break;
       case 'import': vImport(b, c); break;
       case 'compare': vCompare(); break;
@@ -1183,7 +1297,8 @@
       (Array.isArray(x.people) ? x.people : []).forEach(p => {
         if (!p || typeof p.id !== 'string' || ids.has(p.id) || typeof p.name !== 'string' || typeof p.ans !== 'string' || !Array.isArray(p.mods) || !Array.isArray(p.todo)) return;
         p.mods = E.MODS.filter(k => p.mods.includes(k)); p.todo = E.MODS.filter(k => p.todo.includes(k));
-        p.ans = (p.ans.replace(/[^0-5]/g, '0') + E.blank()).slice(0, E.N); p.color = (p.color | 0) % COLORS.length; p.pos = p.pos | 0;
+        p.k = p.k === 7 ? 7 : 5; p.ans = (p.ans.replace(p.k === 7 ? /[^0-7]/g : /[^0-5]/g, '0') + E.blank()).slice(0, E.N); p.color = (p.color | 0) % COLORS.length; p.pos = p.pos | 0;
+        if (p.k === 5 && p.todo.length) { p.ans = E.to7(p.ans); p.k = 7; }
         people().push(p); added++;
       });
       (Array.isArray(x.games) ? x.games : []).forEach(g => {

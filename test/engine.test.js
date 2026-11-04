@@ -12,14 +12,14 @@ const ALL = Engine.MODS;
 
 // deterministic pseudo-random answers
 function rng(seed) { return () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; }; }
-function randomAns(seed, mods = ALL) {
+function randomAns(seed, mods = ALL, k = 7) {
   const r = rng(seed), a = [];
-  for (let i = 0; i < Engine.N; i++) a.push(mods.includes(PSY.scales[PSY.items[i][0]].mod) ? String(1 + Math.floor(r() * 5)) : '0');
+  for (let i = 0; i < Engine.N; i++) a.push(mods.includes(PSY.scales[PSY.items[i][0]].mod) ? String(1 + Math.floor(r() * k)) : '0');
   return a.join('');
 }
 // answers that push every scale to its maximum (or minimum) on the keyed direction
-function extremeAns(hi) {
-  return PSY.items.map(it => String((it[1] > 0) === hi ? 5 : 1)).join('');
+function extremeAns(hi, k = 7) {
+  return PSY.items.map(it => String((it[1] > 0) === hi ? k : 1)).join('');
 }
 
 test('every item points to a known scale and module', () => {
@@ -50,6 +50,7 @@ test('share code round-trips answers and modules', () => {
     assert.ok(back, 'decode failed');
     assert.deepStrictEqual(back.mods, mods);
     assert.strictEqual(back.ans, ans);
+    assert.strictEqual(back.k, 7);
   }
 });
 
@@ -87,7 +88,7 @@ test('profile has every derived block for a full answer set', () => {
 test('missing items: scale needs at least half answered', () => {
   const ans = Engine.blank().split('');
   const idx = Engine.byScale.vol;
-  ans[idx[0]] = '5'; ans[idx[1]] = '1';
+  ans[idx[0]] = '7'; ans[idx[1]] = '1';
   let P = Engine.profile(ans.join(''), ['char']);
   assert.strictEqual(P.s.vol, 100);
   ans[idx[1]] = '0';
@@ -136,4 +137,24 @@ test('group report', () => {
   assert.ok(g.pairs[0].compat >= g.pairs[9].compat);
   assert.strictEqual(g.M[1][3], g.M[3][1]);
   assert.strictEqual(g.roles.length, Object.keys(PSY.roles).length);
+});
+
+test('old 5-point profiles: format 1 codes still decode and score on their own scale', () => {
+  const ans = randomAns(21, ALL, 5);
+  const code = Engine.encode(ALL, ans, 5);
+  const back = Engine.decode(code);
+  assert.strictEqual(back.k, 5);
+  assert.strictEqual(back.ans, ans);
+  const hi = Engine.profile(extremeAns(true, 5), ALL, 5), lo = Engine.profile(extremeAns(false, 5), ALL, 5);
+  Object.keys(PSY.scales).forEach(id => { assert.strictEqual(hi.s[id], 100, id); assert.strictEqual(lo.s[id], 0, id); });
+  // the same opinion on both scales lands on the same score
+  const mid5 = Engine.profile('3'.repeat(Engine.N), ALL, 5), mid7 = Engine.profile('4'.repeat(Engine.N), ALL, 7);
+  Object.keys(PSY.scales).forEach(id => assert.strictEqual(mid5.s[id], mid7.s[id], id));
+});
+
+test('to7 maps unfinished 5-point answers onto the 7-point labels', () => {
+  assert.strictEqual(Engine.to7('012345'), '013457');
+  const a5 = randomAns(3, ALL, 5);
+  const p5 = Engine.profile(a5, ALL, 5), p7 = Engine.profile(Engine.to7(a5), ALL, 7);
+  Object.keys(PSY.scales).forEach(id => { if (p5.s[id] != null) assert.ok(Math.abs(p5.s[id] - p7.s[id]) < 9, id); });
 });
