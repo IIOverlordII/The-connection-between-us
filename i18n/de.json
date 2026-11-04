@@ -321,8 +321,6 @@
     "g_winner": "{name} kennt das Gegenüber besser",
     "g_thought": "{name} tippte:",
     "g_rows_hint": "Unter der Wahl jeder Person steht der Tipp des Gegenübers: ✓ richtig, ✗ daneben.",
-    "g_choice": "Wahl: {x}",
-    "g_guess_l": "Tipp: {x}",
     "g_guesses": "{name}: Treffer",
     "g_same": "gleiche Vorlieben bei {a} von {b} ({p} %)",
     "g_score": "{name}: {a} von {b} richtig",
