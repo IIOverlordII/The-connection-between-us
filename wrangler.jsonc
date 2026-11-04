@@ -1,0 +1,12 @@
+// Cloudflare Workers Builds deploys this on every push to main (npx wrangler deploy)
+// and builds a preview for other branches (npx wrangler preview). The site is the static app/ folder.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "the-connection-between-us",
+  "compatibility_date": "2026-11-03",
+  "assets": {
+    "directory": "./app"
+  },
+  // branch previews; the block may stay empty
+  "previews": {}
+}

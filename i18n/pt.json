@@ -352,7 +352,11 @@
     "install_btn": "Instalar o app",
     "about": "Sobre o app",
     "about_text": "{n} perguntas em {m} blocos do teste e {g} perguntas no jogo “{game}”. As perguntas sobre traços de personalidade foram adaptadas do banco aberto International Personality Item Pool (domínio público); as demais foram criadas para este app com base nas descrições de modelos científicos (veja “Teoria”).",
-    "about_disclaimer": "Os resultados são uma autodescrição, não um diagnóstico. Se o seu estado emocional preocupa você, procure ajuda profissional de psicologia ou psicoterapia."
+    "about_disclaimer": "Os resultados são uma autodescrição, não um diagnóstico. Se o seu estado emocional preocupa você, procure ajuda profissional de psicologia ou psicoterapia.",
+    "legal_pricing": "Preços",
+    "legal_terms": "Termos",
+    "legal_refund": "Reembolsos",
+    "legal_privacy": "Privacidade"
   },
   "eng": {
     "quote": "“{x}”",
