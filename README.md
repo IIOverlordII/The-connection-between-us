@@ -88,6 +88,28 @@ python -m http.server 8766 --directory app     # http://127.0.0.1:8766
 Цены и документы для проверки сайта в Paddle — английские страницы `app/pricing.html`, `terms.html`, `refund.html`, `privacy.html`
 (общий стиль `app/css/legal.css`), ссылки на них есть в боковой панели, на главной и в настройках. Продавец на них указан как Aureliel.
 
+### Полная версия (оплата через Paddle)
+
+Бесплатно: тест, профили, баллы совместимости пары, матрица группы, игра по 10 вопросов и участие в любой присланной игре.
+Полная версия (4,99 $ разово) открывает полные отчёты пары и группы и раунды на 20 и 30 вопросов для всех участников на устройстве.
+
+- `app/js/pay.js` — оформление покупки (Paddle.js грузится только при открытии оплаты) и проверка кода разблокировки по открытому ключу.
+  Пока `PADDLE.token` и `PADDLE.priceId` пустые, оплата выключена и всё приложение бесплатно.
+- `worker/index.mjs` — `POST /api/unlock` с `{ txn }` или `{ email }`: спрашивает Paddle, есть ли оплаченная и не возвращённая покупка,
+  и отвечает кодом, подписанным закрытым ключом. Cloudflare запускает его только для `/api/*` (`wrangler.jsonc`), остальное — статика из `app/`.
+  Раз в неделю приложение перепроверяет покупку, после возврата денег полная версия отключается.
+
+Включение (сначала в песочнице Paddle, потом в живом аккаунте):
+1. Paddle → Catalog: продукт «Between Us — full version», разовая цена 4,99 $ → её ID (`pri_…`) в `app/js/pay.js` (`PADDLE.priceId`)
+   и в `wrangler.jsonc` (`PADDLE_PRICE_ID`).
+2. Paddle → Developer tools → Authentication: client-side token (`test_…` в песочнице, `live_…` в живом) → `PADDLE.token` в `app/js/pay.js`;
+   API key с правами `transaction.read`, `customer.read`, `adjustment.read` → Cloudflare → Worker `the-connection-between-us` →
+   Settings → Variables and secrets → секрет `PADDLE_API_KEY`.
+3. Там же секрет `LICENSE_KEY` — содержимое `.secrets/LICENSE_KEY.json` (лежит только локально, в git не попадает).
+   Если файл потерян — создать новую пару ключей и заменить `KEY` в `app/js/pay.js`; выданные раньше коды перестанут работать,
+   их восстановят через «Восстановить покупку».
+4. Paddle → Checkout → Checkout settings: одобренный домен `aureliel.store`, Default payment link `https://aureliel.store/`.
+
 На других ветках те же workflow проверяют сборку и прикладывают к запуску (вкладка Actions) превью сайта и `.exe`, но ничего не публикуют.
 
 **iPhone/iPad:** откройте сайт в **Safari** → «Поделиться» → **«На экран „Домой“»**. Приложение откроется на весь экран и после первого запуска работает без интернета.

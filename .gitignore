@@ -2,3 +2,4 @@ desktop/.venv/
 desktop/build/
 dist/
 __pycache__/
+.secrets/
