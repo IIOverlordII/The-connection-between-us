@@ -25,7 +25,7 @@ function rng(seed) { return () => { seed = (seed * 1103515245 + 12345) & 0x7ffff
 function answers(W, seed) {
   const r = rng(seed), lat = {};
   Object.keys(W.PSY.scales).forEach(s => { const n = W.PSY.scales[s].norm; lat[s] = Math.min(100, Math.max(0, (n ? n[0] : 60) + (r() + r() + r() - 1.5) * 50)); });
-  return W.PSY.items.map(([s, k]) => { const v = Math.round(Math.min(5, Math.max(1, 1 + lat[s] / 25 + (r() - .5)))); return String(k > 0 ? v : 6 - v); }).join('');
+  return W.PSY.items.map(([s, k]) => { const v = Math.round(Math.min(7, Math.max(1, 1 + lat[s] / 100 * 6 + (r() - .5)))); return String(k > 0 ? v : 8 - v); }).join('');
 }
 const CYR = /[Ѐ-ӿ]/;
 
@@ -57,6 +57,8 @@ for (const lang of langs) {
     const ru = (() => { const c = { console }; c.window = c; vm.createContext(c);
       ['data.js', 'game-data.js', 'strings.js'].forEach(f => vm.runInContext(fs.readFileSync(path.join(JS, f), 'utf8'), c)); return c; })();
     W.PSY.items.forEach((it, i) => assert.notStrictEqual(it[2], ru.PSY.items[i][2], `item ${i} still Russian`));
+    assert.strictEqual(W.PSY.answers.length, ru.PSY.answers.length, 'answer scale length');
+    if (lang !== 'uk') W.PSY.answers.forEach(x => assert.ok(!CYR.test(x), `answer still Russian: ${x}`));
     W.GAME.q.forEach((q, i) => {
       assert.strictEqual(q.length, ru.GAME.q[i].length, `game q${i}: option count changed`);
       assert.strictEqual(q[0], ru.GAME.q[i][0], `game q${i}: category changed`);
