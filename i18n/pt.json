@@ -322,8 +322,6 @@
     "g_winner": "Quem conhece melhor o par: {name}",
     "g_thought": "Palpite de {name}:",
     "g_rows_hint": "Abaixo da escolha de cada pessoa está o palpite do par: ✓ acertou, ✗ errou.",
-    "g_choice": "escolha: {x}",
-    "g_guess_l": "palpite: {x}",
     "g_guesses": "Acertos de {name}",
     "g_same": "gostos iguais em {a} de {b} ({p}%)",
     "g_score": "{name}: {a} de {b} acertos",
