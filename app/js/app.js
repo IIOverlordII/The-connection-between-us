@@ -1,6 +1,8 @@
 (function () {
   'use strict';
   const D = window.PSY, E = window.Engine, I = window.I18n, Pay = window.Pay || { enabled: false, verify: async () => null }; // no pay.js (a page cached before it existed): everything stays free
+  // no sync.js (a page cached before it existed): no saving to Google Drive
+  const Sync = window.Sync || { enabled: false, available: () => false, hasToken: () => false, snapshot: () => new Map(), stamp: () => false };
   const S = D.scales;
   const VER = ((document.currentScript && /[?&]v=([^&]+)/.exec(document.currentScript.src)) || [])[1] || '';
 
@@ -36,23 +38,37 @@
     game: '<rect x="3.5" y="3.5" width="17" height="17" rx="4"/><circle cx="8.5" cy="8.5" r="1.3"/><circle cx="15.5" cy="15.5" r="1.3"/><circle cx="15.5" cy="8.5" r="1.3"/><circle cx="8.5" cy="15.5" r="1.3"/><circle cx="12" cy="12" r="1.3"/>',
     trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8M9.5 17h5"/>',
     globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
-    lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>'
+    lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+    cloud: '<path d="M7 18.5a4.5 4.5 0 0 1-.7-8.95A6 6 0 0 1 17.8 8a4.3 4.3 0 0 1-.3 10.5z"/>'
   };
   const icon = (n, cls = '') => `<svg class="${cls}" viewBox="0 0 24 24">${ICON[n] || ''}</svg>`;
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 
   // ───────── storage ─────────
+  // Every save marks the people, games and purchase it changed (upd) and remembers deletions (gone),
+  // so that copies on several devices can be merged through Google Drive (sync.js).
   const Store = {
     key: 'psy-v1',
     d: {},
+    snap: new Map(),
     load() {
       let saved = {};
       try { saved = JSON.parse(localStorage.getItem(this.key) || '{}') || {}; } catch (e) { saved = {}; }
       this.d = Object.assign({ theme: 'auto', fs: 16, lang: '', ctx: 'love', people: [], sel: [], mode: 'compat', games: [], gset: { mode: 'local', n: 20, cats: [] }, gfilter: 'all' }, saved);
-      this.d.people.forEach(p => { if (!p.ans || p.ans.length !== E.N) p.ans = ((p.ans || '') + E.blank()).slice(0, E.N); });
+      this.fix();
     },
-    save() { try { localStorage.setItem(this.key, JSON.stringify(this.d)); } catch (e) { /* private mode or quota */ } }
+    fix() {
+      this.d.people.forEach(p => { if (!p.ans || p.ans.length !== E.N) p.ans = ((p.ans || '') + E.blank()).slice(0, E.N); });
+      this.snap = Sync.snapshot(this.d);
+    },
+    save() {
+      const changed = Sync.stamp(this.d, this.snap);
+      if (changed && this.d.gsync) this.d.gsync.dirty = true;
+      try { localStorage.setItem(this.key, JSON.stringify(this.d)); } catch (e) { /* private mode or quota */ }
+      if (changed) syncSoon();
+    }
   };
+  let syncing = null, syncT = 0, syncedNow = false;
   Store.load();
 
   const people = () => Store.d.people;
@@ -92,7 +108,7 @@
     const cur = map[root] || '#/';
     $('#sidebar').innerHTML = `<div class="side-brand"><img src="icons/icon.svg" alt="">${te('app')}</div>` +
       NAV.map(([h, l, ic]) => `<a class="side-link${cur === h ? ' active' : ''}" href="${h}">${icon(ic)}${te(l)}</a>`).join('') +
-      `<div class="side-foot">${te('side_foot')}${legalLinks()}</div>`;
+      `<div class="side-foot">${te(syncOn() ? 'side_foot_sync' : 'side_foot')}${legalLinks()}</div>`;
     $('#tabbar').innerHTML = NAV.map(([h, l, ic]) => `<a class="tab${cur === h ? ' active' : ''}" href="${h}">${icon(ic)}<span>${te(l)}</span></a>`).join('');
     $('#langBtn').textContent = I.lang().toUpperCase();
   }
@@ -209,11 +225,93 @@
     <div class="row"><button class="btn" data-buy>${te('full_buy', { price: Pay.price(I.lang()) })}</button><button class="btn secondary" data-restore>${te('full_restore')}</button></div>
     <p class="note">${te('full_once')} <a href="pricing.html">${te('legal_pricing')}</a></p></section>`;
 
+  // ───────── saving to Google Drive ─────────
+  // Store.d.gsync = { email, fid, at, dirty } while signed in. Syncing needs a Google token, and only a click can get one
+  // (Google's sign-in window); a token lasts about an hour, and while it is valid every change is saved by itself.
+  const gs = () => Store.d.gsync;
+  const syncOn = () => Sync.available() && !!gs();
+  const syncLocal = () => ({ people: Store.d.people, games: Store.d.games, lic: Store.d.lic, gone: Store.d.gone || {} });
+  function syncSoon() {
+    if (!syncOn() || !Sync.hasToken()) return;
+    clearTimeout(syncT);
+    syncT = setTimeout(() => syncNow(false), 3000);
+  }
+  // message for a failed attempt, or '' when there's nothing to say (the person closed Google's window)
+  const syncFail = e => ({ popup: t('sync_popup'), denied: t('sync_denied'), closed: '' })[e && e.code] ?? t('sync_error');
+  // click: the person pressed a button, so Google's window may be opened and the outcome is reported
+  function syncNow(click) {
+    if (!syncOn()) return Promise.resolve();
+    if (syncing) return syncing;
+    syncing = (async () => {
+      const g = gs();
+      try {
+        if (!Sync.hasToken()) {
+          if (!click) return;
+          const email = await Sync.signIn(g.email);
+          if (email) g.email = email;
+        }
+        refreshSync();
+        const r = await Sync.exchange(syncLocal(), g.fid);
+        if (gs() !== g) return; // signed out meanwhile
+        const d = Store.d;
+        d.people = r.data.people; d.games = r.data.games; d.gone = r.data.gone;
+        if (r.data.lic) d.lic = r.data.lic; else delete d.lic;
+        Store.fix();
+        Object.assign(g, { fid: r.fid, at: Date.now(), dirty: false });
+        Store.save();
+        syncedNow = true;
+        if (r.changed) { await loadLicense(); route(); toast(t('sync_updated')); } else if (click) toast(t('sync_done'));
+      } catch (e) {
+        const m = syncFail(e);
+        if (m && (click || e.code !== 'login')) toast(m);
+      } finally { syncing = null; refreshSync(); }
+    })();
+    return syncing;
+  }
+  async function syncConnect() {
+    try {
+      const email = await Sync.signIn('');
+      Store.d.gsync = { email, fid: null, at: 0, dirty: true };
+      Store.save();
+      renderNav(location.hash.replace(/^#\/?/, '').split('/')[0]);
+      await syncNow(true);
+    } catch (e) { const m = syncFail(e); if (m) toast(m); refreshSync(); }
+  }
+  function syncDisconnect() {
+    Sync.signOut();
+    delete Store.d.gsync; syncedNow = false;
+    Store.save(); route(); toast(t('sync_out_done'));
+  }
+  const when = ts => { try { return new Intl.DateTimeFormat(I.lang(), { dateStyle: 'medium', timeStyle: 'short' }).format(ts); } catch (e) { return new Date(ts).toLocaleString(); } };
+  function syncCard() {
+    if (!Sync.enabled) return '';
+    const h = `<h3 class="card-h">${icon('cloud')}${te('sync_title')}</h3>`;
+    if (!Sync.available()) return `<div class="card">${h}<p class="small">${th('sync_site', { site: `<a href="${SITE}" target="_blank" rel="noopener">${esc(SITE.replace('https://', '').replace(/\/$/, ''))}</a>` })}</p></div>`;
+    const g = gs();
+    return `<div class="card" id="syncBox">${h}${g
+      ? `<p class="small">${g.email ? te('sync_on', { email: g.email }) : te('sync_on_any')} ${g.at ? te('sync_last', { time: when(g.at) }) : te('sync_never')}</p>
+        <p class="small muted">${te('sync_note')}</p>
+        <div class="row"><button class="btn" data-sync-now${syncing ? ' disabled' : ''}>${te(syncing ? 'sync_busy' : 'sync_now')}</button><button class="btn secondary" data-sync-out>${te('sync_out')}</button></div>`
+      : `<p class="small">${te('sync_text')}</p><button class="btn" data-sync-in${syncing ? ' disabled' : ''}>${icon('cloud')}${te('sync_signin')}</button>`}</div>`;
+  }
+  // on the home page while signed in but without a token: one click syncs
+  const syncBar = () => (syncOn() && !Sync.hasToken() && (gs().dirty || !syncedNow)
+    ? `<div class="card sync-bar" id="syncBar">${icon('cloud')}<p class="small">${te('sync_bar')}</p><button class="btn secondary" data-sync-now${syncing ? ' disabled' : ''}>${te(syncing ? 'sync_busy' : 'sync_now')}</button></div>`
+    : '<div id="syncBar" hidden></div>');
+  function refreshSync() {
+    const box = $('#syncBox'), bar = $('#syncBar');
+    if (box) box.outerHTML = syncCard();
+    if (bar) bar.outerHTML = syncBar();
+  }
+
   document.addEventListener('click', e => {
     const c = e.target.closest('[data-copy]');
     if (c) { e.preventDefault(); copy(c.dataset.copy); return; }
     if (e.target.closest('[data-buy]')) { buyModal(); return; }
     if (e.target.closest('[data-restore]')) { restoreModal(); return; }
+    if (e.target.closest('[data-sync-in]')) { syncConnect(); return; }
+    if (e.target.closest('[data-sync-now]')) { syncNow(true); return; }
+    if (e.target.closest('[data-sync-out]')) { syncDisconnect(); return; }
     const el = e.target.closest('[data-close]');
     if (el) { if (!el.hasAttribute('href')) e.preventDefault(); closeModal(); }
   });
@@ -314,6 +412,7 @@
         <div class="hero-actions"><a class="btn light" href="#/new">${icon('plus')}${te('new_person')}</a>
         ${dn.length >= 2 ? `<a class="btn ghost-light" href="${compareHref(dn.map(p => p.id))}">${icon('heart')}${te('compare_all')}</a>` : ''}
         <a class="btn ghost-light" href="#/game">${icon('game')}${te('game_title')}</a></div></div>
+      ${syncBar()}
       ${ps.length ? `<h3>${te('participants')}</h3><div class="list">${ps.map(personRow).join('')}</div>` : ''}
       <div class="row" style="margin:14px 0"><button class="btn secondary" id="importBtn">${icon('link')}${te('add_by_code')}</button></div>
       ${ps.length < 2 ? `<div class="card"><h3 style="margin-top:0">${te('how_title')}</h3>
@@ -1112,7 +1211,8 @@
       ${Pay.enabled ? `<div class="card"><h3 class="card-h">${te('full_title')}</h3>${full
         ? `<p class="small">${te('full_active')}${Store.d.lic ? ' ' + te('full_order', { txn: Store.d.lic.txn }) : ''}</p>`
         : `<p class="small">${te('full_sub')}</p><div class="row"><button class="btn" data-buy>${te('full_buy', { price: Pay.price(I.lang()) })}</button><button class="btn secondary" data-restore>${te('full_restore')}</button></div>`}</div>` : ''}
-      <div class="card"><h3 class="card-h">${te('data')}</h3><p class="small">${te('data_text')}</p>
+      ${syncCard()}
+      <div class="card"><h3 class="card-h">${te('data')}</h3><p class="small">${te(syncOn() ? 'data_text_sync' : 'data_text')}</p>
         <div class="row"><button class="btn secondary" id="expBtn"${dn.length ? '' : ' disabled'}>${te('all_codes_btn')}</button><button class="btn danger" id="wipeBtn"${people().length ? '' : ' disabled'}>${te('delete_all')}</button></div></div>
       <div class="card"><h3 class="card-h">${te('install')}</h3><p class="small">${te('site')} <a href="${SITE}" target="_blank" rel="noopener">${esc(SITE.replace('https://', ''))}</a></p>
         <p class="small">${te('inst_ios')}</p><p class="small">${te('inst_android')}</p>
@@ -1211,7 +1311,15 @@
       route();
       if (added > 0) toast(t('imp_added', { n: added }));
       recheckLicense();
+      if (syncOn()) {
+        Sync.load().catch(() => { /* offline: the sync button reports it */ }); // ready before the first click on "Sync"
+        if (Sync.hasToken()) syncNow(false);
+      }
     });
+  });
+  // coming back to the tab: pick up changes made on other devices meanwhile
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && syncOn() && Sync.hasToken() && Date.now() - (gs().at || 0) > 30e3) syncNow(false);
   });
 
   // offline cache on https; locally only with ?sw=1 so it does not get in the way of development
