@@ -129,6 +129,7 @@ kbd { font: inherit; font-size: .85em; padding: 1px 6px; border: 1px solid var(-
   .side-link:hover { background: var(--surface-2); }
   .side-link.active { background: var(--primary-soft); color: var(--primary); }
   .side-foot { margin-top: auto; padding: 10px; font-size: .78em; color: var(--muted); }
+  .side-foot .legal-links { margin: 8px 0 0; }
   #view { padding: 24px 28px 40px; }
 }
 
