@@ -323,8 +323,6 @@
     "g_winner": "Lepiej zna drugą połówkę: {name}",
     "g_thought": "{name} typuje:",
     "g_rows_hint": "Pod wyborem każdej osoby — typ drugiej połówki: ✓ trafiony, ✗ nie.",
-    "g_choice": "wybór: {x}",
-    "g_guess_l": "typ: {x}",
     "g_guesses": "{name}: trafione typy",
     "g_same": "zgodne gusta: {a} z {b} ({p}%)",
     "g_score": "{name}: trafione {a} z {b}",
