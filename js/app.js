@@ -1,6 +1,6 @@
 (function () {
   'use strict';
-  const D = window.PSY, E = window.Engine, I = window.I18n, Pay = window.Pay;
+  const D = window.PSY, E = window.Engine, I = window.I18n, Pay = window.Pay || { enabled: false, verify: async () => null }; // no pay.js (a page cached before it existed): everything stays free
   const S = D.scales;
   const VER = ((document.currentScript && /[?&]v=([^&]+)/.exec(document.currentScript.src)) || [])[1] || '';
 
