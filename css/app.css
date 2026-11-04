@@ -359,6 +359,7 @@ details.fold[open] > summary .fold-ic { transform: rotate(-90deg); }
 
 /* full version: the card in place of paid sections, the price in the buy window */
 .lock-card { border: 2px solid var(--primary-soft); }
+.lock-in { margin-top: 14px; padding: 14px; border-radius: 12px; }
 .lock-card .card-h { display: flex; align-items: center; gap: 8px; }
 .lock-card .card-h svg, .inline-ic { width: 18px; height: 18px; flex: none; fill: none; stroke: var(--primary); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 .inline-ic { display: inline-block; vertical-align: -3px; margin-right: 6px; }

@@ -178,7 +178,7 @@
     if (!Pay.enabled) return;
     const pr = Pay.price(I.lang());
     openModal(`<h2>${te('full_title')}</h2><p class="price-big">${esc(pr)}</p><p class="small muted">${te('full_once')}</p>
-      <ul class="ins plus">${['full_f1', 'full_f2', 'full_f3', 'full_f4'].map(k => `<li>${icon('check')}<span>${te(k, { n: window.GAME.q.length })}</span></li>`).join('')}</ul>
+      <ul class="ins plus">${['full_f1', 'full_f2', 'full_f5', 'full_f3', 'full_f4'].map(k => `<li>${icon('check')}<span>${te(k, { n: window.GAME.q.length })}</span></li>`).join('')}</ul>
       ${Pay.canCheckout() ? `<button class="btn block" id="payBtn">${te('full_buy', { price: pr })}</button>`
         : `<p class="small">${te('full_on_site')}</p><a class="btn block" href="${Pay.SITE}#/buy" target="_blank" rel="noopener">${esc(Pay.SITE.replace('https://', ''))}</a>`}
       <button class="btn secondary block" id="restBtn" style="margin-top:8px">${te('full_restore')}</button>
@@ -210,9 +210,9 @@
     inp.onkeydown = e => { if (e.key === 'Enter') send(); };
   }
   // shown in place of the paid sections of a report
-  const lockCard = (title, text) => `<section class="card lock-card"><h3 class="card-h">${icon('lock')}${te(title)}</h3><p class="small">${te(text)}</p>
+  const lockCard = (title, text, inner) => `<${inner ? 'div' : 'section'} class="${inner ? 'lock-in' : 'card'} lock-card"><h3 class="card-h">${icon('lock')}${te(title)}</h3><p class="small">${te(text)}</p>
     <div class="row"><button class="btn" data-buy>${te('full_buy', { price: Pay.price(I.lang()) })}</button><button class="btn secondary" data-restore>${te('full_restore')}</button></div>
-    <p class="note">${te('full_once')} <a href="pricing.html">${te('legal_pricing')}</a></p></section>`;
+    <p class="note">${te('full_once')} <a href="pricing.html">${te('legal_pricing')}</a></p></${inner ? 'div' : 'section'}>`;
 
   document.addEventListener('click', e => {
     const c = e.target.closest('[data-copy]');
@@ -652,20 +652,22 @@
     }).filter(Boolean);
   }
   function answersFold(list) {
-    const rows = answerRows(list), one = list.length === 1;
+    const rows = answerRows(list), one = list.length === 1, locked = !one && !full;
     const head = one ? te('ans_done', { a: rows.filter(r => r.v[0]).length, b: rows.length })
       : te('ans_sub', { same: rows.filter(r => r.spread >= 0 && r.spread <= 1).length, diff: rows.filter(r => r.spread >= 3).length });
     const f = Store.d.afilter || 'diff';
     return fold(t(one ? 'ans_mine' : 'ans_title'), head, `<p class="small muted">${te('ans_hint', { lo: D.answers[0], hi: D.answers[D.answers.length - 1] })}</p>
-      ${one ? '' : `${legend(list)}${seg('afilter', AFILTERS.map(([v, k]) => [v, t(k)]), f)}`}<div class="alist" id="alist"></div>`);
+      ${one ? '' : legend(list) + (locked ? '' : seg('afilter', AFILTERS.map(([v, k]) => [v, t(k)]), f))}<div class="alist" id="alist"></div>
+      ${locked ? lockCard('full_ans_t', 'full_ans_text', true) : ''}`);
   }
   function bindAnswers(list) {
     const box = $('#alist'); if (!box) return;
-    const rows = answerRows(list), one = list.length === 1, last = D.answers.length - 1;
+    const rows = answerRows(list), one = list.length === 1, locked = !one && !full, last = D.answers.length - 1;
     const draw = () => {
-      const f = one ? 'all' : Store.d.afilter || 'diff';
-      const shown = f === 'diff' ? rows.filter(r => r.spread >= 3).sort((a, b) => b.spread - a.spread || a.i - b.i)
+      const f = one ? 'all' : locked ? 'diff' : Store.d.afilter || 'diff';
+      let shown = f === 'diff' ? rows.filter(r => r.spread >= 3).sort((a, b) => b.spread - a.spread || a.i - b.i)
         : f === 'same' ? rows.filter(r => r.spread >= 0 && r.spread <= 1) : rows;
+      if (locked) shown = shown.slice(0, 3); // preview: the three biggest differences
       box.innerHTML = shown.map(r => `<div class="ai"><div class="aq"><span class="muted small">${esc(modName(r.mod))}</span><b>${esc(r.text)}</b></div>
         <div class="track multi ascale">${r.v.map((v, k) => v ? `<span class="dot" style="left:${(4 + (v - 1) / last * 92).toFixed(1)}%;background:${color(list[k])}"></span>` : '').join('')}</div>
         <div class="aw">${r.v.map((v, k) => `<span>${one ? '' : ava(list[k]) + esc(list[k].name) + ': '}<b>${v ? esc(D.answers[v - 1]) : te('ans_skip')}</b></span>`).join('')}</div></div>`).join('')
