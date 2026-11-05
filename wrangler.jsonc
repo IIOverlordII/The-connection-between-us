@@ -12,8 +12,8 @@
     "run_worker_first": ["/api/*"]
   },
   "vars": {
-    // price of the full version in Paddle (pri_…); empty keeps /api/unlock switched off
-    "PADDLE_PRICE_ID": ""
+    // price of the full version in Paddle (pri_…); /api/unlock stays off until the PADDLE_API_KEY and LICENSE_KEY secrets are set
+    "PADDLE_PRICE_ID": "pri_01m6kfbze7fd4qbvatbdrsk0cg"
   },
   // branch previews; the block may stay empty
   "previews": {}

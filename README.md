@@ -100,21 +100,22 @@ python -m http.server 8766 --directory app     # http://127.0.0.1:8766
 Полная версия (4,99 $ разово) открывает полные отчёты пары и группы и раунды на 20 и 30 вопросов для всех участников на устройстве.
 
 - `app/js/pay.js` — оформление покупки (Paddle.js грузится только при открытии оплаты) и проверка кода разблокировки по открытому ключу.
-  Пока `PADDLE.token` и `PADDLE.priceId` пустые, оплата выключена и всё приложение бесплатно.
+  Пока `PADDLE.token` пустой, оплата выключена и всё приложение бесплатно.
 - `worker/index.mjs` — `POST /api/unlock` с `{ txn }` или `{ email }`: спрашивает Paddle, есть ли оплаченная и не возвращённая покупка,
   и отвечает кодом, подписанным закрытым ключом. Cloudflare запускает его только для `/api/*` (`wrangler.jsonc`), остальное — статика из `app/`.
   Раз в неделю приложение перепроверяет покупку, после возврата денег полная версия отключается.
 
-Включение (сначала в песочнице Paddle, потом в живом аккаунте):
-1. Paddle → Catalog: продукт «Between Us — full version», разовая цена 4,99 $ → её ID (`pri_…`) в `app/js/pay.js` (`PADDLE.priceId`)
-   и в `wrangler.jsonc` (`PADDLE_PRICE_ID`).
-2. Paddle → Developer tools → Authentication: client-side token (`test_…` в песочнице, `live_…` в живом) → `PADDLE.token` в `app/js/pay.js`;
+Включение (в песочнице Paddle свои продукт, цена и ключи; ниже — живой аккаунт):
+1. ✓ Paddle → Catalog: продукт «Between Us — Full version» (`pro_01m6kfa7gcdzm4z4q8bwb3bnxy`), разовая цена 4,99 $
+   `pri_01m6kfbze7fd4qbvatbdrsk0cg` — уже в `app/js/pay.js` (`PADDLE.priceId`) и в `wrangler.jsonc` (`PADDLE_PRICE_ID`).
+2. После проверки аккаунта и сайта в Paddle → Developer tools → Authentication: client-side token (`test_…` в песочнице, `live_…` в живом) → `PADDLE.token` в `app/js/pay.js`;
    API key с правами `transaction.read`, `customer.read`, `adjustment.read` → Cloudflare → Worker `the-connection-between-us` →
    Settings → Variables and secrets → секрет `PADDLE_API_KEY`.
 3. Там же секрет `LICENSE_KEY` — содержимое `.secrets/LICENSE_KEY.json` (лежит только локально, в git не попадает).
    Если файл потерян — создать новую пару ключей и заменить `KEY` в `app/js/pay.js`; выданные раньше коды перестанут работать,
    их восстановят через «Восстановить покупку».
-4. Paddle → Checkout → Checkout settings: одобренный домен `aureliel.store`, Default payment link `https://aureliel.store/`.
+4. ✓ Paddle → Settings → Website approval: `aureliel.store` подан на проверку (www считается тем же доменом);
+   Checkout settings → Default payment link `https://aureliel.store/`.
 
 ### Сохранение в Google Диск
 
