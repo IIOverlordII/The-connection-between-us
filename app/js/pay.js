@@ -1,9 +1,9 @@
 // Full version: Paddle checkout and the unlock code signed by the purchase-check server (worker/index.mjs).
-// While PADDLE is empty, Pay.enabled is false and the whole app stays free.
+// While PADDLE.token is empty, Pay.enabled is false and the whole app stays free.
 (function (root) {
   'use strict';
   // Paddle → Developer tools: the client-side token (test_… sandbox, live_… live) and the price ID (pri_…) of the full version
-  const PADDLE = { token: '', priceId: '' };
+  const PADDLE = { token: '', priceId: 'pri_01m6kfbze7fd4qbvatbdrsk0cg' };
   // public half of the server's LICENSE_KEY: only codes signed with the private half unlock the full version
   const KEY = { kty: 'EC', crv: 'P-256', x: 'ibJXGHMrVooFlkVW53Go-dZO7wdAyYIFkDpkdWoRBzE', y: 'fLYi2OTjqYHhB0Hqb67bImB7lSj0sBhPU3aPi3F1V9A' };
   const PRICE_USD = 4.99;
