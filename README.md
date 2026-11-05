@@ -116,6 +116,22 @@ python -m http.server 8766 --directory app     # http://127.0.0.1:8766
    их восстановят через «Восстановить покупку».
 4. Paddle → Checkout → Checkout settings: одобренный домен `aureliel.store`, Default payment link `https://aureliel.store/`.
 
+### Сохранение в Google Диск
+
+В настройках сайта «Войти через Google»: участники, ответы, игры и код покупки хранятся в одном скрытом файле `between-us.json`
+в папке приложения на Google Диске самого пользователя (`appDataFolder`, разрешение `drive.appdata` — остальные файлы приложению не видны).
+Сервера нет: браузер обращается к Google напрямую (`app/js/sync.js`).
+
+- Каждое сохранение помечает изменённых участников и игры временем (`upd`) и запоминает удалённые (`gone`),
+  поэтому копии с разных устройств объединяются по участникам: остаётся более свежая версия, удаление переносится на другие устройства.
+- Доступ от Google живёт около часа и выдаётся только по нажатию (окно входа Google). Пока он есть, изменения сохраняются сами
+  через 3 секунды; потом на главной появляется кнопка «Синхронизировать».
+- В программе для Windows (`file://`) Google не даёт входить, там карточка только ссылается на сайт.
+
+Включение: Google Cloud → Google Auth Platform → Clients → Web application, Authorized JavaScript origins:
+`https://aureliel.store`, `https://www.aureliel.store` (и `http://localhost:8766` для проверки) → Client ID в `CLIENT_ID` в `app/js/sync.js`.
+Включить Google Drive API, на экране согласия — ссылки на сайт и `privacy.html`. Пока `CLIENT_ID` пустой, функция скрыта.
+
 На других ветках те же workflow проверяют сборку и прикладывают к запуску (вкладка Actions) превью сайта и `.exe`, но ничего не публикуют.
 
 **iPhone/iPad:** откройте сайт в **Safari** → «Поделиться» → **«На экран „Домой“»**. Приложение откроется на весь экран и после первого запуска работает без интернета.
@@ -137,12 +153,14 @@ app/                 то, что публикуется и попадает в 
   i18n/<lang>.js     собранные переводы (генерируются, руками не править)
   js/game-data.js    300 вопросов игры «Кто лучше знает партнёра» (правится руками, только дописывать)
   js/game.js         подбор вопросов, коды игры, подсчёт результата (без DOM)
+  js/pay.js          покупка полной версии через Paddle и проверка кода разблокировки
+  js/sync.js         сохранение в Google Диск: вход через Google, обмен с Диском, объединение копий
 i18n/<lang>.json     переводы (ru.json — выгрузка исходных текстов для переводчиков)
 tools/i18n.mjs       выгрузка, проверка и сборка переводов
 tools/build.py       проверяет data.js и переводы, обновляет офлайн‑кэш (sw.js) и ?v= в index.html
 tools/make_icons.py  рисует PNG‑иконки и icon.ico (нужен Pillow)
 desktop/             оболочка для Windows (pywebview)
-test/                тесты: node --test test/engine.test.js test/game.test.js test/i18n.test.js
+test/                тесты: node --test test/engine.test.js test/game.test.js test/i18n.test.js test/pay.test.mjs test/sync.test.mjs
 ```
 
 После любой правки в `app/` выполните `python tools/build.py`.

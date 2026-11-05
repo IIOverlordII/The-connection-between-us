@@ -14,6 +14,8 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
+  // other sites (Google sign-in and Drive, Paddle) go straight to the network
+  if (new URL(e.request.url).origin !== self.location.origin) return;
   // language bundles are not precached (only the chosen ones are needed): cache them on first use
   const lazy = /\/i18n\/[a-z]{2}\.js$/.test(new URL(e.request.url).pathname);
   e.respondWith(caches.match(e.request, { ignoreSearch: true }).then(hit => hit || fetch(e.request).then(res => {
