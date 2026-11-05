@@ -5,7 +5,9 @@
   const N = D.items.length;
   const MODS = D.modules.map(m => m.id);
   const S = D.scales;
-  const FORMAT = 1;
+  // answers are on a k-point scale: k = 7 for new tests, 5 for profiles made before the switch (share-code format 1)
+  const FORMATS = { 5: 1, 7: 2 };
+  const K = { 1: 5, 2: 7 };
 
   // ─── indexes (built once) ───
   const byScale = {}, modScales = {};
@@ -37,22 +39,24 @@
     return seq;
   }
 
-  function scaleScore(ans, id) {
+  function scaleScore(ans, id, k) {
     const idx = byScale[id];
     let sum = 0, n = 0;
-    for (let k = 0; k < idx.length; k++) {
-      const i = idx[k], v = ans.charCodeAt(i) - 48;
-      if (v >= 1 && v <= 5) { sum += D.items[i][1] > 0 ? v : 6 - v; n++; }
+    for (let j = 0; j < idx.length; j++) {
+      const i = idx[j], v = ans.charCodeAt(i) - 48;
+      if (v >= 1 && v <= k) { sum += D.items[i][1] > 0 ? v : k + 1 - v; n++; }
     }
-    return n * 2 >= idx.length ? (sum / n - 1) * 25 : null; // 0–100, needs at least half of the items
+    return n * 2 >= idx.length ? (sum / n - 1) / (k - 1) * 100 : null; // 0–100, needs at least half of the items
   }
+  // 5-point answers → nearest 7-point labels (used when an unfinished old test is continued on the new scale)
+  const to7 = ans => ans.replace(/[1-5]/g, c => '13457'[c - 1]);
 
   // ─── individual profile ───
-  function profile(ans, mods) {
+  function profile(ans, mods, k = 7) {
     const has = m => mods.includes(m);
     const s = {}, z = {}, pct = {};
     mods.forEach(m => (modScales[m] || []).forEach(id => {
-      const v = scaleScore(ans, id);
+      const v = scaleScore(ans, id, k);
       s[id] = v;
       const nm = S[id].norm;
       if (v != null && nm) { z[id] = (v - nm[0]) / nm[1]; pct[id] = Phi(z[id]) * 100; }
@@ -155,14 +159,14 @@
     bytes.forEach(b => { c = (c * 31 + b) & 255; });
     return c === ck ? bytes : null;
   }
-  function encode(mods, ans) {
+  function encode(mods, ans, k = 7) {
     let mask = 0;
     mods.forEach(m => { const i = MODS.indexOf(m); if (i >= 0) mask |= 1 << i; });
-    const bytes = [FORMAT, N, mask];
+    const bytes = [FORMATS[k] || 2, N, mask];
     let acc = 0, bits = 0;
     for (let i = 0; i < N; i++) {
       const v = ans.charCodeAt(i) - 48;
-      acc = (acc << 3) | (v >= 1 && v <= 5 ? v : 0); bits += 3;
+      acc = (acc << 3) | (v >= 1 && v <= k ? v : 0); bits += 3;
       while (bits >= 8) { bits -= 8; bytes.push((acc >> bits) & 255); }
       acc &= (1 << bits) - 1;
     }
@@ -171,7 +175,8 @@
   }
   function decode(code) {
     const bytes = unpack(code);
-    if (!bytes || bytes.length < 4 || bytes[0] !== FORMAT) return null;
+    if (!bytes || bytes.length < 4 || !K[bytes[0]]) return null;
+    const k = K[bytes[0]];
     const n = bytes[1], mask = bytes[2];
     const mods = MODS.filter((m, i) => mask & (1 << i));
     const a = [];
@@ -181,10 +186,10 @@
       bits -= 3;
       const v = (acc >> bits) & 7;
       acc &= (1 << bits) - 1;
-      a.push(v >= 1 && v <= 5 ? String(v) : '0');
+      a.push(v >= 1 && v <= k ? String(v) : '0');
     }
     const ans = (a.join('') + blank()).slice(0, N);
-    return mods.length ? { mods, ans } : null;
+    return mods.length ? { mods, ans, k } : null;
   }
 
   // ─── compatibility ───
@@ -447,5 +452,5 @@
     return { M, pairs, dom, roles, notes };
   }
 
-  root.Engine = { N, MODS, modCount, modScales, byScale, sequence, profile, encode, decode, pack, unpack, pair, group, Phi, blank, fmt };
+  root.Engine = { N, MODS, modCount, modScales, byScale, sequence, profile, encode, decode, pack, unpack, pair, group, Phi, blank, fmt, to7 };
 })(typeof window !== 'undefined' ? window : globalThis);
