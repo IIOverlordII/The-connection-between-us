@@ -363,6 +363,11 @@ details.fold[open] > summary .fold-ic { transform: rotate(-90deg); }
 .lock-card .card-h { display: flex; align-items: center; gap: 8px; }
 .lock-card .card-h svg, .inline-ic { width: 18px; height: 18px; flex: none; fill: none; stroke: var(--primary); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 .inline-ic { display: inline-block; vertical-align: -3px; margin-right: 6px; }
+/* saving to Google Drive: settings card and the home-page reminder */
+#syncBox .card-h, .sync-bar { display: flex; align-items: center; gap: 8px; }
+#syncBox .card-h svg, .sync-bar > svg { width: 18px; height: 18px; flex: none; fill: none; stroke: var(--primary); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.sync-bar { gap: 12px; flex-wrap: wrap; }
+.sync-bar p { flex: 1 1 220px; margin: 0; }
 .price-big { font-size: 2em; font-weight: 700; margin: 0; }
 #modalBody .ins { margin: 12px 0 16px; }
 .tbl { overflow-x: auto; }
