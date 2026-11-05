@@ -165,7 +165,15 @@ test('an expired token asks for a new sign-in; a damaged file is rewritten', asy
   });
 });
 
-test('hidden until a Google client ID is set, and never outside the site', () => {
-  assert.strictEqual(Sync.enabled, false);
-  assert.strictEqual(Sync.available(), false);
+test('switched on by the Google client ID, but only on the site and localhost', () => {
+  assert.strictEqual(Sync.enabled, true);
+  assert.strictEqual(Sync.available(), false, 'no address here, as in the Windows program (file://)');
+  const real = globalThis.location;
+  try {
+    for (const [h, ok] of [['aureliel.store', true], ['www.aureliel.store', true], ['localhost', true], ['google-sync-the-connection-between-us.karimkishvarov61.workers.dev', true],
+      ['iioverlordii.github.io', false], ['evil-aureliel.store', false], ['', false]]) {
+      globalThis.location = { hostname: h };
+      assert.strictEqual(Sync.available(), ok, h);
+    }
+  } finally { globalThis.location = real; }
 });

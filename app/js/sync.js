@@ -5,7 +5,7 @@
   'use strict';
   // Google Cloud → Google Auth Platform → Clients → the web client's ID (…apps.googleusercontent.com).
   // Its "Authorized JavaScript origins" must list every address the app is opened from.
-  const CLIENT_ID = '';
+  const CLIENT_ID = '299674430190-184dfge6svvesbpccm4lpobqc70qbnmm.apps.googleusercontent.com';
   const DRIVE = 'https://www.googleapis.com/auth/drive.appdata';
   const SCOPE = DRIVE + ' email';
   const NAME = 'between-us.json';
